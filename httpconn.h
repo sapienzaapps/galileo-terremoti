@@ -26,22 +26,24 @@ boolean isSending = false;
 int getLine(EthernetClient c, char* buffer, int maxsize, int toRead) {
   int i;
   byte done = 0;
-  memset(buffer, 0, maxsize);
+  memset(buffer, 0, maxsize);  // set the buffer to 0
   for(i=0; i < maxsize-1 && done == 0; i++) {
     //while(!client.available() && client.connected());
     buffer[i] = c.read();
     if(buffer[i] == '\r') i--;
-    if(buffer[i] == '\n' || buffer[i] == -1) {
+    if(buffer[i] == '\n' || buffer[i] == -1) {  // if there is nothing more to read
       done = 1;
       buffer[i] = 0;
     }
     if(toRead == -1) {
+    	// do nothing: it'll stop only if the buffer is emptied
     } else if(toRead > 1) {
       toRead--;
     } else {
       done = 1;
     }
   }
+
   return i-1;
 }
 
@@ -50,14 +52,17 @@ int getLine(EthernetClient c, char* buffer, int maxsize) {
 }
 
 int prepareFirstBuffer(char* buf, struct RECORD *db, struct TDEF *td) {
+	// ts, ms, pthresx, pthresy, pthresz, nthresx, nthresy, nthresz, deltax, deltay, deltaz
   return sprintf(buf, "%ld;%ld;%f;%f;%f;%f;%f;%f;%ld;%ld;%ld",
                      db->ts, db->ms, td->pthresx, td->pthresy, td->pthresz, td->nthresx, td->nthresy, td->nthresz, db->valx, db->valy, db->valz);
 }
 
 int prepareBuffer(char* buf, struct RECORD *db) {
+	// ts, ms, deltax, deltay, deltaz
   return sprintf(buf, "%ld;%ld;%ld;%ld;%ld\r\n", db->ts, db->ms, db->valx, db->valy, db->valz);
 }
 
+// open the file into the RAM of the device
 int ramopen(int seqid, int sendingIter) {
   Serial.print("Opening file ");
   // Send values
@@ -66,6 +71,7 @@ int ramopen(int seqid, int sendingIter) {
   Serial.println(filename);
   return open(filename, O_RDWR|O_CREAT);
 }
+// remove the file from the RAM of the device
 void ramunlink(int seqid, int sendingIter) {
   Serial.print("Removing file ");
   // Send values
@@ -92,18 +98,18 @@ void realHttpSendValues() {
   sendingIter++;
   seqDBfd = ramopen(seqid, sendingIter);
   int pid = fork();
-  if(pid == 0) {
-    int fd = ramopen(tempseqid, tempsendingIter);
+  if(pid == 0) {  // if its the child process
+    int fd = ramopen(tempseqid, tempsendingIter);  // store the file descriptor for the child file
     
-    int size = lseek(fd, 0, SEEK_END);
-    lseek(fd, 0, SEEK_SET);
+    int size = lseek(fd, 0, SEEK_END);  // get the size of the file
+    lseek(fd, 0, SEEK_SET);  // set the pointer to the beginning of the file
     
     char *sendBuffer = (char*) malloc(0);
     int offset = 0;
     int r = 0;
     unsigned int totalValues = 0;
     boolean isLast = true;
-    do {
+    do {  // for as long as there is something to read
       struct RECORD *rec = (struct RECORD*)malloc(sizeof(struct RECORD));
       r = read(fd, rec, sizeof(struct RECORD));
       if(r > 0) {
@@ -111,14 +117,14 @@ void realHttpSendValues() {
         totalValues++;
         
         char *rBuffer = (char *)malloc(300 * sizeof(char));
-        int ls = prepareBuffer(rBuffer, rec);
+        int ls = prepareBuffer(rBuffer, rec);  // get the length of the string and store the string into the buffer
         sendBuffer = (char*) realloc(sendBuffer, offset+ls);
         memcpy(sendBuffer + offset, rBuffer, ls);
         offset += ls;
         free(rBuffer);
       }
       free(rec);
-    } while(r > 0);
+    } while(r > 0);  // for as long as there is something to read
     sendBuffer = (char*) realloc(sendBuffer, offset+1);
     sendBuffer[offset] = 0;
     
@@ -206,11 +212,11 @@ void realHttpSendValues() {
   }
 }
 
+// send the accelerometer values that got over the threshold
 void httpSendValues(struct RECORD *db, struct TDEF *td) {
-  if(inEvent == 1) {
-    
-    if(seqDBfd != -1) {
-      write(seqDBfd, db, sizeof(struct RECORD));
+  if(inEvent == 1) {  // if an "event" is running
+    if(seqDBfd != -1) {  // if the file that stores the sequence has not yet been closed
+      write(seqDBfd, db, sizeof(struct RECORD));  // write the sequence onto the file into tRAM memory
     }
     
     if(isSending) {
@@ -243,7 +249,7 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
       Serial.println(httpServer);
       
       char rBuffer[300];
-      int rsize = prepareFirstBuffer(rBuffer, db, td);
+      int rsize = prepareFirstBuffer(rBuffer, db, td);  // prepare the info for the new entry into the DB
     
       client.print("POST ");
       client.print(path_domain);
@@ -284,7 +290,7 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
         
         char* separator = strchr(rBuffer, ';');
         *separator = 0;
-        seqid = atol(rBuffer);
+        seqid = atol(rBuffer);  // get the sequence ID
         nextContact = atol(separator+1) + getUNIXTime();
         Serial.print("SEQID:");
         Serial.println(seqid);

@@ -43,7 +43,8 @@ boolean getConfigUpdates(boolean noupdate) {
     char rBuffer[300];
     // Reading headers
     int s = getLine(client, rBuffer, 300);
-    if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {
+
+    if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {  // if it is an HTTP 200 response
       int bodySize = 0;
       do {
         s = getLine(client, rBuffer, 300);
@@ -88,24 +89,7 @@ boolean getConfigUpdates(boolean noupdate) {
 
 void doConfigUpdates() {
   if(lastCfgUpdate+cfgUpdateInterval < getUNIXTime()) {
-	//if (isOutOfSync(lastCfgUpdate+cfgUpdateInterval)) {
-  //if(isFirstConfigUpdate || (getUNIXTime() - (lastCfgUpdate+cfgUpdateInterval)) > 1) {
-    /*
-  	Serial.print("lastCfgUpdate: ");
-  	Serial.print(lastCfgUpdate);
-  	Serial.print(" | cfgUpdateInterval: ");
-  	Serial.print(cfgUpdateInterval);
-  	Serial.print(" | getUNIXTime(): ");
-        Serial.println(getUNIXTime());
-  	Serial.print("Time Difference: ");
-  	Serial.println(getUNIXTime() - (lastCfgUpdate+cfgUpdateInterval));
-  
-        if (!galileo_write_log()) {
-          Serial.println("Log problem");
-        }
-        
-    */
-  
+
     // Get Updates
     if(getConfigUpdates(false)) {
       Serial.println("Configuration update succeded");
@@ -129,9 +113,10 @@ void forceConfigUpdate(boolean noupdate) {
 }
 
 void forceConfigUpdate() {
-  return forceConfigUpdate(false);
+  return forceConfigUpdate(false);  // set to FALSE to force the update of the last configuration time (for the NTP sync)
 }
 
+// get the HTTP Server and NTP Server
 void initConfigUpdates() {
   httpServer = (char*)malloc(strlen(DEFAULT_HTTP_SERVER) * sizeof(char));
   strcpy(httpServer, DEFAULT_HTTP_SERVER);

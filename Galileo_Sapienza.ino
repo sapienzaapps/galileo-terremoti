@@ -27,7 +27,6 @@ unsigned long freeRam();
 
 #include "AcceleroMMA7361.h"
 #include "config.h"
-#include "galileo_log.h"
 #include "ntp.h"
 #include "localstream.h"
 #include "threshold.h"
@@ -49,6 +48,7 @@ unsigned long freeRam() {
 #endif
 }
 
+// return true if at least one of the axis is over the threshold
 boolean isOverThreshold(struct RECORD *db, struct TDEF *td) {
   return (db->valx > td->pthresx || db->valx < td->nthresx)
       || (db->valy > td->pthresy || db->valy < td->nthresy)
@@ -75,15 +75,14 @@ void checkSensore()
   db->valz = getAvgZ(valz);
   db->overThreshold = isOverThreshold(db, &td);
   
-  sendValues(db);
+  sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
   
-  if(db->overThreshold || inEvent == 1) 
+  if(db->overThreshold || inEvent == 1)  // if the values of the accelerometer have passed the threshold or if an "event" is currently running
   {
     httpSendValues(db, &td);
   }
   
-  
- }
+}
 
 
 void setup() {
@@ -101,10 +100,10 @@ void setup() {
   Serial.println("#############INITIALIZING DEVICE#############\n");
 
   /* Calibrating Accelerometer */
-  accelero.begin(13, 12, 11, 10, A0, A1, A2);     //set the proper pin x y z
-  accelero.setSensitivity(LOW);                  //sets the sensitivity to +/-6G
+  accelero.begin(13, 12, 11, 10, A0, A1, A2);     // set the proper pin x y z
+  accelero.setSensitivity(LOW);                  // sets the sensitivity to +/-6G
   accelero.calibrate();
-  accelero.setAveraging(1);
+  accelero.setAveraging(1);  // number of samples that have to be averaged
   
   #ifdef __IS_GALILEO
 	  // Workaround for Galileo (and other boards with Linux)
@@ -210,8 +209,8 @@ void loop() {
   doNTPActions();
   doConfigUpdates();
   
-  int cHour = (getUNIXTime()  % 86400L) / 3600;
-  if(currentHour != cHour) 
+  int cHour = (getUNIXTime() % 86400L) / 3600;
+  if(currentHour != cHour)
   {
     currentHour = cHour;
     checkCalibrationNeeded(accelero, cHour);

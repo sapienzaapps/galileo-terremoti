@@ -63,8 +63,6 @@ void debugUNIXTime(unsigned long epoch) {
 void sendNTPpacket(IPAddress& address) {
 	n_NTP_connections++;
 
-  Serial.print("Address: ");  // DEBUG
-  Serial.println(address);  // DEBUG
   // set all bytes in the buffer to 0
   memset(_ntpPacketBuffer, 0, NTP_PACKET_SIZE);
   // Initialize values needed to form NTP request
@@ -80,23 +78,20 @@ void sendNTPpacket(IPAddress& address) {
   _ntpPacketBuffer[15]  = 52;
 
   // all NTP fields have been given values, now
-  // you can send a packet requesting a timestamp:         
-  if (_ntpc.beginPacket(address, 123)) {  //NTP requests are to port 123
-    Serial.println("NTP connection successful");
-  }
-  else {
-    Serial.print("NTP connection NOT successful: ");
-    Serial.println(n_NTP_connections);
-  }
-  _ntpc.write(_ntpPacketBuffer,NTP_PACKET_SIZE);
+  // you can send a packet requesting a timestamp:
+  // NTP requests are to port 123
+  _ntpc.beginPacket(address, 123);  // the function would return failure but it's ok, because NTP is connectionless
+  _ntpc.write(_ntpPacketBuffer,NTP_PACKET_SIZE);  // send the packet
   _ntpc.endPacket();
+  Serial.print("NTP connection number: ");  // DEBUG
+  Serial.println(n_NTP_connections);  // DEBUG
 }
 
 int checkNTPPacket() {
   int r = 0;
   if(_ntpc.parsePacket()) {
     r = 1;
-    _ntpc.read(_ntpPacketBuffer, NTP_PACKET_SIZE);
+    _ntpc.read(_ntpPacketBuffer, NTP_PACKET_SIZE);  // read the NTP packet
     // the timestamp starts at byte 40 of the received packet and is four bytes,
     // or two words, long. First, esxtract the two words:
     unsigned long highWord = fixword(_ntpPacketBuffer[40], _ntpPacketBuffer[41]);
@@ -167,6 +162,7 @@ void forceNTPUpdate() {
   debugUNIXTime(getUNIXTime());
 }
 
+// initialize the NTP connection through the 123 port (standard)
 void initNTP() {
   if (_ntpc.begin(123)) {
     Serial.println("NTP begin successful");

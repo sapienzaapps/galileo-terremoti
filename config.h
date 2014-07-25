@@ -4,7 +4,7 @@
 #define DEFAULT_HTTP_SERVER "www.sapienzaapps.it"
 char* path_domain = "/terremoti/galileo";
 
-byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x13, 0x0d };  // fictitious MAC address
+byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x13, 0x0c };  // fictitious MAC address
 int deviceLocation = 2;  // 0 is for Sapienza Colossus | 1 is for Panizzi's room | 2 is for Home
 boolean isDhcpEnabled = false;
 

@@ -66,14 +66,14 @@ void initEEPROM() {
 }
 
 void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
-  // Utilità (Galileo):
+  // Utility (Galileo):
   // sizeof(unsigned long) = 4
   // sizeof(unsigned int) = 4
   // sizeof(float) = 4
   // sizeof(double) = 8
   
-  // I primi 4 bytes sono popolati con "INGV". Se la scritta non è presente
-  // allora la EEPROM non è inizializzata
+  // I primi 4 bytes sono popolati con "INGV". Se la scritta non e' presente
+  // allora la EEPROM non e' inizializzata
   
   // Mappa memoria (offset + 4):
   // [posizione, lunghezza]
