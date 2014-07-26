@@ -28,18 +28,6 @@ unsigned long getUNIXTimeMS() {
   return diff % 1000;
 }
 
-unsigned long isOutOfSync(unsigned long cfgTime) {
-	if (cfgTime < getUNIXTime()) {
-		unsigned long diff = getUNIXTime() - cfgTime;
-			unsigned long tollerance = 1;
-			if (diff > tollerance) {
-				return true;
-			}
-			return false;
-	}
-	return false;
-}
-
 void debugUNIXTime(unsigned long epoch) {
   // print the hour, minute and second:
   //Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
@@ -142,7 +130,7 @@ void forceNTPUpdate() {
   sendNTPpacket(timeServer);
   int r = checkNTPPacket();
   for(int i=0; r == 0; i++) {
-    // If the packet is lost, resend it and restart counter
+    // If the packet is lost, send it again and restart counter
     if(i == 1500) {
       Serial.println("NTP not responding, re-trying...");
       sendNTPpacket(timeServer);

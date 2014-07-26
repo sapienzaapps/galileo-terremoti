@@ -42,6 +42,7 @@ double readDouble(int address) {
   return _value;
 }
 
+// initialize the EEPROM memory
 void initEEPROM() {
   int c1 = EEPROM.read(0);
   int c2 = EEPROM.read(1);
@@ -52,7 +53,6 @@ void initEEPROM() {
     Serial.println("EEPROM already formatted, skipping...");
   } else {
     Serial.println("EEPROM not formatted, let's do it");
-    // Inizializza memoria
     int i=0;
     for(i=4; i < (48*24); i++) {
       EEPROM.write(i, 0);
@@ -83,6 +83,7 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
   
   double temp = readDouble(4 + currentHour*48);
   
+  // do calibration every random amount of hours? or if it's the first time ever
   if(nextHour == currentHour || temp == 0) {
     int cbufx[CALIBRATIONITER];
     int cbufy[CALIBRATIONITER];

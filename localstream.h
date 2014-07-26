@@ -97,6 +97,7 @@ void sendValues(struct RECORD *db) {
   }
 }
 
+// establish the connection through the 62001 port to interact with the mobile APP
 void commandInterfaceInit() {
   _cmdc.begin(62001);
 }
