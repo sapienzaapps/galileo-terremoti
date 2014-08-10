@@ -10,7 +10,7 @@
 #include <SD.h>
 
 #ifdef __IS_GALILEO
-#include <Ethernet.h>
+//#include <Ethernet.h>
 #include <EthernetUdp.h>
 #include <sys/sysinfo.h>
 #include <signal.h>
@@ -34,19 +34,22 @@ unsigned long freeRam();
 #include "httpconn.h"
 #include "cfgupdate.h"
 
-AcceleroMMA7361 accelero;
-int currentHour = -1;
-
-unsigned long freeRam() {
+//definition freeRam method
 #ifdef __IS_GALILEO
+unsigned long freeRam() {
   struct sysinfo s;
   sysinfo(&s);
   return s.freeram;
-#else
-  // FIXME
-  return 0;
-#endif
 }
+#else
+#include <MemoryFree.h> //add .h and cpp MemoryFree for Arduino based only
+unsigned long freeRam() {
+	return (unsigned long)freeMemory();
+	}
+#endif
+
+AcceleroMMA7361 accelero;
+int currentHour = -1;
 
 // return true if at least one of the axis is over the threshold
 boolean isOverThreshold(struct RECORD *db, struct TDEF *td) {
@@ -62,9 +65,7 @@ void checkSensore()
   valx = accelero.getXAccel();
   valy = accelero.getYAccel();
   valz = accelero.getZAccel();
-  
- 
-    
+      
   TDEF td = { pthresx, pthresy, pthresz, nthresx, nthresy, nthresz };
   
   struct RECORD *db = (struct RECORD*)malloc(sizeof(struct RECORD));

@@ -20,7 +20,7 @@ IPAddress subnet;
 char* httpServer;
 IPAddress timeServer;
 
-
+// struct for time and axis variations logging 
 struct RECORD {
   unsigned long ts;
   long ms;
@@ -39,6 +39,7 @@ struct TDEF {
   double nthresz;
 };
 
+//printing a record state
 void printRecord(struct RECORD *db) {
   Serial.print(db->valx);
   Serial.print("-");
