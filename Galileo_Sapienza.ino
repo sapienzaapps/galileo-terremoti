@@ -3,11 +3,11 @@
 #define __IS_GALILEO
 #endif
 
-#include <math.h>
-#include <SPI.h>
 #include <Ethernet.h>
+#include <SPI.h>
 #include <EEPROM.h>
 #include <SD.h>
+#include <math.h>
 
 #ifdef __IS_GALILEO
 //#include <Ethernet.h>
@@ -42,12 +42,19 @@ unsigned long freeRam() {
   return s.freeram;
 }
 #else
-#include <MemoryFree.h> //add .h and cpp MemoryFree for Arduino based only
-unsigned long freeRam() {
-	return (unsigned long)freeMemory();
-	}
+#if (ARDUINO >= 100)
+#include <Arduino.h>
+#else
+#include <WProgram.h>
+#endif
+int freeRam () {
+  extern int __heap_start, *__brkval; 
+  int v; 
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+}
 #endif
 
+//definition of Accelerometer object
 AcceleroMMA7361 accelero;
 int currentHour = -1;
 
@@ -95,7 +102,7 @@ void setupEthernet() {
 				gateway = IPAddress(10,10,1,1);
 				subnet = IPAddress(255,255,255,0);
 
-				Ethernet.begin(mac, ip, dns, gateway);
+				Ethernet.begin(mac, ip, dns, gateway); //vedere
 				timeServer = IPAddress(10, 10, 1, 1);
 
 				system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
@@ -118,10 +125,11 @@ void setupEthernet() {
 				break;
 
 			case 2:  // Home
+				//timeServer = IPAddress(37, 247, 49, 133); Tommaso's House
 				timeServer = IPAddress(37, 247, 49, 133);
 				if (isDhcpEnabled) {
 					boolean isDhcpWorking = false;
-					while(!isDhcpWorking) {
+					while(!isDhcpWorking) { // aggiungere timeout dhcp
 						/* Trying to get an IP address */
 						if (Ethernet.begin(mac) == 0) {
 							Serial.println("Error while attempting to get an IP, retrying in 5 seconds...");
@@ -137,7 +145,7 @@ void setupEthernet() {
 						/* Trying to get an IP address */
 						//ip = IPAddress(192, 168, 1, 36);
 
-						Ethernet.begin(mac);
+						Ethernet.begin(mac); // controllare errore
 						//system("ifconfig eth0 192.168.1.36");  // fixed ip address to ease the telnet connection
 						system("ifconfig > /dev/ttyGS0");  // debug
 				}
@@ -194,10 +202,10 @@ void setup() {
   initEEPROM();
   
   Serial.println("UDP Command Socket init");
-  commandInterfaceInit();
+  commandInterfaceInit(); // open port for mobile app
   
   Serial.print("Free RAM: ");
-  Serial.println(freeRam());
+  Serial.println(freeRam()); //debug
   
   Serial.println("\n#############INIZIALIZATION COMPLETE!#############");
 }

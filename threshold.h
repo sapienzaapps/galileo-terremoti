@@ -12,6 +12,7 @@ float absavg(int *buf, int size) {
   return ret/size;
 }
 
+// Standard Deviation
 float stddev(int *buf, int size, float avg) {
   // Formula: RAD ( SUM{i,size}( (x[i] - avg)^2 ) / (size - 1) )
   double sum = 0;
@@ -21,7 +22,7 @@ float stddev(int *buf, int size, float avg) {
   
   return sqrt(sum/(size-1));
 }
-
+// Write a Double to EEPROM
 void writeDouble(int address, double value) {
   byte val[8];
   int i = 0;
@@ -30,7 +31,7 @@ void writeDouble(int address, double value) {
     EEPROM.write(address+i, val[i]);
   }
 }
-
+// Read a Double from EEPROM
 double readDouble(int address) {
   byte val[8];
   int i = 0;
@@ -42,7 +43,7 @@ double readDouble(int address) {
   return _value;
 }
 
-// initialize the EEPROM memory
+// Initialize the EEPROM memory
 void initEEPROM() {
   int c1 = EEPROM.read(0);
   int c2 = EEPROM.read(1);
@@ -54,7 +55,7 @@ void initEEPROM() {
   } else {
     Serial.println("EEPROM not formatted, let's do it");
     int i=0;
-    for(i=4; i < (48*24); i++) {
+    for(i=4; i < (48*24); i++) { //controllare grandezza eeprom
       EEPROM.write(i, 0);
     }
     EEPROM.write(0, 'I');
@@ -81,7 +82,7 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
   // --> 8 byte (double) con il valore della soglia positiva per ogni asse [X-Y-Z]
   // --> 8 byte (double) con il valore della soglia negativa per ogni asse [X-Y-Z]
   
-  double temp = readDouble(4 + currentHour*48);
+  double temp = readDouble(4 + currentHour*48); // ??? cosa deve leggere???
   
   // do calibration every random amount of hours? or if it's the first time ever
   if(nextHour == currentHour || temp == 0) {

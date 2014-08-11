@@ -103,9 +103,9 @@ void doConfigUpdates() {
   }
 }
 
-void forceConfigUpdate(boolean noupdate) {
+void forceConfigUpdate(boolean noupdate) { //controllare frequenza chiamata
   boolean ret = getConfigUpdates(noupdate);
-  while(!ret) {
+  while(!ret) { 
     Serial.println("Configuration update failed, retrying in 3 seconds...");
     delay(3000);
     ret = getConfigUpdates(noupdate);

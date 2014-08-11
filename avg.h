@@ -1,6 +1,6 @@
 #ifndef avg_h
 #define avg_h
-#define K 10
+#define K 10	//Max buffer length
 
 int currsizeX = 0;
 int currsizeY = 0;

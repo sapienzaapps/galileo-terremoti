@@ -127,7 +127,7 @@ void doNTPActions() {
 }
 
 void forceNTPUpdate() {
-  sendNTPpacket(timeServer);
+  sendNTPpacket(timeServer);  // aggiungere delay()
   int r = checkNTPPacket();
   for(int i=0; r == 0; i++) {
     // If the packet is lost, send it again and restart counter
@@ -135,7 +135,7 @@ void forceNTPUpdate() {
       Serial.println("NTP not responding, re-trying...");
       sendNTPpacket(timeServer);
     } else if(i > 3000) {
-      forceConfigUpdate();
+      forceConfigUpdate(); // perchè 
       Serial.print("HTTP Server: ");
       Serial.println(httpServer);
       Serial.print("NTP Server (ntp.h): ");
