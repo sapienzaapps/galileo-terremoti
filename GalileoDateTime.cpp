@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "GalileoDateTime.h"
 #ifdef __AVR__
  #include <avr/pgmspace.h>

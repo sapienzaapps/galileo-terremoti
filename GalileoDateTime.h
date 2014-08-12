@@ -1,5 +1,5 @@
 #ifndef _GALILEODT_H_
-#define _GALILEODT_H_
+#define _GALILEODT_H_ 1
 
 // Simple general-purpose date/time class (no TZ / DST / leap second handling!)
 class DateTime {
@@ -24,3 +24,4 @@ public:
 protected:
     uint8_t yOff, m, d, hh, mm, ss;
 };
+#endif
