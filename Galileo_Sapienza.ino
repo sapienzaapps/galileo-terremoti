@@ -14,6 +14,7 @@
 #include <EthernetUdp.h>
 #include <sys/sysinfo.h>
 #include <signal.h>
+#include <stdlib.h>  // for ntp_alt.h
 #endif
 
 double pthresx = 0;
@@ -27,7 +28,8 @@ unsigned long freeRam();
 
 #include "AcceleroMMA7361.h"
 #include "config.h"
-#include "ntp.h"
+//#include "ntp.h"
+#include "ntp_alt.h"
 #include "localstream.h"
 #include "threshold.h"
 #include "avg.h"
@@ -89,7 +91,6 @@ void checkSensore()
   {
     httpSendValues(db, &td);
   }
-  
 }
 
 // set up the ethernet connection per location;
@@ -182,7 +183,7 @@ void setup() {
   
   #ifdef __IS_GALILEO
 	  // Workaround for Galileo (and other boards with Linux)
-	  system("/etc/init.d/networking restart");
+	  //system("/etc/init.d/networking restart");
   #endif
 
 	Serial.println("Setting up ethernet connection");
@@ -211,7 +212,7 @@ void setup() {
 }
 
 void loop() {
-  doNTPActions();
+  //doNTPActions();
   doConfigUpdates();
   
   int cHour = (getUNIXTime() % 86400L) / 3600;
