@@ -148,8 +148,10 @@ void NTPdataPacket() {
     Serial.print("Date and Time Command: ");
     Serial.println(cmd);
     //memset(cmd, 0, 21);
-  }else{
+  }
+  else{
     Serial.println("ERROR NTP PACKET NOT RECEIVED");
+  }
 }
 // Connect to NTP server and set System Clock
 void initNTP() {
