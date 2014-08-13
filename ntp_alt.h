@@ -6,16 +6,17 @@ const int NTP_PACKET_SIZE= 48;  // NTP time stamp is in the first 48 bytes of th
 byte packetBuffer[ NTP_PACKET_SIZE];  // buffer to hold incoming and outgoing packets
 
 // An UDP instance to let us send and receive packets over UDP
-char cmd[21] = "";
+char cmd[30] = "";
 char cmd1[] = "/bin/date ";
-static  char bufSTR[7];
+char cmd2[] = "/bin/date -s @";
+static  char bufSTR[13];
 
 // conversion date from epoch
 #define PROGMEM
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
 #define SECONDS_PER_DAY 86400L
-#define GMT 3600*2
+#define GMT 3600*2 //Italy Time Zone
 
 #define SECONDS_FROM_1970_TO_2000 946684800
 uint8_t yOff, m, d, hh, mm, ss;  // data
@@ -26,7 +27,7 @@ unsigned long _unixTimeUpdate = 0;
 /* *** OLD NTP.H *** END */
 
 ////////////////////////////////////////////////////////////////////////////////
-// utility code, some of this could be exposed in the DateTime API if needed
+// utility code to get Human Date From epoch
 
 const uint8_t daysInMonth [] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 EthernetUDP UDP_as_NTP;
@@ -57,7 +58,7 @@ void dateGalileo(uint32_t t) {
 			days -= daysPerMonth;
 	}
 	d = days + 1;
-
+  // Displaying Current Date and Time
 	Serial.print(hh);
 	Serial.print(":");
 	Serial.print(mm);
@@ -97,7 +98,7 @@ unsigned long sendNTPpacket(IPAddress& address) {
 void NTPdataPacket() {
   sendNTPpacket(timeServer); // send an NTP packet to a time server
 
-    // wait to see if a reply is available
+  // wait to see if a reply is available
   delay(1000);
   if ( UDP_as_NTP.parsePacket() ) {
     // We've received a packet, read the data from it
@@ -123,9 +124,13 @@ void NTPdataPacket() {
     _unixTimeTS = epoch;
     // print Unix time:
     Serial.println(epoch);
-    dateGalileo(epoch);
+    //dateGalileo(epoch);
     delay(50);
-    strcat(cmd, cmd1);
+    strcat(cmd, cmd2);
+    snprintf(bufSTR,12, "%lu" ,epoch);
+    strcat(cmd, bufSTR);
+    
+/*     strcat(cmd, cmd1);
     if(m < 10) strcat(cmd, "0");
     snprintf(bufSTR,4, "%d" ,m);
     strcat(cmd, bufSTR );
@@ -139,21 +144,21 @@ void NTPdataPacket() {
     snprintf(bufSTR,4, "%d" ,mm);
     strcat(cmd, bufSTR );
     snprintf(bufSTR,4, "%d" ,yOff);
-    strcat(cmd, bufSTR );
-    Serial.print("Ora e Data Attuale: ");
+    strcat(cmd, bufSTR ); */
+    Serial.print("Date and Time Command: ");
     Serial.println(cmd);
     //memset(cmd, 0, 21);
-  }
+  }else{
+    Serial.println("ERROR NTP PACKET NOT RECEIVED");
 }
-
+// Connect to NTP server and set System Clock
 void initNTP() {
 	UDP_as_NTP.begin(localPort);
 	delay(1000);
 	NTPdataPacket();
-
+  // setting system clock
 	char buf[64];
 	  FILE *ptr;
-	  Serial.println("oraaaaaaaaaaa");
 	  Serial.print("COMANDO: ");
 	  Serial.println(cmd);
 	  if ((ptr = popen((char *)cmd, "r")) != NULL)
