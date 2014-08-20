@@ -10,6 +10,10 @@ boolean isDhcpEnabled = false;
 
 long n_NTP_connections = 0;  // for debug purpose only
 
+long pingIntervalCheck = 30 * 1000;
+long pingIntervalCheckCounter = 0;
+bool isConnectedToInternet;
+
 IPAddress ip;
 IPAddress dns;
 IPAddress gateway;
@@ -49,5 +53,39 @@ void printRecord(struct RECORD *db) {
 }
 
 void forceConfigUpdate();
+
+bool isConnectedToInternet() {
+	int a = system("bin/busybox ping -w 2 8.8.8.8");
+	if (a == 0) {
+		//Serial.println("*** CONNECTED ***");
+		isConnectedToInternet = true;
+		return true;
+	}
+	else {
+		//Serial.println("*** DISCONNECTED ***");
+		isConnectedToInternet = false;
+		return false;
+	}
+}
+
+bool isConnectedToInternet2() {
+	unsigned long currentMillis = millis();
+	if(isConnectedToInternet || currentMillis - pingIntervalCheckCounter > pingIntervalCheck) {
+	    // save the last time you tried to ping
+		pingIntervalCheckCounter = currentMillis;
+
+		int a = system("bin/busybox ping -w 2 8.8.8.8");
+		if (a == 0) {
+			//Serial.println("*** CONNECTED ***");
+			isConnectedToInternet = true;
+			return true;
+		}
+		else {
+			//Serial.println("*** DISCONNECTED ***");
+			isConnectedToInternet = false;
+			return false;
+		}
+	}
+}
 
 #endif

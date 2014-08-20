@@ -88,15 +88,17 @@ boolean getConfigUpdates(boolean noupdate) {
 
 
 void doConfigUpdates() {
-  if(lastCfgUpdate+cfgUpdateInterval < getUNIXTime()) {
+  if(lastCfgUpdate+cfgUpdateInterval < getUNIXTime() && isConnectedToInternet()) {
 
     // Get Updates
     if(getConfigUpdates(false)) {
       Serial.println("Configuration update succeded");
+      /*
       Serial.print("HTTP Server: ");
       Serial.println(httpServer);
       Serial.print("NTP Server (cfgupdate): ");
       Serial.println(timeServer);
+      */
     } else {
       Serial.println("Configuration update failed");
     }
@@ -122,17 +124,12 @@ void initConfigUpdates() {
   strcpy(httpServer, DEFAULT_HTTP_SERVER);
   
   forceConfigUpdate();
+  /*
   Serial.print("HTTP Server: ");
   Serial.println(httpServer);
   Serial.print("NTP Server (init cfupdate): ");
   Serial.println(timeServer);
+  */
 }
-
-
-
-
-
-
-
 
 #endif

@@ -121,6 +121,7 @@ void NTPdataPacket() {
     const unsigned long seventyYears = 2208988800UL;
     // subtract seventy years:
     unsigned long epoch = secsSince1900 - seventyYears + GMT;
+    epoch += 2;
     _unixTimeTS = epoch;
     // print Unix time:
     Serial.println(epoch);

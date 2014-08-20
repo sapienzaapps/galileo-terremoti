@@ -310,4 +310,102 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
   }
 }
 
+// send the accelerometer values that got over the threshold
+void saveToSDhttpSendValues(struct RECORD *db, struct TDEF *td) {
+  if(inEvent == 1) {  // if an "event" is running
+    if(seqDBfd != -1) {  // if the file that stores the sequence has not yet been closed
+      write(seqDBfd, db, sizeof(struct RECORD));  // write the sequence onto the file into tRAM memory
+    }
+
+    if(isSending) {
+      // Check if finished
+      if(!*isSendingMapped) {
+        Serial.println("Child ended");
+        isSending = false;
+        nextContact = *nextContactMapped;
+        if(*isLastMapped) {
+          Serial.println("Storing finished");
+          close(seqDBfd);
+          ramunlink(seqid, sendingIter);
+          seqDBfd = -1;
+          inEvent = 0;
+        }
+      }
+    } else if(getUNIXTime() >= nextContact) {
+      Serial.println("Child starting");
+      realHttpSendValues();
+      isSending = true;
+    }
+  } else {
+    // New Event
+    Serial.print("New Event, values (X-Y-Z): ");
+    printRecord(db);
+    Serial.println();
+
+    if(client.connect(httpServer, 80)) {
+      Serial.print("Requesting SEQID to:");
+      Serial.println(httpServer);
+
+      char rBuffer[300];
+      int rsize = prepareFirstBuffer(rBuffer, db, td);  // prepare the info for the new entry into the DB
+
+      client.print("POST ");
+      client.print(path_domain);
+      client.print("/device.php?op=put&mac=");
+      for(int m=0; m < 6; m++) {
+        if(mac[m] < 0x10) client.print("0");
+        client.print(mac[m], HEX);
+      }
+      client.println(" HTTP/1.1");
+      client.print("Host: ");
+      client.println(httpServer);
+      client.println("Content-Type: text/plain");
+      client.print("Content-Length: ");
+      client.println(rsize);
+      client.println("Connection: close");
+      client.println("");
+      client.print(rBuffer);
+
+      // Reading headers
+      int s = getLine(client, rBuffer, 300);
+      if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {
+        int bodySize = 0;
+        do {
+          s = getLine(client, rBuffer, 300);
+          if(strncmp(rBuffer, "Content-Length", 14) == 0) {
+            char* separator = strchr(rBuffer, ':');
+            if(*(separator+1) == ' ') {
+              separator += 2;
+            } else {
+              separator++;
+            }
+            bodySize = atoi(separator);
+          }
+        } while(s > 0);
+
+        // Content
+        s = getLine(client, rBuffer, 300, bodySize);
+
+        char* separator = strchr(rBuffer, ';');
+        *separator = 0;
+        seqid = atol(rBuffer);  // get the sequence ID
+        nextContact = atol(separator+1) + getUNIXTime();
+        Serial.print("SEQID:");
+        Serial.println(seqid);
+        Serial.print("Next Contact scheduled for: ");
+        debugUNIXTime(nextContact);
+        inEvent = 1;
+
+        sendingIter = 0;
+        seqDBfd = ramopen(seqid, sendingIter);
+      } else {
+        Serial.print("Error in reply: ");
+        Serial.println(rBuffer);
+      }
+      client.stop();
+    }
+    free(db);
+  }
+}
+
 #endif

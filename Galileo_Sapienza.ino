@@ -85,11 +85,18 @@ void checkSensore()
   db->valz = getAvgZ(valz);
   db->overThreshold = isOverThreshold(db, &td);
   
-  sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
+  if (isConnected) {
+  	sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
+  }
   
   if(db->overThreshold || inEvent == 1)  // if the values of the accelerometer have passed the threshold or if an "event" is currently running
   {
-    httpSendValues(db, &td);
+  	if (isConnected) {
+  		httpSendValues(db, &td);
+  	}
+  	else {
+  		//saveToSDhttpSendValues();
+  	}
   }
 }
 
@@ -189,6 +196,8 @@ void setup() {
 	Serial.println("Setting up ethernet connection");
 	setupEthernet();
 
+	isConnected = true;
+
   //system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
   
   Serial.println("Forcing config update...");
@@ -225,5 +234,5 @@ void loop() {
   checkCommandPacket();
   
   checkSensore();
+  //testNTP();
 }
-
