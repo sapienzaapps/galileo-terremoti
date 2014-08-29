@@ -26,6 +26,9 @@ double nthresz = 0;
 
 unsigned long freeRam();
 
+long previousMillis = 0;        // will store last time LED was updated
+long interval = 3*60*1000;
+
 #include "AcceleroMMA7361.h"
 #include "config.h"
 //#include "ntp.h"
@@ -35,6 +38,7 @@ unsigned long freeRam();
 #include "avg.h"
 #include "httpconn.h"
 #include "cfgupdate.h"
+#include "GalileoLog.h"
 
 //definition freeRam method
 #ifdef __IS_GALILEO
@@ -140,11 +144,11 @@ void setupEthernet() {
 					while(!isDhcpWorking) { // aggiungere timeout dhcp
 						/* Trying to get an IP address */
 						if (Ethernet.begin(mac) == 0) {
-							Serial.println("Error while attempting to get an IP, retrying in 5 seconds...");
+							if (debugON) Serial.println("Error while attempting to get an IP, retrying in 5 seconds...");
 							delay(5000);
 						} else {
-							Serial.print("IP retrived successfully from DHCP: ");
-							Serial.println(Ethernet.localIP());
+							if (debugON) Serial.print("IP retrived successfully from DHCP: ");
+							if (debugON) Serial.println(Ethernet.localIP());
 							isDhcpWorking = true;
 						}
 					}
@@ -180,7 +184,7 @@ void setup() {
   
   delay(3000);
   Serial.begin(9600);
-  Serial.println("#############INITIALIZING DEVICE#############\n");
+  if (debugON) Serial.println("#############INITIALIZING DEVICE#############\n");
 
   /* Calibrating Accelerometer */
   accelero.begin(13, 12, 11, 10, A0, A1, A2);     // set the proper pin x y z
@@ -193,34 +197,41 @@ void setup() {
 	  //system("/etc/init.d/networking restart");
   #endif
 
-	Serial.println("Setting up ethernet connection");
+  if (debugON) Serial.println("Setting up ethernet connection");
 	setupEthernet();
 
 	isConnected = true;
 
   //system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
   
-  Serial.println("Forcing config update...");
+  if (debugON) Serial.println("Forcing config update...");
+
   initConfigUpdates();
   
-  Serial.println("Syncing NTP...");
+  if (debugON) Serial.println("Syncing NTP...");
   initNTP();
   // We need to set this AFTER ntp sync...
   lastCfgUpdate = getUNIXTime();
   
-  Serial.println("EEPROM init");
+  if (debugON) Serial.println("EEPROM init");
   initEEPROM();
   
-  Serial.println("UDP Command Socket init");
+  if (debugON) Serial.println("UDP Command Socket init");
   commandInterfaceInit(); // open port for mobile app
   
-  Serial.print("Free RAM: ");
-  Serial.println(freeRam()); //debug
+  if (debugON) Serial.print("Free RAM: ");
+  if (debugON) Serial.println(freeRam()); //debug
   
-  Serial.println("\n#############INIZIALIZATION COMPLETE!#############");
+  if (debugON) Serial.println("\n#############INIZIALIZATION COMPLETE!#############");
 }
 
 void loop() {
+	unsigned long currentMillis = millis();
+	if (currentMillis - previousMillis > interval) {
+		previousMillis = currentMillis;
+		log("Still running");
+	}
+
   //doNTPActions();
   doConfigUpdates();
   

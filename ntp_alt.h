@@ -96,63 +96,69 @@ unsigned long sendNTPpacket(IPAddress& address) {
 }
 
 void NTPdataPacket() {
-  sendNTPpacket(timeServer); // send an NTP packet to a time server
+	bool NTPsynced = false;
 
-  // wait to see if a reply is available
-  delay(1000);
-  if ( UDP_as_NTP.parsePacket() ) {
-    // We've received a packet, read the data from it
-  	UDP_as_NTP.read(packetBuffer,NTP_PACKET_SIZE);  // read the packet into the buffer
+	while (!NTPsynced) {
+		sendNTPpacket(timeServer); // send an NTP packet to a time server
 
-    //the timestamp starts at byte 40 of the received packet and is four bytes,
-    // or two words, long. First, esxtract the two words:
+		// wait to see if a reply is available
+		delay(1000);
+		if ( UDP_as_NTP.parsePacket() ) {
+			NTPsynced = true;
+			// We've received a packet, read the data from it
+			UDP_as_NTP.read(packetBuffer,NTP_PACKET_SIZE);  // read the packet into the buffer
 
-    unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
-    unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
-    // combine the four bytes (two words) into a long integer
-    // this is NTP time (seconds since Jan 1 1900):
-    unsigned long secsSince1900 = highWord << 16 | lowWord;
-    Serial.print("Seconds since Jan 1 1900 = " );
-    Serial.println(secsSince1900);
+			//the timestamp starts at byte 40 of the received packet and is four bytes,
+			// or two words, long. First, esxtract the two words:
 
-    // now convert NTP time into everyday time:
-    Serial.print("Unix time = ");
-    // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
-    const unsigned long seventyYears = 2208988800UL;
-    // subtract seventy years:
-    unsigned long epoch = secsSince1900 - seventyYears + GMT;
-    epoch += 2;
-    _unixTimeTS = epoch;
-    // print Unix time:
-    Serial.println(epoch);
-    //dateGalileo(epoch);
-    delay(50);
-    strcat(cmd, cmd2);
-    snprintf(bufSTR,12, "%lu" ,epoch);
-    strcat(cmd, bufSTR);
-    
-/*     strcat(cmd, cmd1);
-    if(m < 10) strcat(cmd, "0");
-    snprintf(bufSTR,4, "%d" ,m);
-    strcat(cmd, bufSTR );
-    if(d < 10) strcat(cmd, "0");
-    snprintf(bufSTR,4, "%d" ,d);
-    strcat(cmd, bufSTR );
-    if(hh < 10) strcat(cmd, "0");
-    snprintf(bufSTR,4, "%d" ,hh);
-    strcat(cmd, bufSTR );
-    if(mm < 10) strcat(cmd, "0");
-    snprintf(bufSTR,4, "%d" ,mm);
-    strcat(cmd, bufSTR );
-    snprintf(bufSTR,4, "%d" ,yOff);
-    strcat(cmd, bufSTR ); */
-    Serial.print("Date and Time Command: ");
-    Serial.println(cmd);
-    //memset(cmd, 0, 21);
-  }
-  else{
-    Serial.println("ERROR NTP PACKET NOT RECEIVED");
-  }
+			unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
+			unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
+			// combine the four bytes (two words) into a long integer
+			// this is NTP time (seconds since Jan 1 1900):
+			unsigned long secsSince1900 = highWord << 16 | lowWord;
+			if (debugON) Serial.print("Seconds since Jan 1 1900 = " );
+			if (debugON) Serial.println(secsSince1900);
+
+			// now convert NTP time into everyday time:
+			if (debugON) Serial.print("Unix time = ");
+			// Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
+			const unsigned long seventyYears = 2208988800UL;
+			// subtract seventy years:
+			unsigned long epoch = secsSince1900 - seventyYears + GMT;
+			epoch += 2;
+			_unixTimeTS = epoch;
+			// print Unix time:
+			if (debugON) Serial.println(epoch);
+			//dateGalileo(epoch);
+			delay(50);
+			strcat(cmd, cmd2);
+			snprintf(bufSTR,12, "%lu" ,epoch);
+			strcat(cmd, bufSTR);
+
+	/*     strcat(cmd, cmd1);
+			if(m < 10) strcat(cmd, "0");
+			snprintf(bufSTR,4, "%d" ,m);
+			strcat(cmd, bufSTR );
+			if(d < 10) strcat(cmd, "0");
+			snprintf(bufSTR,4, "%d" ,d);
+			strcat(cmd, bufSTR );
+			if(hh < 10) strcat(cmd, "0");
+			snprintf(bufSTR,4, "%d" ,hh);
+			strcat(cmd, bufSTR );
+			if(mm < 10) strcat(cmd, "0");
+			snprintf(bufSTR,4, "%d" ,mm);
+			strcat(cmd, bufSTR );
+			snprintf(bufSTR,4, "%d" ,yOff);
+			strcat(cmd, bufSTR ); */
+			if (debugON) Serial.print("Date and Time Command: ");
+			if (debugON) Serial.println(cmd);
+			//memset(cmd, 0, 21);
+		}
+		else{
+			if (debugON) Serial.println("ERROR NTP PACKET NOT RECEIVED");
+			if (logON) log("ERROR NTP PACKET NOT RECEIVED");
+		}
+	}
 }
 // Connect to NTP server and set System Clock
 void initNTP() {
@@ -162,13 +168,13 @@ void initNTP() {
   // setting system clock
 	char buf[64];
 	  FILE *ptr;
-	  Serial.print("COMANDO: ");
-	  Serial.println(cmd);
+	  if (debugON) Serial.print("COMANDO: ");
+	  if (debugON) Serial.println(cmd);
 	  if ((ptr = popen((char *)cmd, "r")) != NULL)
 	  {
 	    while (fgets(buf, 64, ptr) != NULL)
 	    {
-	      Serial.print(buf);
+	    	if (debugON) Serial.print(buf);
 	    }
 	  }
 	  (void) pclose(ptr);
@@ -185,7 +191,7 @@ void testNTP() {
 	  {
 	    while (fgets(buf, 64, ptr) != NULL)
 	    {
-	      Serial.print(buf);
+	    	if (debugON) Serial.print(buf);
 	    }
 	  }
 	  (void) pclose(ptr);
@@ -206,20 +212,20 @@ unsigned long getUNIXTimeMS() {
 void debugUNIXTime(unsigned long epoch) {
   // print the hour, minute and second:
   //Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
-  Serial.print((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
-  Serial.print(':');
+	if (debugON) Serial.print((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
+	if (debugON) Serial.print(':');
   if ( ((epoch % 3600) / 60) < 10 ) {
     // In the first 10 minutes of each hour, we'll want a leading '0'
-    Serial.print('0');
+  	if (debugON) Serial.print('0');
   }
-  Serial.print((epoch  % 3600) / 60); // print the minute (3600 equals secs per minute)
-  Serial.print(':');
+  if (debugON) Serial.print((epoch  % 3600) / 60); // print the minute (3600 equals secs per minute)
+  if (debugON) Serial.print(':');
   if ( (epoch % 60) < 10 ) {
     // In the first 10 seconds of each minute, we'll want a leading '0'
-    Serial.print('0');
+  	if (debugON) Serial.print('0');
   }
-  Serial.print(epoch %60); // print the second
-  Serial.println(" UTC");
+  if (debugON) Serial.print(epoch %60); // print the second
+  if (debugON) Serial.println(" UTC");
 }
 /* *** OLD NTP.H *** END */
 

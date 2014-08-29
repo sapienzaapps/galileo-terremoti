@@ -2,6 +2,8 @@
 #define CALIBRATIONITER 1000
 #define ORANGEZONE 5
 
+#include "GalileoLog.h"
+
 long nextHour = 0;
 
 float absavg(int *buf, int size) {
@@ -51,9 +53,9 @@ void initEEPROM() {
   int c4 = EEPROM.read(3);
   
   if(c1 == 'I' && c2 == 'N' && c3 == 'G' && c4 == 'V') {
-    Serial.println("EEPROM already formatted, skipping...");
+    if (debugON) Serial.println("EEPROM already formatted, skipping...");
   } else {
-    Serial.println("EEPROM not formatted, let's do it");
+  	if (debugON) Serial.println("EEPROM not formatted, let's do it");
     int i=0;
     for(i=4; i < (48*24); i++) { //controllare grandezza eeprom
       EEPROM.write(i, 0);
@@ -90,8 +92,8 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
     int cbufy[CALIBRATIONITER];
     int cbufz[CALIBRATIONITER];
     
-    Serial.print("Begin calibration for hour: ");
-    Serial.println(currentHour);
+    if (debugON) Serial.print("Begin calibration for hour: ");
+    if (debugON) Serial.println(currentHour);
     
     int i=0;
     for(i=0; i < CALIBRATIONITER; i++) {
@@ -130,41 +132,42 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
     pos += 8;
     writeDouble(pos, nthresz);
     
-    Serial.println("Calibration ended");
+    if (debugON) Serial.println("Calibration ended");
+    if (logON) log("Calibration ended");
     nextHour = (random() % 23);
-    Serial.print("Next calibration scheduled for ");
-    Serial.println(nextHour);
+    if (debugON) Serial.print("Next calibration scheduled for ");
+    if (debugON) Serial.println(nextHour);
     
   } else {
-    Serial.println("Loading values from EEPROM for new hour");
+  	if (debugON) Serial.println("Loading values from EEPROM for new hour");
     int pos = 4 + currentHour*48;
     pthresx = readDouble(pos);
-    Serial.print("pthresx: ");
-    Serial.print(pthresx);
+    if (debugON) Serial.print("pthresx: ");
+    if (debugON) Serial.print(pthresx);
     
     pos += 8;
     pthresy = readDouble(pos);
-    Serial.print(" pthresy: ");
-    Serial.print(pthresy);
+    if (debugON) Serial.print(" pthresy: ");
+    if (debugON) Serial.print(pthresy);
     
     pos += 8;
     pthresz = readDouble(pos);
-    Serial.print(" pthresz: ");
-    Serial.println(pthresz);
+    if (debugON) Serial.print(" pthresz: ");
+    if (debugON) Serial.println(pthresz);
     
     pos += 8;
     nthresx = readDouble(pos);
-    Serial.print("nthresx: ");
-    Serial.print(nthresx);
+    if (debugON) Serial.print("nthresx: ");
+    if (debugON) Serial.print(nthresx);
     
     pos += 8;
     nthresy = readDouble(pos);
-    Serial.print(" nthresy: ");
-    Serial.print(nthresy);
+    if (debugON) Serial.print(" nthresy: ");
+    if (debugON) Serial.print(nthresy);
     
     pos += 8;
     nthresz = readDouble(pos);
-    Serial.print(" nthresz: ");
-    Serial.println(nthresz);
+    if (debugON) Serial.print(" nthresz: ");
+    if (debugON) Serial.println(nthresz);
   }
 }

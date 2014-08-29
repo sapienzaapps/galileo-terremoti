@@ -1,6 +1,8 @@
 #ifndef cfgupdate_h
 #define cfgupdate_h 1
 
+#include "GalileoLog.h"
+
 unsigned long lastCfgUpdate = 0;
 unsigned long cfgUpdateInterval = 60;
 
@@ -24,8 +26,8 @@ IPAddress getFromString(char* ipAddr) {
 boolean getConfigUpdates(boolean noupdate) {
   boolean ret = false;
   if(client.connect(httpServer, 80)) {
-    Serial.print("Requesting CONFIG to: ");
-    Serial.println(httpServer);
+  	if (debugON) Serial.print("Requesting CONFIG to: ");
+  	if (debugON) Serial.println(httpServer);
     
     client.print("GET ");
     client.print(path_domain);
@@ -77,8 +79,8 @@ boolean getConfigUpdates(boolean noupdate) {
       } while(s > 0);
       ret = true;
     } else {
-      Serial.print("Error in reply: ");
-      Serial.println(rBuffer);
+    	if (debugON) Serial.print("Error in reply: ");
+    	if (debugON) Serial.println(rBuffer);
     }
     client.stop();
   }
@@ -92,7 +94,8 @@ void doConfigUpdates() {
 
     // Get Updates
     if(getConfigUpdates(false)) {
-      Serial.println("Configuration update succeded");
+    	if (debugON) Serial.println("Configuration update succeded");
+    	if (logON) log("Configuration update succeded");
       /*
       Serial.print("HTTP Server: ");
       Serial.println(httpServer);
@@ -100,7 +103,8 @@ void doConfigUpdates() {
       Serial.println(timeServer);
       */
     } else {
-      Serial.println("Configuration update failed");
+    	if (debugON) Serial.println("Configuration update failed");
+    	if (logON) log("Configuration update failed");
     }
   }
 }
@@ -108,7 +112,7 @@ void doConfigUpdates() {
 void forceConfigUpdate(boolean noupdate) { //controllare frequenza chiamata
   boolean ret = getConfigUpdates(noupdate);
   while(!ret) { 
-    Serial.println("Configuration update failed, retrying in 3 seconds...");
+  	if (debugON) Serial.println("Configuration update failed, retrying in 3 seconds...");
     delay(3000);
     ret = getConfigUpdates(noupdate);
   }
