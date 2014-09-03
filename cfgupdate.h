@@ -41,7 +41,10 @@ boolean getConfigUpdates(boolean noupdate) {
     client.println(httpServer);
     client.println("Connection: close");
     client.println("");
-    
+    delay(100); // ATTENDERE ARRIVO RISPOSTA!!!
+	
+	while(!client.available()){;}  // Attendere che il client risponda
+	
     char rBuffer[300];
     // Reading headers
     int s = getLine(client, rBuffer, 300);
@@ -69,7 +72,7 @@ boolean getConfigUpdates(boolean noupdate) {
           *separator = 0;
           char* argument = separator+1;
           if(strncmp(rBuffer, "server", 6) == 0) {
-            free(httpServer);
+            free(httpServer);//?????
             httpServer = (char*)malloc(strlen(argument)*sizeof(char));
             strcpy(httpServer, argument);
           } else if(strncmp(rBuffer, "ntpserver", 9) == 0) {

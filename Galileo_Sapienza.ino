@@ -73,6 +73,7 @@ boolean isOverThreshold(struct RECORD *db, struct TDEF *td) {
 
 void checkSensore() 
 {
+  delay(50);
   int valx, valy, valz;
   
   valx = accelero.getXAccel();
@@ -101,7 +102,9 @@ void checkSensore()
   	else {
   		//saveToSDhttpSendValues();
   	}
-  }
+  }else{
+      free(db); // Memory leak debugged
+   }
 }
 
 // set up the ethernet connection per location;
@@ -158,7 +161,7 @@ void setupEthernet() {
 						//ip = IPAddress(192, 168, 1, 36);
 
 						Ethernet.begin(mac); // controllare errore
-						//system("ifconfig eth0 192.168.1.36");  // fixed ip address to ease the telnet connection
+						//system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
 						system("ifconfig > /dev/ttyGS0");  // debug
 				}
 				break;
@@ -168,7 +171,7 @@ void setupEthernet() {
 				system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
 				system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
 				system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
-		}
+	}
 }
 
 
@@ -182,8 +185,9 @@ void setup() {
   system("telnetd -l /bin/sh");
 #endif
   
-  delay(3000);
   Serial.begin(9600);
+  delay(3000);
+  
   if (debugON) Serial.println("#############INITIALIZING DEVICE#############\n");
 
   /* Calibrating Accelerometer */
@@ -194,12 +198,12 @@ void setup() {
   
   #ifdef __IS_GALILEO
 	  // Workaround for Galileo (and other boards with Linux)
-	  //system("/etc/init.d/networking restart");
+	  system("/etc/init.d/networking restart");
   #endif
 
   if (debugON) Serial.println("Setting up ethernet connection");
+	// Config connction on Ethernet module
 	setupEthernet();
-
 	isConnected = true;
 
   //system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
@@ -233,6 +237,7 @@ void loop() {
 	}
 
   //doNTPActions();
+  delay(50);
   doConfigUpdates();
   
   int cHour = (getUNIXTime() % 86400L) / 3600;
