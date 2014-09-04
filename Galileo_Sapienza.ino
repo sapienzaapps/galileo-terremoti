@@ -75,7 +75,8 @@ boolean isOverThreshold(struct RECORD *db, struct TDEF *td) {
 
 void checkSensore() 
 {
-	delay(50);
+
+  delay(50);
   int valx, valy, valz;
   
   valx = accelero.getXAccel();
@@ -96,18 +97,17 @@ void checkSensore()
   	sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
   }
   
-  if(db->overThreshold || inEvent == 1)  // if the values of the accelerometer have passed the threshold or if an "event" is currently running
-  {
-  	if (isConnected) {
-  		httpSendValues(db, &td);
-  	}
-  	else {
-  		//saveToSDhttpSendValues();
-  	}
-  }
-  else{
-  	free(db); // Memory leak debugged
-  }
+  if(db->overThreshold || inEvent == 1)  // if the values of the accelerometer have passed the threshold
+  {                                      //  or if an "event" is currently running
+    if (isConnected) {
+      httpSendValues(db, &td);
+    }else {
+      //saveToSDhttpSendValues();
+      free(db); // Memory leak debugged
+    }
+  }else{
+      free(db); // Memory leak debugged
+   }
 }
 
 // set up the ethernet connection per location;
@@ -174,7 +174,7 @@ void setupEthernet() {
 				system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
 				system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
 				system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
-		}
+	}
 }
 
 
@@ -190,6 +190,7 @@ void setup() {
   
   Serial.begin(9600);
   delay(3000);
+
   if (debugON) Serial.println("#############INITIALIZING DEVICE#############\n");
   if (logON) log("#############INITIALIZING DEVICE#############\n");
 
@@ -205,9 +206,10 @@ void setup() {
   #endif
 
   if (debugON) Serial.println("Setting up ethernet connection");
-  // Config connction on Ethernet module
-	setupEthernet();
 
+	// Config connction on Ethernet module
+
+	setupEthernet();
 	isConnected = true;
 
   //system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
@@ -249,7 +251,7 @@ void loop() {
 	}
 
   //doNTPActions();
-	delay(50);
+  delay(50);
   doConfigUpdates();
   
   int cHour = (getUNIXTime() % 86400L) / 3600;
