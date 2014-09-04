@@ -28,6 +28,8 @@ unsigned long freeRam();
 
 long previousMillis = 0;        // will store last time LED was updated
 long interval = 3*60*1000;
+long previousMillisNTP = 0;        // will store last time LED was updated
+long intervalNTP = 15*60*1000;
 
 #include "AcceleroMMA7361.h"
 #include "config.h"
@@ -73,6 +75,7 @@ boolean isOverThreshold(struct RECORD *db, struct TDEF *td) {
 
 void checkSensore() 
 {
+	delay(50);
   int valx, valy, valz;
   
   valx = accelero.getXAccel();
@@ -101,6 +104,9 @@ void checkSensore()
   	else {
   		//saveToSDhttpSendValues();
   	}
+  }
+  else{
+  	free(db); // Memory leak debugged
   }
 }
 
@@ -158,7 +164,7 @@ void setupEthernet() {
 						//ip = IPAddress(192, 168, 1, 36);
 
 						Ethernet.begin(mac); // controllare errore
-						//system("ifconfig eth0 192.168.1.36");  // fixed ip address to ease the telnet connection
+						//system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
 						system("ifconfig > /dev/ttyGS0");  // debug
 				}
 				break;
@@ -182,9 +188,10 @@ void setup() {
   system("telnetd -l /bin/sh");
 #endif
   
-  delay(3000);
   Serial.begin(9600);
+  delay(3000);
   if (debugON) Serial.println("#############INITIALIZING DEVICE#############\n");
+  if (logON) log("#############INITIALIZING DEVICE#############\n");
 
   /* Calibrating Accelerometer */
   accelero.begin(13, 12, 11, 10, A0, A1, A2);     // set the proper pin x y z
@@ -194,10 +201,11 @@ void setup() {
   
   #ifdef __IS_GALILEO
 	  // Workaround for Galileo (and other boards with Linux)
-	  //system("/etc/init.d/networking restart");
+	  system("/etc/init.d/networking restart");
   #endif
 
   if (debugON) Serial.println("Setting up ethernet connection");
+  // Config connction on Ethernet module
 	setupEthernet();
 
 	isConnected = true;
@@ -226,13 +234,22 @@ void setup() {
 }
 
 void loop() {
+	// debug only, check if the sketch is still running
 	unsigned long currentMillis = millis();
 	if (currentMillis - previousMillis > interval) {
 		previousMillis = currentMillis;
 		log("Still running");
 	}
 
+	// sync with the NTP server
+	unsigned long currentMillisNTP = millis();
+	if (currentMillisNTP - previousMillisNTP > intervalNTP) {
+		previousMillisNTP = currentMillisNTP;
+		NTPdataPacket();
+	}
+
   //doNTPActions();
+	delay(50);
   doConfigUpdates();
   
   int cHour = (getUNIXTime() % 86400L) / 3600;

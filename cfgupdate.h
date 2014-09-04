@@ -6,6 +6,9 @@
 unsigned long lastCfgUpdate = 0;
 unsigned long cfgUpdateInterval = 60;
 
+long previousMillisConfig = 0;        // will store last time LED was updated
+long intervalConfig = 3*60*1000;
+
 IPAddress getFromString(char* ipAddr) {
   char *p1 = strchr(ipAddr, '.');
   char* p2 = strchr(p1+1, '.');
@@ -42,6 +45,9 @@ boolean getConfigUpdates(boolean noupdate) {
     client.println("Connection: close");
     client.println("");
     
+    delay(100); // ATTENDERE ARRIVO RISPOSTA!!!
+    while(!client.available()){;}  // Attendere che il client risponda
+
     char rBuffer[300];
     // Reading headers
     int s = getLine(client, rBuffer, 300);
@@ -69,7 +75,7 @@ boolean getConfigUpdates(boolean noupdate) {
           *separator = 0;
           char* argument = separator+1;
           if(strncmp(rBuffer, "server", 6) == 0) {
-            free(httpServer);
+            free(httpServer);//?????
             httpServer = (char*)malloc(strlen(argument)*sizeof(char));
             strcpy(httpServer, argument);
           } else if(strncmp(rBuffer, "ntpserver", 9) == 0) {
@@ -90,8 +96,22 @@ boolean getConfigUpdates(boolean noupdate) {
 
 
 void doConfigUpdates() {
-  if(lastCfgUpdate+cfgUpdateInterval < getUNIXTime() && isConnectedToInternet()) {
+	unsigned long currentMillisConfig = millis();
+	if (currentMillisConfig - previousMillisConfig > intervalConfig) {
+		previousMillisConfig = currentMillisConfig;
+		log("Still running Config Update");
+		if (isConnectedToInternet()) {
+			log("isConnectedToInternet");
+		}
+		log("lastCfgUpdate");
+		logLong(lastCfgUpdate);
+		log("cfgUpdateInterval");
+		logLong(cfgUpdateInterval);
+		log("getUNIXTime()");
+		logLong(getUNIXTime());
+	}
 
+  if(lastCfgUpdate+cfgUpdateInterval < getUNIXTime() && isConnectedToInternet()) {
     // Get Updates
     if(getConfigUpdates(false)) {
     	if (debugON) Serial.println("Configuration update succeded");

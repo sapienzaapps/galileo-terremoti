@@ -103,7 +103,7 @@ void NTPdataPacket() {
 
 		// wait to see if a reply is available
 		delay(1000);
-		if ( UDP_as_NTP.parsePacket() ) {
+		if ( isConnectedToInternet() && UDP_as_NTP.parsePacket() ) {
 			NTPsynced = true;
 			// We've received a packet, read the data from it
 			UDP_as_NTP.read(packetBuffer,NTP_PACKET_SIZE);  // read the packet into the buffer

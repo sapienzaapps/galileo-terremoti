@@ -94,12 +94,13 @@ int checkNTPPacket() {
     // subtract seventy years:
     unsigned long epoch = secsSince1900 - seventyYears;                          
 
-    unsigned long diff = epoch - getUNIXTime();
+    _unixTimeTS = epoch;
+    _unixTimeUpdate = millis();
+
+    unsigned long diff = epoch - getUNIXTime();// +2 fuso orario???
     Serial.print("Diff from NTP: ");
     Serial.println(diff);
     
-    _unixTimeTS = epoch;
-    _unixTimeUpdate = millis();
   }
   return r;
 }
@@ -128,6 +129,7 @@ void doNTPActions() {
 
 void forceNTPUpdate() {
   sendNTPpacket(timeServer);  // aggiungere delay()
+  delay(1000);// Solo per il setup
   int r = checkNTPPacket();
   for(int i=0; r == 0; i++) {
     // If the packet is lost, send it again and restart counter
@@ -135,7 +137,7 @@ void forceNTPUpdate() {
       Serial.println("NTP not responding, re-trying...");
       sendNTPpacket(timeServer);
     } else if(i > 3000) {
-      forceConfigUpdate(); // perchè 
+      forceConfigUpdate(); // why ??
       Serial.print("HTTP Server: ");
       Serial.println(httpServer);
       Serial.print("NTP Server (ntp.h): ");
@@ -163,4 +165,3 @@ void initNTP() {
 }
 
 #endif
-
