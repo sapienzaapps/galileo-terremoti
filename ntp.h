@@ -18,11 +18,13 @@ unsigned long fixword(byte b1, byte b2) {
 #endif
 }
 
+// Return time in seconds 
 unsigned long getUNIXTime() {
   unsigned long diff = millis() - _unixTimeUpdate;
   return (_unixTimeTS + (diff/1000));
 }
 
+// Return time in milliseconds
 unsigned long getUNIXTimeMS() {
   unsigned long diff = millis() - _unixTimeUpdate;
   return diff % 1000;

@@ -94,14 +94,14 @@ void checkSensore()
   	sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
   }
   
-  if(db->overThreshold || inEvent == 1)  // if the values of the accelerometer have passed the threshold or if an "event" is currently running
-  {
-  	if (isConnected) {
-  		httpSendValues(db, &td);
-  	}
-  	else {
-  		//saveToSDhttpSendValues();
-  	}
+  if(db->overThreshold || inEvent == 1)  // if the values of the accelerometer have passed the threshold
+  {                                      //  or if an "event" is currently running
+    if (isConnected) {
+      httpSendValues(db, &td);
+    }else {
+      //saveToSDhttpSendValues();
+      free(db); // Memory leak debugged
+    }
   }else{
       free(db); // Memory leak debugged
    }
