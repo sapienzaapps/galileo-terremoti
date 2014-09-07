@@ -27,13 +27,9 @@ double nthresz = 0;
 unsigned long freeRam();
 
 long previousMillis = 0;        // will store last time LED was updated
-<<<<<<< HEAD
 long interval = 2*30*1000;
-=======
-long interval = 3*60*1000;
 long previousMillisNTP = 0;        // will store last time LED was updated
 long intervalNTP = 15*60*1000;
->>>>>>> 07c1fdf683c258fe8e0a3ede9ae4095a7849d07d
 
 #include "AcceleroMMA7361.h"
 #include "config.h"
@@ -82,11 +78,6 @@ boolean isOverThreshold(struct RECORD *db, struct TDEF *td) {
 
 void checkSensore() 
 {
-<<<<<<< HEAD
-=======
-
-  delay(50);
->>>>>>> 07c1fdf683c258fe8e0a3ede9ae4095a7849d07d
   int valx, valy, valz;
   
   valx = accelero.getXAccel();
@@ -145,7 +136,6 @@ void debug_Axis() // Reading sensor to view what is measuring. For Debug Only
     Serial.println(valz);
     //}
   }
-
 }
 
 // set up the ethernet connection per location;
@@ -215,7 +205,6 @@ void setupEthernet() {
 	}
 }
 
-
 void setup() {
 #ifdef __IS_GALILEO
   // Fixing Arduino Galileo bug
@@ -230,17 +219,10 @@ void setup() {
   //delay(1000);
   //system("telnetd -l /bin/sh");
   Serial.begin(9600);
-<<<<<<< HEAD
   delay(500);
-  
-  if (!debugON) Serial.println("#############INITIALIZING DEVICE#############\n");
-=======
-  delay(3000);
 
   if (debugON) Serial.println("#############INITIALIZING DEVICE#############\n");
   if (logON) log("#############INITIALIZING DEVICE#############\n");
->>>>>>> 07c1fdf683c258fe8e0a3ede9ae4095a7849d07d
-
   /* Calibrating Accelerometer */
   accelero.begin(13, 12, 11, 10, A0, A1, A2);     // set the proper pin x y z
   accelero.setSensitivity(LOW);                  // sets the sensitivity to +/-6G
@@ -255,30 +237,20 @@ void setup() {
 //  #endif
 
   if (debugON) Serial.println("Setting up ethernet connection");
-<<<<<<< HEAD
   // Config connction on Ethernet module
   setupEthernet();
   isConnected = isConnectedToInternet();
   
   Serial.print("STATUS CONNECTION: ");
   Serial.println(isConnected?"CONNECTED":"NOT CONNECTED");
-  delay(500);
-  
+  delay(500);  
   
   pinMode(12, OUTPUT);
   if(isConnected) digitalWrite(12,HIGH);
   digitalWrite(10,LOW);
   pinMode(10, OUTPUT);
   digitalWrite(10,LOW);
-  
-=======
 
-	// Config connction on Ethernet module
-
-	setupEthernet();
-	isConnected = true;
-
->>>>>>> 07c1fdf683c258fe8e0a3ede9ae4095a7849d07d
   //system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
   
   if (debugON) Serial.println("Forcing config update...");
@@ -304,12 +276,8 @@ void setup() {
 }
 
 void loop() {
-<<<<<<< HEAD
 	currentMillis = millis();
-=======
 	// debug only, check if the sketch is still running
-	unsigned long currentMillis = millis();
->>>>>>> 07c1fdf683c258fe8e0a3ede9ae4095a7849d07d
 	if (currentMillis - previousMillis > interval) {
 		previousMillis = currentMillis;
                 isConnected = isConnectedToInternet();
@@ -327,11 +295,6 @@ void loop() {
             Serial.println(isConnected?"CONNECTED":"NOT CONNECTED");
           }
 	}
-<<<<<<< HEAD
-  
-  
-  
-=======
 
 	// sync with the NTP server
 	unsigned long currentMillisNTP = millis();
@@ -340,7 +303,6 @@ void loop() {
 		NTPdataPacket();
 	}
 
->>>>>>> 07c1fdf683c258fe8e0a3ede9ae4095a7849d07d
   //doNTPActions();
   //delay(50);
   if(millis() - milldelayTime > 60){
@@ -362,10 +324,3 @@ void loop() {
   milldelayTime = millis();
   }
 }
-
-
-
-
-
-
-
