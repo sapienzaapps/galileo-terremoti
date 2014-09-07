@@ -6,7 +6,8 @@
 #define DEFAULT_HTTP_SERVER "www.sapienzaapps.it"
 char* path_domain = "/terremoti/galileo";
 
-byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x13, 0x0c };  // fictitious MAC address
+byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x13, 0x0d };  // fictitious MAC address
+//byte mac[] = { 0x98, 0x4F, 0xEE, 0x00, 0x52, 0x18 };  // real MAC address
 int deviceLocation = 2;  // 0 is for Sapienza Colossus | 1 is for Panizzi's room | 2 is for Home
 boolean isDhcpEnabled = false;
 
@@ -61,8 +62,38 @@ void printRecord(struct RECORD *db) {
 void forceConfigUpdate();
 
 bool isConnectedToInternet() {
-	int a = system("bin/busybox ping -w 2 8.8.8.8");
-	if (a == 0) {
+	int ping = system("bin/busybox ping -w 2 8.8.8.8");
+
+	//Serial.print("Ping STATUS: ");
+	//Serial.println(ping);
+	int pingWifexited = WIFEXITED(ping);
+	//Serial.print("Ping Wifexited STATUS: ");
+	//Serial.println(pingWifexited);
+	if (pingWifexited) {
+		if (WEXITSTATUS(ping) == 0) {
+			isConnected = true;
+			return true;
+		}
+
+		if (debugON) {
+			Serial.print("Ping WEXITSTATUS STATUS: ");
+			Serial.println(WEXITSTATUS(ping));
+		}
+	}
+	else {
+		if (debugON) {
+			Serial.print("Ping Wifexited STATUS: ");
+			Serial.println(pingWifexited);
+		}
+		isConnected = false;
+		return false;
+	}
+
+	isConnected = false;
+	return false;
+
+	/*
+	if (ping == 0) {
 		//Serial.println("*** CONNECTED ***");
 		isConnected = true;
 		return true;
@@ -72,6 +103,7 @@ bool isConnectedToInternet() {
 		isConnected = false;
 		return false;
 	}
+	*/
 }
 
 bool isConnectedToInternet2() {

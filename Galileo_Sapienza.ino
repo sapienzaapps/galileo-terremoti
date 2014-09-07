@@ -27,7 +27,7 @@ double nthresz = 0;
 unsigned long freeRam();
 
 long previousMillis = 0;        // will store last time LED was updated
-long interval = 3*60*1000;
+long interval = 2*30*1000;
 
 #include "AcceleroMMA7361.h"
 #include "config.h"
@@ -47,6 +47,9 @@ unsigned long freeRam() {
   sysinfo(&s);
   return s.freeram;
 }
+
+unsigned long currentMillis, milldelayTime;
+
 #else
 #if (ARDUINO >= 100)
 #include <Arduino.h>
@@ -73,7 +76,6 @@ boolean isOverThreshold(struct RECORD *db, struct TDEF *td) {
 
 void checkSensore() 
 {
-  delay(50);
   int valx, valy, valz;
   
   valx = accelero.getXAccel();
@@ -89,7 +91,7 @@ void checkSensore()
   db->valy = getAvgY(valy);
   db->valz = getAvgZ(valz);
   db->overThreshold = isOverThreshold(db, &td);
-  
+   
   if (isConnected) {
   	sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
   }
@@ -97,14 +99,42 @@ void checkSensore()
   if(db->overThreshold || inEvent == 1)  // if the values of the accelerometer have passed the threshold
   {                                      //  or if an "event" is currently running
     if (isConnected) {
+      digitalWrite(10,HIGH);
       httpSendValues(db, &td);
+      
+      //Serial.println("IN EVENT - __CONNECTED__");
     }else {
       //saveToSDhttpSendValues();
       free(db); // Memory leak debugged
+      Serial.println("freeing memory for db");
+      Serial.println("IN EVENT - BUT NOT CONNECTED");
     }
   }else{
       free(db); // Memory leak debugged
+      digitalWrite(10,LOW);
+      //Serial.println("freeing memory for db");
+      //Serial.println("NOT IN EVENT");
    }
+}
+
+void debug_Axis() // Reading sensor to view what is measuring. For Debug Only
+{
+  int valx, valy, valz;
+  
+  valx = accelero.getXAccel();
+  valy = accelero.getYAccel();
+  valz = accelero.getZAccel();
+  if (debugON){
+    //if(millis() - milldelayTime > 1000){
+    Serial.print("Valori Accelerometro:  ");
+    Serial.print(valx);
+    Serial.print("   ");
+    Serial.print(valy);
+    Serial.print("   ");
+    Serial.println(valz);
+    //}
+  }
+
 }
 
 // set up the ethernet connection per location;
@@ -141,7 +171,7 @@ void setupEthernet() {
 
 			case 2:  // Home
 				//timeServer = IPAddress(37, 247, 49, 133); Tommaso's House
-				timeServer = IPAddress(37, 247, 49, 133);
+				timeServer = IPAddress(132, 163, 4, 101);
 				if (isDhcpEnabled) {
 					boolean isDhcpWorking = false;
 					while(!isDhcpWorking) { // aggiungere timeout dhcp
@@ -179,33 +209,49 @@ void setup() {
 #ifdef __IS_GALILEO
   // Fixing Arduino Galileo bug
   signal(SIGPIPE, SIG_IGN);
-  
-  // For debugging purpose, we start telnet
-  // Remove for production use
-  system("telnetd -l /bin/sh");
-#endif
-  
+        // Workaround for Galileo (and other boards with Linux)
+      system("/etc/init.d/networking restart");
+      delay(1000);
+      // Remove for production use
+      system("telnetd -l /bin/sh");
+  #endif
+  //system("/etc/init.d/networking restart");
+  //delay(1000);
+  //system("telnetd -l /bin/sh");
   Serial.begin(9600);
-  delay(3000);
+  delay(500);
   
-  if (debugON) Serial.println("#############INITIALIZING DEVICE#############\n");
+  if (!debugON) Serial.println("#############INITIALIZING DEVICE#############\n");
 
   /* Calibrating Accelerometer */
   accelero.begin(13, 12, 11, 10, A0, A1, A2);     // set the proper pin x y z
   accelero.setSensitivity(LOW);                  // sets the sensitivity to +/-6G
+  if (debugON) Serial.println("calibrate()");
   accelero.calibrate();
   accelero.setAveraging(1);  // number of samples that have to be averaged
-  
-  #ifdef __IS_GALILEO
-	  // Workaround for Galileo (and other boards with Linux)
-	  system("/etc/init.d/networking restart");
-  #endif
+  if (debugON) Serial.println("setAveraging(1)");
+//  #ifdef __IS_GALILEO
+//	  // Workaround for Galileo (and other boards with Linux)
+//	  system("/etc/init.d/networking restart");
+//          delay(1000);
+//  #endif
 
   if (debugON) Serial.println("Setting up ethernet connection");
-	// Config connction on Ethernet module
-	setupEthernet();
-	isConnected = true;
-
+  // Config connction on Ethernet module
+  setupEthernet();
+  isConnected = isConnectedToInternet();
+  
+  Serial.print("STATUS CONNECTION: ");
+  Serial.println(isConnected?"CONNECTED":"NOT CONNECTED");
+  delay(500);
+  
+  
+  pinMode(12, OUTPUT);
+  if(isConnected) digitalWrite(12,HIGH);
+  digitalWrite(10,LOW);
+  pinMode(10, OUTPUT);
+  digitalWrite(10,LOW);
+  
   //system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
   
   if (debugON) Serial.println("Forcing config update...");
@@ -227,28 +273,56 @@ void setup() {
   if (debugON) Serial.println(freeRam()); //debug
   
   if (debugON) Serial.println("\n#############INIZIALIZATION COMPLETE!#############");
+  milldelayTime = millis();
 }
 
 void loop() {
-	unsigned long currentMillis = millis();
+	currentMillis = millis();
 	if (currentMillis - previousMillis > interval) {
 		previousMillis = currentMillis;
+                isConnected = isConnectedToInternet();
+                if(!isConnected){ 
+                  digitalWrite(12,LOW);
+                  }else{
+                    digitalWrite(12,HIGH);
+                  }
+                 
 		log("Still running");
+          if(debugON){
+            Serial.print("Still running__INTERVAL: ");
+            Serial.println(interval);  
+            Serial.print("STATUS CONNECTION: ");
+            Serial.println(isConnected?"CONNECTED":"NOT CONNECTED");
+          }
 	}
-
+  
+  
+  
   //doNTPActions();
-  delay(50);
+  //delay(50);
+  if(millis() - milldelayTime > 60){
   doConfigUpdates();
   
   int cHour = (getUNIXTime() % 86400L) / 3600;
   if(currentHour != cHour)
   {
     currentHour = cHour;
+    if(debugON) Serial.println("checkCalibrationNeeded");
     checkCalibrationNeeded(accelero, cHour);
+   
   }
   
   checkCommandPacket();
   
   checkSensore();
   //testNTP();
+  milldelayTime = millis();
+  }
 }
+
+
+
+
+
+
+
