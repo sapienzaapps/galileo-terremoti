@@ -11,7 +11,7 @@ byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x13, 0x0d };  // fictitious MAC address
 int deviceLocation = 2;  // 0 is for Sapienza Colossus | 1 is for Panizzi's room | 2 is for Home
 boolean isDhcpEnabled = false;
 
-bool debugON = false;
+bool debugON = true;
 bool logON = true;
 long n_NTP_connections = 0;  // for debug purpose only
 

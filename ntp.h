@@ -98,7 +98,7 @@ int checkNTPPacket() {
 
     _unixTimeTS = epoch;
     _unixTimeUpdate = millis();
-	
+
     unsigned long diff = epoch - getUNIXTime();// +2 fuso orario???
     Serial.print("Diff from NTP: ");
     Serial.println(diff);
@@ -139,7 +139,7 @@ void forceNTPUpdate() {
       Serial.println("NTP not responding, re-trying...");
       sendNTPpacket(timeServer);
     } else if(i > 3000) {
-      forceConfigUpdate(); // perchè ??
+      forceConfigUpdate(); // why ??
       Serial.print("HTTP Server: ");
       Serial.println(httpServer);
       Serial.print("NTP Server (ntp.h): ");
@@ -167,4 +167,3 @@ void initNTP() {
 }
 
 #endif
-

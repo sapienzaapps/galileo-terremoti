@@ -46,4 +46,12 @@ void log(char *text) {
 	closeLog();
 }
 
+void logLong(unsigned long text) {
+	openLog();
+	//Serial.println(text);
+	fprintf(f, "%s", getGalileoDate());
+	fprintf(f, "%ld\n", text);
+	closeLog();
+}
+
 #endif
