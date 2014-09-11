@@ -2,7 +2,7 @@
 #define cfgupdate_h 1
 
 #include "GalileoLog.h"
-
+FILE *fp;
 unsigned long lastCfgUpdate = 0;
 unsigned long cfgUpdateInterval = 60;
 
@@ -146,7 +146,14 @@ void forceConfigUpdate() {
 void initConfigUpdates() {
   httpServer = (char*)malloc(strlen(DEFAULT_HTTP_SERVER) * sizeof(char));
   strcpy(httpServer, DEFAULT_HTTP_SERVER);
-  
+  // Read log.txt size, if too big delete it
+  fp = fopen("log.txt", "a");
+  fseek(fp, 0L, SEEK_END);
+  int sz = ftell(fp);
+  fclose (fp);
+  if (sz > 4000){
+    system("rm log.txt"); // TODO remove logfile if too old 
+  }
   forceConfigUpdate();
   /*
   Serial.print("HTTP Server: ");

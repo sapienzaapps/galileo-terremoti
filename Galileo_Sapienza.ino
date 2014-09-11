@@ -108,6 +108,7 @@ void checkSensore()
     }else {
       //saveToSDhttpSendValues();
       free(db); // Memory leak debugged
+      digitalWrite(10,LOW);
       Serial.println("freeing memory for db");
       Serial.println("IN EVENT - BUT NOT CONNECTED");
     }
