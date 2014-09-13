@@ -22,9 +22,6 @@ EthernetClient client;
 byte inEvent = 0;
 unsigned long seqid = 0;
 unsigned long nextContact = 0;
-//boolean *isSendingMapped;
-//boolean *isLastMapped;
-//unsigned long *nextContactMapped;
 boolean isSendingMapped;
 boolean isLastMapped;
 unsigned long nextContactMapped;
@@ -37,19 +34,21 @@ int getLine(EthernetClient c, char* buffer, int maxsize, int toRead) { //???????
   int i;
   byte done = 0;
   memset(buffer, 0, maxsize);  // set the buffer to 0
-  for(i=0; i < maxsize-1 && done == 0; i++) {
+  for (i=0; i < maxsize-1 && done == 0; i++) {
     //while(!client.available() && client.connected());
     buffer[i] = c.read();
-    if(buffer[i] == '\r') i--; //????????
-    if(buffer[i] == '\n' || buffer[i] == -1) {  // if there is nothing more to read
+    if (buffer[i] == '\r') i--;
+    if (buffer[i] == '\n' || buffer[i] == -1) {  // if there is nothing more to read
       done = 1;
       buffer[i] = 0;
     }
-    if(toRead == -1) {
+    if (toRead == -1) {
     	// do nothing: it'll stop only if the buffer is emptied
-    } else if(toRead > 1) {
+    }
+    else if (toRead > 1) {
       toRead--;
-    } else {
+    }
+    else {
       done = 1;
     }
   }
@@ -85,7 +84,11 @@ int ramopen(int seqid, int sendingIter) {
 
 // remove the file from the RAM of the device
 void ramunlink(int seqid, int sendingIter) {
-	if (debugON) {Serial.print("Removing file ret"); Serial.print(seqid);Serial.print("_");Serial.print(sendingIter);}
+	if (debugON) {
+		Serial.print("Removing file ret");
+		Serial.print(seqid);Serial.print("_");
+		Serial.print(sendingIter);
+	}
 	if (logON) log("Removing file ");
   // Send values
   char filename[100];
@@ -112,10 +115,9 @@ void realHttpSendValues() {
   //int pid = fork();
   // pthread_creation -->pthread_httpSend()
   iret1 = pthread_create( &thread1, NULL, pthread_httpSend, NULL);
-  if(iret1)
-  {
-   Serial.print("Error - pthread_create() 1 return code: ");
-   Serial.println(iret1);
+  if (iret1) {
+   if (debugON) Serial.print("Error - pthread_create() 1 return code: ");
+   if (debugON) Serial.println(iret1);
    delay(10);
    exit(EXIT_FAILURE);
   }
@@ -125,21 +127,21 @@ void realHttpSendValues() {
 //######################## httpSendValues() #############################
 // send the accelerometer values that got over the threshold
 void httpSendValues(struct RECORD *db, struct TDEF *td) {
-  if(inEvent == 1) {  // if an "event" is running
-    if(seqDBfd != -1) {  // if the file that stores the sequence has not yet been closed
+  if (inEvent == 1) {  // if an "event" is running
+    if (seqDBfd != -1) {  // if the file that stores the sequence has not yet been closed
       byte_written = write(seqDBfd, db, sizeof(struct RECORD));  // write the sequence onto the file into RAM memory
-      if (debugON){
+      if (debugON) {
         //Serial.print("byte written on seqDBfd pthread: ");
-       // Serial.println(byte_written);
-        if (byte_written != sizeof(struct RECORD))   Serial.println("byte written MISMATCH! ");
-        }
-        if (logON && byte_written != sizeof(struct RECORD)) log("byte written MISMATCH! -- httpSendValues");
+      	//Serial.println(byte_written);
+        if (byte_written != sizeof(struct RECORD)) Serial.println("byte written MISMATCH! ");
+      }
+      if (logON && byte_written != sizeof(struct RECORD)) log("byte written MISMATCH! -- httpSendValues");
     }
-    //if (debugON) Serial.println(isSending?"isSending: TRUE!!!!":"isSending:  FALSE");
-    if(isSending) { // IF IS SENDING DATA
-       if (debugON) Serial.println("isSending: TRUE");
+    //Serial.println(isSending ? "isSending: TRUE!!!!" : "isSending:  FALSE");
+    if (isSending) { // IF IS SENDING DATA
+      //Serial.println("isSending: TRUE");
       // Check if finished
-      if(!isSendingMapped) {
+      if (!isSendingMapped) {
         isSending = false;
       	if (debugON) Serial.println("Child ended");
       	if (logON) log("Child ended");
@@ -149,28 +151,31 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
         if (debugON) Serial.println(nextContactMapped);
         debugUNIXTime(nextContactMapped);
 
-        if(isLastMapped) {
-          if (debugON) Serial.println("isLAST MAPPED TRUEEEEEEE: ");
+        if (isLastMapped) {
+          //Serial.println("isLAST MAPPED TRUEEEEEEE: ");
           inEvent = 0;
-          Serial.println("ORA ATTUALE: ");
+          //Serial.println("ORA ATTUALE: ");
           debugUNIXTime(getUNIXTime()); 
-          if (debugON) Serial.println("finitoooooooooooooooooooooooooooooooooooooooooooo");     
+          //Serial.println("Finished");
           close(seqDBfd);
           seqDBfd = -1;
           ramunlink(seqid, sendingIter);
           if (debugON) Serial.println("Storing finished");
           if (logON) log("Storing finished");
-        }else{ 
-          if (debugON) Serial.println("isLAST MAPPED FALSEEEEE: ");
+        }
+        else {
+          if (debugON) Serial.println("isLAST MAPPED FALSE: ");
         }
       }
-    }else if(getUNIXTime() >= nextContact) {   // IF IS THE RIGHT TIME, CONTACT SERVER
+    }
+    else if (getUNIXTime() >= nextContact) {   // IF IS THE RIGHT TIME, CONTACT SERVER
     	if (debugON) Serial.println("Child starting");
     	if (logON) log("Child starting");
       isSending = true;
       realHttpSendValues();
     }
-  } else {
+  }
+  else {
     // New Event ----------------------------------------------------------
   	if (debugON) Serial.print("New Event, values (X-Y-Z): ");
   	if (logON) log("New Event, values (X-Y-Z): ");
@@ -220,10 +225,10 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
         // Content
         s = getLine(client, rBuffer, 300, bodySize);
 
-        char* separator = strchr(rBuffer, ';'); //??????????????????
+        char* separator = strchr(rBuffer, ';');  // ?
         *separator = 0;
         seqid = atol(rBuffer);  // get the sequence ID
-        nextContact = atol(separator+1) + getUNIXTime();//???????????
+        nextContact = atol(separator+1) + getUNIXTime();  // ?
         inEvent = 1;  // Set ON the Event 
         if (debugON) Serial.print("SEQID:");
         if (debugON) Serial.println(seqid);
@@ -247,7 +252,7 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
       client.stop();
     }
     free(db);
-    if(debugON) Serial.println("freeing memory for db-- httpSendValues");
+    //Serial.println("freeing memory for db-- httpSendValues");
   }
 }
 
@@ -256,8 +261,8 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
 //worker thread send on http*****************************
   void *pthread_httpSend(void *ptr) {  // if its the child process
     int fd = ramopen(tempseqid, tempsendingIter);  // store the file descriptor for the child file
-    if ((debugON) && (fd ==-1)){ 
-      Serial.print("Error in ramopen fd: PTHREAD");
+    if ((debugON) && (fd == -1)) {
+    	Serial.print("Error in ramopen fd: PTHREAD");
       if (logON) log("Error in ramopen fd: PTHREAD ");
       Serial.println(fd);
     }
@@ -287,7 +292,7 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
       free(rec);
     } while(r > 0);  // for as long as there is an Event to read
     
-    if (debugON){ 
+    if (debugON) {
       Serial.print("OFFSET STRINGHE: ");
       Serial.println(offset);
       Serial.println(isLast?"TRUE":"FALSE");
@@ -296,10 +301,10 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
     sendBuffer[offset] = 0; //TERMINATE STRING
     
     if (client.connect(httpServer, 80) && totalValues > 0) {
-    	if (debugON){ 
+    	if (debugON) {
           Serial.print("Current time on Pthread: ");
           debugUNIXTime(nextContact);
-        }
+      }
       if (debugON) {
       	Serial.print("Sending ");
       	Serial.print(totalValues);
@@ -334,7 +339,8 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
       if(strncmp(rBuffer, "HTTP/1.1 200", 12) != 0) {
       	if (debugON) Serial.print("error in reply: ");
       	if (debugON) Serial.println(rBuffer);
-      } else {
+      }
+      else {
         int bodySize = 0;
         do {
           s = getLine(client, rBuffer, 300);
@@ -354,12 +360,13 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
         isLastMapped = isLast;
 
         if (debugON) Serial.println("done");
-        if(isLast) {// debug only
+        if (isLast) {  // debug only
           //inEvent = 0;
           if (debugON) Serial.println("No more relevant values, ending now-  IS LAST: TRUE");
           if (logON) log("No more relevant values, ending now");
-        }else{
-          if (debugON){ 
+        }
+        else {
+          if (debugON) {
             Serial.print("Next Contact scheduled for: ");
             debugUNIXTime(nextContact);
            }
@@ -376,7 +383,7 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
     ramunlink(tempseqid, tempsendingIter);
     
     isSendingMapped = false;
-    if (debugON){ 
+    if (debugON) {
       Serial.println("RAM UNLINK: ");
       Serial.println("isSendingMapped:################ false");
     }
@@ -385,139 +392,3 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
   }
 
 #endif
-
-
-/* void realHttpSendValues() {
-  close(seqDBfd);
-  seqDBfd = -1;
-  int tempseqid = seqid;
-  int tempsendingIter = sendingIter;
-  
-  isLastMapped = (boolean*)mmap(NULL, sizeof(boolean), PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED, -1, 0);
-  isSendingMapped = (boolean*)mmap(NULL, sizeof(boolean), PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED, -1, 0);
-  nextContactMapped = (unsigned long*)mmap(NULL, sizeof(unsigned long), PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED, -1, 0);
-  
-  *isLastMapped = true;
-  *isSendingMapped = true;
-  *nextContactMapped = 0;
-
-  sendingIter++;
-  seqDBfd = ramopen(seqid, sendingIter);
-  int pid = fork();
-  if(pid == 0) {  // if its the child process
-    int fd = ramopen(tempseqid, tempsendingIter);  // store the file descriptor for the child file
-
-    int size = lseek(fd, 0, SEEK_END);  // get the size of the file
-    lseek(fd, 0, SEEK_SET);  // set the pointer to the beginning of the file
-
-    char *sendBuffer = (char*) malloc(0);
-    int offset = 0;
-    int r = 0;
-    unsigned int totalValues = 0;
-    boolean isLast = true;
-    do {  // for as long as there is something to read
-      struct RECORD *rec = (struct RECORD*)malloc(sizeof(struct RECORD));
-      r = read(fd, rec, sizeof(struct RECORD));
-      if(r > 0) {
-        if(rec->overThreshold) isLast = false;
-        totalValues++;
-
-        char *rBuffer = (char *)malloc(300 * sizeof(char));
-        int ls = prepareBuffer(rBuffer, rec);  // get the length of the string and store the string into the buffer
-        sendBuffer = (char*) realloc(sendBuffer, offset+ls);
-        memcpy(sendBuffer + offset, rBuffer, ls);
-        offset += ls;
-        free(rBuffer);
-      }
-      free(rec);
-    } while(r > 0);  // for as long as there is something to read
-    sendBuffer = (char*) realloc(sendBuffer, offset+1);
-    sendBuffer[offset] = 0;
-    
-    if(client.connect(httpServer, 80)) {
-    	if (debugON) Serial.print("Current time: ");
-      debugUNIXTime(nextContact);
-
-      if (debugON) {
-      	Serial.print("Sending ");
-      	Serial.print(totalValues);
-      	Serial.print(" values to:");
-      	Serial.println(httpServer);
-      }
-      
-      client.print("POST ");
-      client.print(path_domain);
-      client.print("/device.php?op=put&mac=");
-      for(int m=0; m < 6; m++) {
-        if(mac[m] < 0x10) client.print("0");
-        client.print(mac[m], HEX);
-      }
-      client.print("&seqid=");
-      client.print(seqid);
-      if(isLast) client.print("&last=1");
-      client.println(" HTTP/1.1");
-      client.print("Host: ");
-      client.println(httpServer);
-      client.println("Connection: close");
-      client.print("Content-Length: ");
-      client.println(offset);
-      client.println("Content-Type: text/plain");
-      client.println("");
-      
-      client.println(sendBuffer);
-
-      char rBuffer[300];
-      // Reading headers
-      int s = getLine(client, rBuffer, 300);
-      if(strncmp(rBuffer, "HTTP/1.1 200", 12) != 0) {
-      	if (debugON) Serial.print("error in reply: ");
-      	if (debugON) Serial.println(rBuffer);
-      } else {
-        int bodySize = 0;
-        do {
-          s = getLine(client, rBuffer, 300);
-          if(strncmp(rBuffer, "Content-Length", 14) == 0) {
-            char* separator = strchr(rBuffer, ':');
-            if(*(separator+1) == ' ') {
-              separator += 2;
-            } else {
-              separator++;
-            }
-            bodySize = atoi(separator);
-          }
-        } while(s > 0);
-        // Content
-        s = getLine(client, rBuffer, 300, bodySize);
-        *nextContactMapped = atol(rBuffer) + getUNIXTime();
-        *isLastMapped = isLast;
-
-        if (debugON) Serial.println("done");
-        if(isLast) {
-          //inEvent = 0;
-        	if (debugON) Serial.println("No more relevant values, ending now");
-        	if (logON) log("No more relevant values, ending now");
-        } else {
-        	if (debugON) Serial.print("Next Contact scheduled for: ");
-          debugUNIXTime(nextContact);
-        }
-      }
-      if (debugON) Serial.println("closing connection... ");
-      client.stop();
-    }
-    if (debugON) Serial.println("closed, freeing memory... ");
-    free(sendBuffer);
-    // RM file
-    close(fd);
-    ramunlink(tempseqid, tempsendingIter);
-
-    *isSendingMapped = false;
-    
-    munmap(isSendingMapped, sizeof(boolean));
-    munmap(isLastMapped, sizeof(boolean));
-    munmap(nextContactMapped, sizeof(unsigned long));
-    
-    if (debugON) Serial.println("done");
-    exit(0);
-  }
-}
-*/

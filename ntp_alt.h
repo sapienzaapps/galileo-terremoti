@@ -59,16 +59,19 @@ void dateGalileo(uint32_t t) {
 	}
 	d = days + 1;
   // Displaying Current Date and Time
-	Serial.print(hh);
-	Serial.print(":");
-	Serial.print(mm);
-	Serial.print(":");
-	Serial.println(ss);
-	Serial.print(d);
-	Serial.print("/");
-	Serial.print(m);
-	Serial.print("/");
-	Serial.println(2000+yOff);
+
+	if (debugON) {
+		Serial.print(hh);
+		Serial.print(":");
+		Serial.print(mm);
+		Serial.print(":");
+		Serial.println(ss);
+		Serial.print(d);
+		Serial.print("/");
+		Serial.print(m);
+		Serial.print("/");
+		Serial.println(2000+yOff);
+	}
 }
 // end conversion date from epoch
 
@@ -135,7 +138,8 @@ void NTPdataPacket() {
 			snprintf(bufSTR,12, "%lu" ,epoch);
 			strcat(cmd, bufSTR);
 
-	/*     strcat(cmd, cmd1);
+/*
+	 	 	strcat(cmd, cmd1);
 			if(m < 10) strcat(cmd, "0");
 			snprintf(bufSTR,4, "%d" ,m);
 			strcat(cmd, bufSTR );
@@ -149,7 +153,8 @@ void NTPdataPacket() {
 			snprintf(bufSTR,4, "%d" ,mm);
 			strcat(cmd, bufSTR );
 			snprintf(bufSTR,4, "%d" ,yOff);
-			strcat(cmd, bufSTR ); */
+			strcat(cmd, bufSTR );
+*/
 			if (debugON) Serial.print("Date and Time Command: ");
 			if (debugON) Serial.println(cmd);
 			//memset(cmd, 0, 21);
@@ -160,6 +165,7 @@ void NTPdataPacket() {
 		}
 	}
 }
+
 // Connect to NTP server and set System Clock
 void initNTP() {
 	UDP_as_NTP.begin(localPort);
@@ -170,10 +176,8 @@ void initNTP() {
 	  FILE *ptr;
 	  if (debugON) Serial.print("COMANDO: ");
 	  if (debugON) Serial.println(cmd);
-	  if ((ptr = popen((char *)cmd, "r")) != NULL)
-	  {
-	    while (fgets(buf, 64, ptr) != NULL)
-	    {
+	  if ((ptr = popen((char *)cmd, "r")) != NULL) {
+	    while (fgets(buf, 64, ptr) != NULL) {
 	    	if (debugON) Serial.print(buf);
 	    }
 	  }
@@ -187,10 +191,8 @@ void testNTP() {
 	  char buf[64];
 	  FILE *ptr;
 
-	  if ((ptr = popen(cmd2, "r")) != NULL)
-	  {
-	    while (fgets(buf, 64, ptr) != NULL)
-	    {
+	  if ((ptr = popen(cmd2, "r")) != NULL) {
+	    while (fgets(buf, 64, ptr) != NULL) {
 	    	if (debugON) Serial.print(buf);
 	    }
 	  }
@@ -198,7 +200,6 @@ void testNTP() {
 	  delay(1000);
 }
 
-/* *** OLD NTP.H *** START */
 unsigned long getUNIXTime() {
   unsigned long diff = millis() - _unixTimeUpdate;
   return (_unixTimeTS + (diff/1000));
@@ -210,23 +211,24 @@ unsigned long getUNIXTimeMS() {
 }
 
 void debugUNIXTime(unsigned long epoch) {
-  // print the hour, minute and second:
-  //Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
-	if (debugON) Serial.print((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
-	if (debugON) Serial.print(':');
-  if ( ((epoch % 3600) / 60) < 10 ) {
-    // In the first 10 minutes of each hour, we'll want a leading '0'
-  	if (debugON) Serial.print('0');
-  }
-  if (debugON) Serial.print((epoch  % 3600) / 60); // print the minute (3600 equals secs per minute)
-  if (debugON) Serial.print(':');
-  if ( (epoch % 60) < 10 ) {
-    // In the first 10 seconds of each minute, we'll want a leading '0'
-  	if (debugON) Serial.print('0');
-  }
-  if (debugON) Serial.print(epoch %60); // print the second
-  if (debugON) Serial.println(" UTC");
+	if (debugON) {
+		// print the hour, minute and second:
+		//Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
+		Serial.print((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
+		Serial.print(':');
+		if ( ((epoch % 3600) / 60) < 10 ) {
+			// In the first 10 minutes of each hour, we'll want a leading '0'
+			Serial.print('0');
+		}
+		Serial.print((epoch  % 3600) / 60); // print the minute (3600 equals secs per minute)
+		Serial.print(':');
+		if ( (epoch % 60) < 10 ) {
+			// In the first 10 seconds of each minute, we'll want a leading '0'
+			Serial.print('0');
+		}
+		Serial.print(epoch %60); // print the second
+		Serial.println(" UTC");
+	}
 }
-/* *** OLD NTP.H *** END */
 
 #endif

@@ -52,12 +52,13 @@ void initEEPROM() {
   int c3 = EEPROM.read(2);
   int c4 = EEPROM.read(3);
   
-  if(c1 == 'I' && c2 == 'N' && c3 == 'G' && c4 == 'V') {
+  if (c1 == 'I' && c2 == 'N' && c3 == 'G' && c4 == 'V') {
     if (debugON) Serial.println("EEPROM already formatted, skipping...");
-  } else {
+  }
+  else {
   	if (debugON) Serial.println("EEPROM not formatted, let's do it");
     int i=0;
-    for(i=4; i < (48*24); i++) { //controllare grandezza eeprom
+    for (i=4; i < (48*24); i++) { //controllare grandezza eeprom
       EEPROM.write(i, 0);
     }
     EEPROM.write(0, 'I');
@@ -87,7 +88,7 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
   double temp = readDouble(4 + currentHour*48); // ??? cosa deve leggere???
   
   // do calibration every random amount of hours? or if it's the first time ever
-  if(nextHour == currentHour || temp == 0) {
+  if (nextHour == currentHour || temp == 0) {
     int cbufx[CALIBRATIONITER];
     int cbufy[CALIBRATIONITER];
     int cbufz[CALIBRATIONITER];
@@ -96,7 +97,7 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
     if (debugON) Serial.println(currentHour);
     
     int i=0;
-    for(i=0; i < CALIBRATIONITER; i++) {
+    for (i=0; i < CALIBRATIONITER; i++) {
       cbufx[i] = ac.getXAccel();
       cbufy[i] = ac.getYAccel();
       cbufz[i] = ac.getZAccel();
@@ -137,8 +138,8 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
     nextHour = (random() % 23);
     if (debugON) Serial.print("Next calibration scheduled for ");
     if (debugON) Serial.println(nextHour);
-    
-  } else {
+  }
+  else {
   	if (debugON) Serial.println("Loading values from EEPROM for new hour");
     int pos = 4 + currentHour*48;
     pthresx = readDouble(pos);

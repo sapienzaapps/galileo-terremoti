@@ -98,44 +98,43 @@ void checkSensore()
   	sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
   }
   
-  if(db->overThreshold || inEvent == 1)  // if the values of the accelerometer have passed the threshold
-  {                                      //  or if an "event" is currently running
+  // if the values of the accelerometer have passed the threshold
+  //  or if an "event" is currently running
+  if (db->overThreshold || inEvent == 1) {
     if (isConnected) {
-      digitalWrite(10,HIGH);
+      if (ledON) digitalWrite(10,HIGH);
       httpSendValues(db, &td);
-      
       //Serial.println("IN EVENT - __CONNECTED__");
-    }else {
-      //saveToSDhttpSendValues();
-      free(db); // Memory leak debugged
-      digitalWrite(10,LOW);
-      Serial.println("freeing memory for db");
-      Serial.println("IN EVENT - BUT NOT CONNECTED");
     }
-  }else{
+    else {
+      //saveToSDhttpSendValues();  // not yet implemented
       free(db); // Memory leak debugged
-      digitalWrite(10,LOW);
+      if (ledON) digitalWrite(10,LOW);
+      //Serial.println("freeing memory for db");
+      //Serial.println("IN EVENT - BUT NOT CONNECTED");
+    }
+  }
+  else {
+      free(db); // Memory leak debugged
+      if (ledON) digitalWrite(10,LOW);
       //Serial.println("freeing memory for db");
       //Serial.println("NOT IN EVENT");
    }
 }
 
-void debug_Axis() // Reading sensor to view what is measuring. For Debug Only
-{
+void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
   int valx, valy, valz;
   
   valx = accelero.getXAccel();
   valy = accelero.getYAccel();
   valz = accelero.getZAccel();
-  if (debugON){
-    //if(millis() - milldelayTime > 1000){
+  if (debugON) {
     Serial.print("Valori Accelerometro:  ");
     Serial.print(valx);
     Serial.print("   ");
     Serial.print(valy);
     Serial.print("   ");
     Serial.println(valz);
-    //}
   }
 }
 
@@ -144,10 +143,10 @@ void debug_Axis() // Reading sensor to view what is measuring. For Debug Only
 void setupEthernet() {
 	switch (deviceLocation) {
 			case 0:  // Sapienza Colossus
-				ip = IPAddress(10,10,1,101);
-				dns = IPAddress(151,100,17,18);
-				gateway = IPAddress(10,10,1,1);
-				subnet = IPAddress(255,255,255,0);
+				ip = IPAddress(10, 10, 1, 101);
+				dns = IPAddress(151, 100, 17, 18);
+				gateway = IPAddress(10, 10, 1, 1);
+				subnet = IPAddress(255, 255, 255, 0);
 
 				Ethernet.begin(mac, ip, dns, gateway); //vedere
 				timeServer = IPAddress(10, 10, 1, 1);
@@ -158,10 +157,10 @@ void setupEthernet() {
 				break;
 
 			case 1:  // Panizzi's room
-				ip = IPAddress(151,100,17,143);
-				dns = IPAddress(151,100,17,18);
-				gateway = IPAddress(151,100,17,143);
-				subnet = IPAddress(255,255,255,0);
+				ip = IPAddress(151, 100, 17, 143);
+				dns = IPAddress(151, 100, 17, 18);
+				gateway = IPAddress(151, 100, 17, 1);
+				subnet = IPAddress(255, 255 ,255 ,0);
 
 				Ethernet.begin(mac, ip, dns, gateway);
 				timeServer = IPAddress(37, 247, 49, 133);
@@ -172,16 +171,16 @@ void setupEthernet() {
 				break;
 
 			case 2:  // Home
-				//timeServer = IPAddress(37, 247, 49, 133); Tommaso's House
 				timeServer = IPAddress(132, 163, 4, 101);
 				if (isDhcpEnabled) {
 					boolean isDhcpWorking = false;
-					while(!isDhcpWorking) { // aggiungere timeout dhcp
+					while (!isDhcpWorking) { // WARNING: add DHCP timeout
 						/* Trying to get an IP address */
 						if (Ethernet.begin(mac) == 0) {
 							if (debugON) Serial.println("Error while attempting to get an IP, retrying in 5 seconds...");
 							delay(5000);
-						} else {
+						}
+						else {
 							if (debugON) Serial.print("IP retrived successfully from DHCP: ");
 							if (debugON) Serial.println(Ethernet.localIP());
 							isDhcpWorking = true;
@@ -189,9 +188,8 @@ void setupEthernet() {
 					}
 				}
 				else {
-						/* Trying to get an IP address */
+						// add your static IP here
 						//ip = IPAddress(192, 168, 1, 36);
-
 						Ethernet.begin(mac); // controllare errore
 						//system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
 						system("ifconfig > /dev/ttyGS0");  // debug
@@ -222,7 +220,7 @@ void setup() {
   Serial.begin(9600);
   delay(500);
 
-  if (debugON) Serial.println("#############INITIALIZING DEVICE#############\n");
+  Serial.println("#############INITIALIZING DEVICE#############\n");
   if (logON) log("#############INITIALIZING DEVICE#############\n");
   /* Calibrating Accelerometer */
   accelero.begin(13, 12, 11, 10, A0, A1, A2);     // set the proper pin x y z
@@ -243,14 +241,16 @@ void setup() {
   isConnected = isConnectedToInternet();
   
   Serial.print("STATUS CONNECTION: ");
-  Serial.println(isConnected?"CONNECTED":"NOT CONNECTED");
+  Serial.println(isConnected ? "CONNECTED" : "NOT CONNECTED");
   delay(500);  
   
-  pinMode(12, OUTPUT);
-  if(isConnected) digitalWrite(12,HIGH);
-  digitalWrite(10,LOW);
-  pinMode(10, OUTPUT);
-  digitalWrite(10,LOW);
+  if (ledON) {
+  	pinMode(12, OUTPUT);
+		if (isConnected) digitalWrite(12,HIGH);
+		digitalWrite(10,LOW);
+		pinMode(10, OUTPUT);
+		digitalWrite(10,LOW);
+  }
 
   //system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
   
@@ -281,20 +281,21 @@ void loop() {
 	// debug only, check if the sketch is still running
 	if (currentMillis - previousMillis > interval) {
 		previousMillis = currentMillis;
-                isConnected = isConnectedToInternet();
-                if(!isConnected){ 
-                  digitalWrite(12,LOW);
-                  }else{
-                    digitalWrite(12,HIGH);
-                  }
+		isConnected = isConnectedToInternet();
+		if (!isConnected) {
+			if (ledON) digitalWrite(12,LOW);
+		}
+		else {
+			if (ledON) digitalWrite(12,HIGH);
+		}
                  
 		log("Still running");
-          if(debugON){
-            Serial.print("Still running__INTERVAL: ");
-            Serial.println(interval);  
-            Serial.print("STATUS CONNECTION: ");
-            Serial.println(isConnected?"CONNECTED":"NOT CONNECTED");
-          }
+		if (debugON) {
+			Serial.print("Still running__INTERVAL: ");
+			Serial.println(interval);
+			Serial.print("STATUS CONNECTION: ");
+			Serial.println(isConnected?"CONNECTED":"NOT CONNECTED");
+		}
 	}
 
 	// sync with the NTP server
@@ -306,22 +307,20 @@ void loop() {
 
   //doNTPActions();
   //delay(50);
-  if(millis() - milldelayTime > 60){
-  doConfigUpdates();
-  
-  int cHour = (getUNIXTime() % 86400L) / 3600;
-  if(currentHour != cHour)
-  {
-    currentHour = cHour;
-    if(debugON) Serial.println("checkCalibrationNeeded");
-    checkCalibrationNeeded(accelero, cHour);
-   
-  }
-  
-  checkCommandPacket();
-  
-  checkSensore();
-  //testNTP();
-  milldelayTime = millis();
+  if (millis() - milldelayTime > 60) {
+		doConfigUpdates();
+
+		int cHour = (getUNIXTime() % 86400L) / 3600;
+		if (currentHour != cHour) {
+			currentHour = cHour;
+			if (debugON) Serial.println("checkCalibrationNeeded");
+			checkCalibrationNeeded(accelero, cHour);
+		}
+
+		checkCommandPacket();
+
+		checkSensore();
+		//testNTP();
+		milldelayTime = millis();
   }
 }
