@@ -150,6 +150,8 @@ void initConfigUpdates() {
   fclose (fp);
   if (sz > 4000) {
     system("rm log.txt"); // TODO remove logfile if too old 
+    if(debugON) Serial.println("log file removed");
+    if(logON) log("log file removed");
   }
   forceConfigUpdate();
 }

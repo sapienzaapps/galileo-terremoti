@@ -50,7 +50,10 @@ unsigned long freeRam() {
   return s.freeram;
 }
 
+static struct RECORD ddl = {1000, 3600, 1020, 400, 200};
+struct RECORD *db = &ddl;
 unsigned long currentMillis, milldelayTime;
+
 
 #else
 #if (ARDUINO >= 100)
@@ -86,7 +89,7 @@ void checkSensore()
       
   TDEF td = { pthresx, pthresy, pthresz, nthresx, nthresy, nthresz };
   
-  struct RECORD *db = (struct RECORD*)malloc(sizeof(struct RECORD));
+  //struct RECORD *db = (struct RECORD*)malloc(sizeof(struct RECORD));
   db->ts = getUNIXTime();
   db->ms = getUNIXTimeMS();
   db->valx = getAvgX(valx);
@@ -105,17 +108,16 @@ void checkSensore()
       if (ledON) digitalWrite(10,HIGH);
       httpSendValues(db, &td);
       //Serial.println("IN EVENT - __CONNECTED__");
-    }
-    else {
+    }else {
       //saveToSDhttpSendValues();  // not yet implemented
-      free(db); // Memory leak debugged
+      //free(db); // Memory leak debugged
       if (ledON) digitalWrite(10,LOW);
       //Serial.println("freeing memory for db");
       //Serial.println("IN EVENT - BUT NOT CONNECTED");
     }
   }
   else {
-      free(db); // Memory leak debugged
+      //free(db); // Memory leak debugged
       if (ledON) digitalWrite(10,LOW);
       //Serial.println("freeing memory for db");
       //Serial.println("NOT IN EVENT");

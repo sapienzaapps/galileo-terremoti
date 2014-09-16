@@ -251,8 +251,8 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
       }
       client.stop();
     }
-    free(db);
-    //Serial.println("freeing memory for db-- httpSendValues");
+    //free(db);
+    if(debugON) Serial.println("exiting from - httpSendValues");
   }
 }
 

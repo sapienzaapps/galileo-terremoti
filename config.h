@@ -13,7 +13,7 @@ boolean isDhcpEnabled = false;
 
 bool debugON = true;  // is debugging mode enabled?
 bool logON = true;  // is logging mode enabled?
-bool ledON = false;  // are the leds mounted on the board?
+bool ledON = true;  // are the leds mounted on the board?
 bool deviceHasSDCard = false;  // is the SD card mounted on the board?
 
 long pingIntervalCheck = 30 * 1000;
@@ -48,6 +48,9 @@ struct TDEF {
   double nthresy;
   double nthresz;
 };
+
+static struct RECORD recddl = {0, 0, 0, 0, 0, false};
+struct RECORD *rec = &recddl;
 
 //printing a record state
 void printRecord(struct RECORD *db) {
