@@ -230,7 +230,7 @@ void setup() {
   accelero.setSensitivity(LOW);                  // sets the sensitivity to +/-6G
   if (debugON) Serial.println("calibrate()");
   accelero.calibrate();
-  accelero.setAveraging(100);  // number of samples that have to be averaged
+  accelero.setAveraging(10);  // number of samples that have to be averaged
   if (debugON) Serial.println("setAveraging(1)");
 //  #ifdef __IS_GALILEO
 //	  // Workaround for Galileo (and other boards with Linux)
