@@ -50,6 +50,7 @@ unsigned long freeRam() {
   return s.freeram;
 }
 
+// static temp struct
 static struct RECORD ddl = {1000, 3600, 1020, 400, 200};
 struct RECORD *db = &ddl;
 unsigned long currentMillis, milldelayTime;
@@ -112,11 +113,11 @@ void checkSensore()
       //saveToSDhttpSendValues();  // not yet implemented
       //free(db); // Memory leak debugged
       if (ledON) digitalWrite(10,LOW);
+      if (logON) log("NOT CONNECTED");
       //Serial.println("freeing memory for db");
       //Serial.println("IN EVENT - BUT NOT CONNECTED");
     }
-  }
-  else {
+  }else{
       //free(db); // Memory leak debugged
       if (ledON) digitalWrite(10,LOW);
       //Serial.println("freeing memory for db");
@@ -208,13 +209,13 @@ void setupEthernet() {
 
 void setup() {
 #ifdef __IS_GALILEO
-  // Fixing Arduino Galileo bug
-  signal(SIGPIPE, SIG_IGN);
-        // Workaround for Galileo (and other boards with Linux)
-      system("/etc/init.d/networking restart");
-      delay(1000);
-      // Remove for production use
-      system("telnetd -l /bin/sh");
+    // Fixing Arduino Galileo bug
+    signal(SIGPIPE, SIG_IGN);
+    // Workaround for Galileo (and other boards with Linux)
+    system("/etc/init.d/networking restart");
+    delay(1000);
+    // Remove for production use
+    system("telnetd -l /bin/sh");
   #endif
   //system("/etc/init.d/networking restart");
   //delay(1000);
@@ -223,13 +224,13 @@ void setup() {
   delay(500);
 
   Serial.println("#############INITIALIZING DEVICE#############\n");
-  if (logON) log("#############INITIALIZING DEVICE#############\n");
+  if (logON) log("#########INITIALIZING DEVICE##########\n");
   /* Calibrating Accelerometer */
   accelero.begin(13, 12, 11, 10, A0, A1, A2);     // set the proper pin x y z
   accelero.setSensitivity(LOW);                  // sets the sensitivity to +/-6G
   if (debugON) Serial.println("calibrate()");
   accelero.calibrate();
-  accelero.setAveraging(1);  // number of samples that have to be averaged
+  accelero.setAveraging(100);  // number of samples that have to be averaged
   if (debugON) Serial.println("setAveraging(1)");
 //  #ifdef __IS_GALILEO
 //	  // Workaround for Galileo (and other boards with Linux)
@@ -282,7 +283,6 @@ void loop() {
 	currentMillis = millis();
 	// debug only, check if the sketch is still running
 	if (currentMillis - previousMillis > interval) {
-		previousMillis = currentMillis;
 		isConnected = isConnectedToInternet();
 		if (!isConnected) {
 			if (ledON) digitalWrite(12,LOW);
@@ -298,13 +298,14 @@ void loop() {
 			Serial.print("STATUS CONNECTION: ");
 			Serial.println(isConnected?"CONNECTED":"NOT CONNECTED");
 		}
+		previousMillis = currentMillis;
 	}
 
 	// sync with the NTP server
 	unsigned long currentMillisNTP = millis();
 	if (currentMillisNTP - previousMillisNTP > intervalNTP) {
-		previousMillisNTP = currentMillisNTP;
 		NTPdataPacket();
+		previousMillisNTP = currentMillisNTP;
 	}
 
   //doNTPActions();

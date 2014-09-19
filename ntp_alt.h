@@ -159,12 +159,11 @@ void NTPdataPacket() {
 			if (debugON) Serial.print("Date and Time Command: ");
 			if (debugON) Serial.println(cmd0);
 			//memset(cmd, 0, 21);
-		}
-		else{
+		}else{
 			if (debugON) Serial.println("ERROR NTP PACKET NOT RECEIVED");
 			if (logON) log("ERROR NTP PACKET NOT RECEIVED");
 		}
-	}
+	//}
 }
 
 // Connect to NTP server and set System Clock
@@ -188,11 +187,11 @@ void initNTP() {
 
 // for debug purpose only
 void testNTP() {
-	char *cmd2 = "/bin/date +%F%t%T";
+	char *cmdP = "/bin/date +%F%t%T";
 	  char buf[64];
 	  FILE *ptr;
 
-	  if ((ptr = popen(cmd2, "r")) != NULL) {
+	  if ((ptr = popen(cmdP, "r")) != NULL) {
 	    while (fgets(buf, 64, ptr) != NULL) {
 	    	if (debugON) Serial.print(buf);
 	    }
