@@ -362,7 +362,7 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
         if (debugON) Serial.println("done");
         if (isLast) {  // debug only
           //inEvent = 0;
-          if (debugON) Serial.println("No more relevant values, ending now-  IS LAST: TRUE");
+          if (debugON) Serial.println("No more relevant values, ending now- IS LAST: TRUE");
           if (logON) log("No more relevant values, ending now");
         }
         else {
@@ -387,7 +387,10 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
       Serial.println("RAM UNLINK: ");
       Serial.println("isSendingMapped:################ false");
     }
-    if (debugON) Serial.println("PTHREAD DONE");
+    if (debugON){
+      Serial.println("PTHREAD DONE");
+    }
+    
     pthread_exit(NULL);
   }
 

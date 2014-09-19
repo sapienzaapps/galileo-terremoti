@@ -6,10 +6,10 @@ const int NTP_PACKET_SIZE= 48;  // NTP time stamp is in the first 48 bytes of th
 byte packetBuffer[ NTP_PACKET_SIZE];  // buffer to hold incoming and outgoing packets
 
 // An UDP instance to let us send and receive packets over UDP
-char cmd[30] = "";
-char cmd1[] = "/bin/date ";
-char cmd2[] = "/bin/date -s @";
-static  char bufSTR[13];
+static char cmd0[30] = "";
+static char cmd1[] = "/bin/date ";
+static char cmd2[] = "/bin/date -s @";
+static char bufSTR[13];
 
 // conversion date from epoch
 #define PROGMEM
@@ -100,8 +100,9 @@ unsigned long sendNTPpacket(IPAddress& address) {
 
 void NTPdataPacket() {
 	bool NTPsynced = false;
-
-	while (!NTPsynced) {
+  memset(cmd0, 0, 30);
+  memset(bufSTR, 0, 13);
+	// while (!NTPsynced) {
 		sendNTPpacket(timeServer); // send an NTP packet to a time server
 
 		// wait to see if a reply is available
@@ -134,9 +135,9 @@ void NTPdataPacket() {
 			if (debugON) Serial.println(epoch);
 			//dateGalileo(epoch);
 			delay(50);
-			strcat(cmd, cmd2);
+			strcat(cmd0, cmd2);
 			snprintf(bufSTR,12, "%lu" ,epoch);
-			strcat(cmd, bufSTR);
+			strcat(cmd0, bufSTR);
 
 /*
 	 	 	strcat(cmd, cmd1);
@@ -156,7 +157,7 @@ void NTPdataPacket() {
 			strcat(cmd, bufSTR );
 */
 			if (debugON) Serial.print("Date and Time Command: ");
-			if (debugON) Serial.println(cmd);
+			if (debugON) Serial.println(cmd0);
 			//memset(cmd, 0, 21);
 		}
 		else{
@@ -175,8 +176,8 @@ void initNTP() {
 	char buf[64];
 	  FILE *ptr;
 	  if (debugON) Serial.print("COMANDO: ");
-	  if (debugON) Serial.println(cmd);
-	  if ((ptr = popen((char *)cmd, "r")) != NULL) {
+	  if (debugON) Serial.println(cmd0);
+	  if ((ptr = popen((char *)cmd0, "r")) != NULL) {
 	    while (fgets(buf, 64, ptr) != NULL) {
 	    	if (debugON) Serial.print(buf);
 	    }
