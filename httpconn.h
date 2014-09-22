@@ -261,10 +261,12 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
 //worker thread send on http*****************************
   void *pthread_httpSend(void *ptr) {  // if its the child process
     int fd = ramopen(tempseqid, tempsendingIter);  // store the file descriptor for the child file
-    if ((debugON) && (fd == -1)) {
-    	Serial.print("Error in ramopen fd: PTHREAD");
+    if (fd == -1) {
+      if(debugON){
+        Serial.print("Error in ramopen fd: PTHREAD");
+        Serial.println(fd);
+      }
       if (logON) log("Error in ramopen fd: PTHREAD ");
-      Serial.println(fd);
     }
     
     int size = lseek(fd, 0, SEEK_END);  // get the size of the file
@@ -277,20 +279,35 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
     boolean isLast = true;
     do {  // for as long as there is something to read
       struct RECORD *rec = (struct RECORD*)malloc(sizeof(struct RECORD));
-      r = read(fd, rec, sizeof(struct RECORD));    //READING EVENTS FILE ON RAM
-      if(r > 0) {
-        if(rec->overThreshold) isLast = false;
-        totalValues++;
-        
-        char *rBuffer = (char *)malloc(300 * sizeof(char));
-        int ls = prepareBuffer(rBuffer, rec);  // get the length of the string and store the string into the buffer
-        sendBuffer = (char*) realloc(sendBuffer, offset+ls);
-        memcpy(sendBuffer + offset, rBuffer, ls);
-        offset += ls;
-        free(rBuffer);
+      if (rec != NULL){
+        r = read(fd, rec, sizeof(struct RECORD));    //READING EVENTS FILE ON RAM
+        if(r > 0) {
+          if(rec->overThreshold){ 
+            isLast = false;
+          }else{
+            isLast = true;
+          }
+          totalValues++;
+          
+          char *rBuffer = (char *)malloc(300 * sizeof(char));
+          if (rBuffer != NULL){
+            int ls = prepareBuffer(rBuffer, rec);  // get the length of the string and store the string into the buffer
+            sendBuffer = (char*) realloc(sendBuffer, offset+ls);
+            memcpy(sendBuffer + offset, rBuffer, ls);
+            offset += ls;
+            free(rBuffer);
+          }else{ 
+            if (logON) log("MALLOC FAILED rBuffer - pthread_httpSend");
+            if (debugON) Serial.println("MALLOC FAILED rBuffer - pthread_httpSend");
+          }
+        }
+        free(rec);
+      }else{ 
+        if (logON) log("MALLOC FAILED - pthread_httpSend");
+        if (debugON) Serial.println("MALLOC FAILED - pthread_httpSend");
+        r = 0;// stop reading memory error
       }
-      free(rec);
-    } while(r > 0);  // for as long as there is an Event to read
+    }while(r > 0);  // for as long as there is an Event to read
     
     if (debugON) {
       Serial.print("OFFSET STRINGHE: ");

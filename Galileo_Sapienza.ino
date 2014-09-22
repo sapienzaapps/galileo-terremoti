@@ -16,7 +16,7 @@
 #include <signal.h>
 #include <stdlib.h>  // for ntp_alt.h
 #endif
-
+// accelerometer values
 double pthresx = 0;
 double pthresy = 0;
 double pthresz = 0;
@@ -27,9 +27,9 @@ double nthresz = 0;
 unsigned long freeRam();
 
 long previousMillis = 0;        // will store last time LED was updated
-long interval = 2*30*1000;
-long previousMillisNTP = 0;        // will store last time LED was updated
-long intervalNTP = 15*60*1000;
+long interval = 2*30*1000;      // last check Internet conection time
+long previousMillisNTP = 0;     // will store last time LED was updated
+long intervalNTP = 15*60*1000;  // last NTP update time
 
 #include "AcceleroMMA7361.h"
 #include "config.h"
@@ -116,6 +116,9 @@ void checkSensore()
       if (logON) log("NOT CONNECTED");
       //Serial.println("freeing memory for db");
       //Serial.println("IN EVENT - BUT NOT CONNECTED");
+      
+      // STORE FILE ON SD CARD
+      // sd = active
     }
   }else{
       //free(db); // Memory leak debugged

@@ -78,7 +78,12 @@ boolean getConfigUpdates(boolean noupdate) {
           if (strncmp(rBuffer, "server", 6) == 0) {
             free(httpServer);  // ?
             httpServer = (char*)malloc(strlen(argument)*sizeof(char));
-            strcpy(httpServer, argument);
+            if(httpServer!=NULL){
+              strcpy(httpServer, argument);
+            }else{
+              if (logON) log("Malloc FAILED - getConfigUpdates");
+              if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
+            }
           }
           else if(strncmp(rBuffer, "ntpserver", 9) == 0) {
             timeServer = getFromString(argument);
@@ -142,7 +147,12 @@ void forceConfigUpdate() {
 // get the HTTP Server and NTP Server
 void initConfigUpdates() {
   httpServer = (char*)malloc(strlen(DEFAULT_HTTP_SERVER) * sizeof(char));
-  strcpy(httpServer, DEFAULT_HTTP_SERVER);
+  if(httpServer != NULL){
+    strcpy(httpServer, DEFAULT_HTTP_SERVER);
+  }else{
+    if (logON) log("Malloc FAILED - getConfigUpdates");
+    if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
+  }
   // Read log.txt size, if too big delete it
   fp = fopen("log.txt", "a");
   fseek(fp, 0L, SEEK_END);

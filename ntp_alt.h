@@ -26,6 +26,15 @@ unsigned long _unixTimeTS = 0;
 unsigned long _unixTimeUpdate = 0;
 /* *** OLD NTP.H *** END */
 
+// workaround for Galileo
+unsigned long fixword(byte b1, byte b2) {
+#ifdef __IS_GALILEO
+  return (b1 << 8) | b2;
+#else
+  return word(b1, b2);
+#endif
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // utility code to get Human Date From epoch
 
@@ -115,8 +124,8 @@ void NTPdataPacket() {
 			//the timestamp starts at byte 40 of the received packet and is four bytes,
 			// or two words, long. First, esxtract the two words:
 
-			unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
-			unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
+			unsigned long highWord = fixword(packetBuffer[40], packetBuffer[41]);
+			unsigned long lowWord = fixword(packetBuffer[42], packetBuffer[43]);
 			// combine the four bytes (two words) into a long integer
 			// this is NTP time (seconds since Jan 1 1900):
 			unsigned long secsSince1900 = highWord << 16 | lowWord;
