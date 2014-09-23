@@ -138,8 +138,8 @@ void NTPdataPacket() {
 			const unsigned long seventyYears = 2208988800UL;
 			// subtract seventy years:
 			unsigned long epoch = secsSince1900 - seventyYears + GMT;
-			epoch += 2;
 			_unixTimeTS = epoch;
+			_unixTimeUpdate = millis();
 			// print Unix time:
 			if (debugON) Serial.println(epoch);
 			//dateGalileo(epoch);
@@ -191,7 +191,7 @@ void initNTP() {
 	    }
 	  }
 	  (void) pclose(ptr);
-	  _unixTimeUpdate = millis();
+	  //_unixTimeUpdate = millis();
 }
 
 // for debug purpose only

@@ -27,12 +27,12 @@ double nthresz = 0;
 unsigned long freeRam();
 
 long previousMillis = 0;        // will store last time LED was updated
-long interval = 2*30*1000;      // last check Internet conection time
 long previousMillisNTP = 0;     // will store last time LED was updated
-long intervalNTP = 15*60*1000;  // last NTP update time
+long pingIntervalCheckCounter = 0;
 
 #include "AcceleroMMA7361.h"
 #include "config.h"
+#include "commons.h"
 //#include "ntp.h"
 #include "ntp_alt.h"
 #include "localstream.h"
@@ -80,6 +80,12 @@ boolean isOverThreshold(struct RECORD *db, struct TDEF *td) {
       || (db->valz > td->pthresz || db->valz < td->nthresz);
 }
 
+boolean isOverThresholdBasic(struct RECORD *db, struct TDEF *td) {
+  return (abs(db->valx - gForce) > td->pthresx)
+      || (abs(db->valy - gForce) > td->pthresy)
+      || (abs(db->valz - gForce) > td->pthresz);
+}
+
 void checkSensore() 
 {
   int valx, valy, valz;
@@ -96,7 +102,9 @@ void checkSensore()
   db->valx = getAvgX(valx);
   db->valy = getAvgY(valy);
   db->valz = getAvgZ(valz);
-  db->overThreshold = isOverThreshold(db, &td);
+  db->overThreshold = isOverThresholdBasic(db, &td);
+
+  debug_Axis();
    
   if (isConnected) {
   	sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
@@ -131,16 +139,17 @@ void checkSensore()
 void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
   int valx, valy, valz;
   
-  valx = accelero.getXAccel();
-  valy = accelero.getYAccel();
-  valz = accelero.getZAccel();
-  if (debugON) {
+  //valx = accelero.getXAccel();
+  //valy = accelero.getYAccel();
+  //valz = accelero.getZAccel();
+
+  if (debugON && db->overThreshold) {
     Serial.print("Valori Accelerometro:  ");
-    Serial.print(valx);
+    Serial.print(db->valx);
     Serial.print("   ");
-    Serial.print(valy);
+    Serial.print(db->valy);
     Serial.print("   ");
-    Serial.println(valz);
+    Serial.println(db->valz);
   }
 }
 
@@ -148,7 +157,7 @@ void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
 // use the linux underneath the device to force manual DNS and so on
 void setupEthernet() {
 	switch (deviceLocation) {
-			case 0:  // Sapienza Colossus
+			case Colossus:  // Sapienza Colossus
 				ip = IPAddress(10, 10, 1, 101);
 				dns = IPAddress(151, 100, 17, 18);
 				gateway = IPAddress(10, 10, 1, 1);
@@ -162,7 +171,7 @@ void setupEthernet() {
 				system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
 				break;
 
-			case 1:  // Panizzi's room
+			case Panizzi:  // Panizzi's room
 				ip = IPAddress(151, 100, 17, 143);
 				dns = IPAddress(151, 100, 17, 18);
 				gateway = IPAddress(151, 100, 17, 1);
@@ -176,7 +185,7 @@ void setupEthernet() {
 				system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
 				break;
 
-			case 2:  // Home
+			case Home:  // Home
 				timeServer = IPAddress(132, 163, 4, 101);
 				if (isDhcpEnabled) {
 					boolean isDhcpWorking = false;
@@ -270,7 +279,7 @@ void setup() {
   lastCfgUpdate = getUNIXTime();
   
   if (debugON) Serial.println("EEPROM init");
-  initEEPROM();
+  initEEPROM(forceInitEEPROM);
   
   if (debugON) Serial.println("UDP Command Socket init");
   commandInterfaceInit(); // open port for mobile app
@@ -285,7 +294,7 @@ void setup() {
 void loop() {
 	currentMillis = millis();
 	// debug only, check if the sketch is still running
-	if (currentMillis - previousMillis > interval) {
+	if (currentMillis - previousMillis > checkInternetConnectionInterval) {
 		isConnected = isConnectedToInternet();
 		if (!isConnected) {
 			if (ledON) digitalWrite(12,LOW);
@@ -306,14 +315,14 @@ void loop() {
 
 	// sync with the NTP server
 	unsigned long currentMillisNTP = millis();
-	if (currentMillisNTP - previousMillisNTP > intervalNTP) {
+	if (currentMillisNTP - previousMillisNTP > NTPInterval) {
 		NTPdataPacket();
 		previousMillisNTP = currentMillisNTP;
 	}
 
   //doNTPActions();
   //delay(50);
-  if (millis() - milldelayTime > 60) {
+  if (millis() - milldelayTime > checkSensoreInterval) {
 		doConfigUpdates();
 
 		int cHour = (getUNIXTime() % 86400L) / 3600;
