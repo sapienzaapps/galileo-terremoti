@@ -40,7 +40,7 @@ void forceConfigUpdate();
 bool isConnectedToInternet() {
 	int ping = system("bin/busybox ping -w 2 8.8.8.8");
 
-	if (deviceLocation == 0) {
+	if (deviceLocation == Colossus) {
 		return true;
 	}
 
