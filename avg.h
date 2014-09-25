@@ -13,22 +13,23 @@ int bfrZ[K];
 // Calcola la media di un buffer
 int getAverage(int bfr[], int currsize) {  
   int i;
-  int sum=0;
+  int sum = 0;
 
   for (i = 0; i < currsize; i++)
-    sum+=bfr[i];
+    sum += bfr[i];
 
-  return (sum/currsize);	
+  return (sum/currsize);
 }
 
 
 // prende una rilevazione la mostra nel buffer e ritorna la media
 int getAvgX(int x) {
-  if(currsizeX >= K) {
+  if (currsizeX >= K) {
     currsizeX = 0; 
     bfrX[currsizeX] = x; 
     currsizeX++;
-  } else {
+  }
+  else {
     bfrX[currsizeX] = x;
     currsizeX++;
   }
@@ -36,11 +37,12 @@ int getAvgX(int x) {
 }
 
 int getAvgY(int y) {
-  if(currsizeY >= K) {
+  if (currsizeY >= K) {
     currsizeY = 0; 
     bfrY[currsizeY] = y; 
     currsizeY++;
-  } else {
+  }
+  else {
     bfrY[currsizeY] = y;
     currsizeY++;
   }
@@ -48,19 +50,16 @@ int getAvgY(int y) {
 }
 
 int getAvgZ(int z) {
-  if(currsizeZ >= K) {
+  if (currsizeZ >= K) {
     currsizeZ = 0; 
     bfrZ[currsizeZ] = z; 
     currsizeZ++;
-  } else {
+  }
+  else {
     bfrZ[currsizeZ] = z;
     currsizeZ++;
   }
   return getAverage(bfrZ,currsizeZ);
 }
-
-
-
-
 
 #endif

@@ -13,15 +13,14 @@ union ArrayToInteger {
   uint32_t integer;
 };
 
-
 // check if the mobile APP sent a command to the device
 int checkCommandPacket() {
-  if(_cmdc.parsePacket()) {  // if it received a packet
+  if (_cmdc.parsePacket()) {  // if it received a packet
      
     _cmdc.read(_pktBuffer, CONTROLPKTSIZE);
     // if its a packet from the mobile APP (contains the packet ID: INGV):
     // if the device must be discovered or has already been discovered
-    if(memcmp("INGV\0", _pktBuffer, 5) == 0 &&
+    if (memcmp("INGV\0", _pktBuffer, 5) == 0 &&
      (_pktBuffer[5] == 1 || memcmp(_pktBuffer+6, mac, 6) == 0)) {
       
       byte command = _pktBuffer[5];
@@ -35,9 +34,9 @@ int checkCommandPacket() {
       uint32_t IPinteger = (uint32_t)cv.array[0] << 24 | (uint32_t)cv.array[1] << 16 | (uint32_t)cv.array[2] << 8 | cv.array[3];
       _udpTemp = IPinteger;      
             
-      switch(command) {
+      switch (command) {
         case 1: // Discovery
-          Serial.println("DISCOVERY");
+          if (debugON) Serial.println("DISCOVERY");
           _pktBuffer[5] = 1;
           memcpy(_pktBuffer+6, mac, 6);  // store the MAC address of the device inside the packet to let the APP know
           _cmdc.beginPacket(_udpTemp, 62001);
@@ -45,20 +44,20 @@ int checkCommandPacket() {
           _cmdc.endPacket();
           break;
         case 2: // Ping
-          Serial.println("PING");  // start sending packets to the mobile APP
+        	if (debugON) Serial.println("PING");  // start sending packets to the mobile APP
           // Reply
           _pktBuffer[5] = 3;
           _cmdc.beginPacket(_udpTemp, 62001);
           _cmdc.write(_pktBuffer, CONTROLPKTSIZE);
           _cmdc.endPacket();
-          Serial.println("PONG");
+          if (debugON) Serial.println("PONG");
           break;
         case 4: // Start
-          Serial.println("START");  // start the socket connection with the mobile APP
+        	if (debugON) Serial.println("START");  // start the socket connection with the mobile APP
           _udpDest = IPinteger;
           break;
         case 5: // Stop
-          Serial.println("STOP");  // close the socket connection with the mobile APP
+        	if (debugON) Serial.println("STOP");  // close the socket connection with the mobile APP
           _udpDest = (uint32_t)0;
           break;
       }

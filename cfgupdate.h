@@ -1,8 +1,13 @@
 #ifndef cfgupdate_h
 #define cfgupdate_h 1
 
+#include "GalileoLog.h"
+FILE *fp;
 unsigned long lastCfgUpdate = 0;
 unsigned long cfgUpdateInterval = 60;
+
+long previousMillisConfig = 0;        // will store last time LED was updated
+long intervalConfig = 3*60*1000;
 
 IPAddress getFromString(char* ipAddr) {
   char *p1 = strchr(ipAddr, '.');
@@ -23,15 +28,15 @@ IPAddress getFromString(char* ipAddr) {
 
 boolean getConfigUpdates(boolean noupdate) {
   boolean ret = false;
-  if(client.connect(httpServer, 80)) {
-    Serial.print("Requesting CONFIG to: ");
-    Serial.println(httpServer);
+  if (client.connect(httpServer, 80)) {
+  	if (debugON) Serial.print("Requesting CONFIG to: ");
+  	if (debugON) Serial.println(httpServer);
     
     client.print("GET ");
     client.print(path_domain);
     client.print("/device.php?op=config&mac=");
-    for(int m=0; m < 6; m++) {
-      if(mac[m] < 0x10) client.print("0");
+    for (int m=0; m < 6; m++) {
+      if (mac[m] < 0x10) client.print("0");
       client.print(mac[m], HEX);
     }
     client.println(" HTTP/1.1");
@@ -40,19 +45,23 @@ boolean getConfigUpdates(boolean noupdate) {
     client.println("Connection: close");
     client.println("");
     
+    delay(100); // ATTENDERE ARRIVO RISPOSTA!!!
+    while (!client.available()) {;}  // Attendere che il client risponda
+
     char rBuffer[300];
     // Reading headers
     int s = getLine(client, rBuffer, 300);
 
-    if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {  // if it is an HTTP 200 response
+    if (strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {  // if it is an HTTP 200 response
       int bodySize = 0;
       do {
         s = getLine(client, rBuffer, 300);
-        if(strncmp(rBuffer, "Content-Length", 14) == 0) {
+        if (strncmp(rBuffer, "Content-Length", 14) == 0) {
           char* separator = strchr(rBuffer, ':');
-          if(*(separator+1) == ' ') {
+          if (*(separator+1) == ' ') {
             separator += 2;
-          } else {
+          }
+          else {
             separator++;
           }
           bodySize = atoi(separator);
@@ -62,43 +71,62 @@ boolean getConfigUpdates(boolean noupdate) {
       
       do {
         s = getLine(client, rBuffer, 300);
-        if(s > 0) {
+        if (s > 0) {
           char* separator = strchr(rBuffer, ':');
           *separator = 0;
           char* argument = separator+1;
-          if(strncmp(rBuffer, "server", 6) == 0) {
-            free(httpServer);
+          if (strncmp(rBuffer, "server", 6) == 0) {
+            free(httpServer);  // ?
             httpServer = (char*)malloc(strlen(argument)*sizeof(char));
-            strcpy(httpServer, argument);
-          } else if(strncmp(rBuffer, "ntpserver", 9) == 0) {
+            if(httpServer!=NULL){
+              strcpy(httpServer, argument);
+            }else{
+              if (logON) log("Malloc FAILED - getConfigUpdates");
+              if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
+            }
+          }
+          else if(strncmp(rBuffer, "ntpserver", 9) == 0) {
             timeServer = getFromString(argument);
           }
         }
       } while(s > 0);
       ret = true;
-    } else {
-      Serial.print("Error in reply: ");
-      Serial.println(rBuffer);
+    }
+    else {
+    	if (debugON) Serial.print("Error in reply: ");
+    	if (debugON) Serial.println(rBuffer);
     }
     client.stop();
   }
-  if(!noupdate) lastCfgUpdate = getUNIXTime();
+  if (!noupdate) lastCfgUpdate = getUNIXTime();
   return ret;
 }
 
-
 void doConfigUpdates() {
-  if(lastCfgUpdate+cfgUpdateInterval < getUNIXTime()) {
+	unsigned long currentMillisConfig = millis();
+	if (currentMillisConfig - previousMillisConfig > intervalConfig) {
+		previousMillisConfig = currentMillisConfig;
+		log("Still running Config Update");
+		if (isConnectedToInternet()) {
+			log("isConnectedToInternet");
+		}
+		log("lastCfgUpdate");
+		logLong(lastCfgUpdate);
+		log("cfgUpdateInterval");
+		logLong(cfgUpdateInterval);
+		log("getUNIXTime()");
+		logLong(getUNIXTime());
+	}
 
+  if (lastCfgUpdate+cfgUpdateInterval < getUNIXTime() && isConnectedToInternet()) {
     // Get Updates
-    if(getConfigUpdates(false)) {
-      Serial.println("Configuration update succeded");
-      Serial.print("HTTP Server: ");
-      Serial.println(httpServer);
-      Serial.print("NTP Server (cfgupdate): ");
-      Serial.println(timeServer);
-    } else {
-      Serial.println("Configuration update failed");
+    if (getConfigUpdates(false)) {
+    	if (debugON) Serial.println("Configuration update succeded");
+    	if (logON) log("Configuration update succeded");
+    }
+    else {
+    	if (debugON) Serial.println("Configuration update failed");
+    	if (logON) log("Configuration update failed");
     }
   }
 }
@@ -106,7 +134,7 @@ void doConfigUpdates() {
 void forceConfigUpdate(boolean noupdate) { //controllare frequenza chiamata
   boolean ret = getConfigUpdates(noupdate);
   while(!ret) { 
-    Serial.println("Configuration update failed, retrying in 3 seconds...");
+  	if (debugON) Serial.println("Configuration update failed, retrying in 3 seconds...");
     delay(3000);
     ret = getConfigUpdates(noupdate);
   }
@@ -119,20 +147,23 @@ void forceConfigUpdate() {
 // get the HTTP Server and NTP Server
 void initConfigUpdates() {
   httpServer = (char*)malloc(strlen(DEFAULT_HTTP_SERVER) * sizeof(char));
-  strcpy(httpServer, DEFAULT_HTTP_SERVER);
-  
+  if(httpServer != NULL){
+    strcpy(httpServer, DEFAULT_HTTP_SERVER);
+  }else{
+    if (logON) log("Malloc FAILED - getConfigUpdates");
+    if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
+  }
+  // Read log.txt size, if too big delete it
+  fp = fopen("log.txt", "a");
+  fseek(fp, 0L, SEEK_END);
+  int sz = ftell(fp);
+  fclose (fp);
+  if (sz > 4000) {
+    system("rm log.txt"); // TODO remove logfile if too old 
+    if(debugON) Serial.println("log file removed");
+    if(logON) log("log file removed");
+  }
   forceConfigUpdate();
-  Serial.print("HTTP Server: ");
-  Serial.println(httpServer);
-  Serial.print("NTP Server (init cfupdate): ");
-  Serial.println(timeServer);
 }
-
-
-
-
-
-
-
 
 #endif
