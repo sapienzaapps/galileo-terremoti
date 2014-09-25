@@ -6,12 +6,12 @@
 
 #define DEFAULT_HTTP_SERVER "www.sapienzaapps.it"
 char* path_domain = "/terremoti/galileo";
-byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x13, 0x0b };  // fictitious MAC address
+byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x13, 0x0c };  // fictitious MAC address
 typedef enum { Colossus, Panizzi, Home } DeviceLocations_t;
-DeviceLocations_t deviceLocation = Home;
+DeviceLocations_t deviceLocation = Panizzi;
 boolean isDhcpEnabled = false;
 
-bool debugON = true;  // is debugging mode enabled?
+bool debugON = false;  // is debugging mode enabled?
 bool logON = true;  // is logging mode enabled?
 bool ledON = true;  // are the leds mounted on the board?
 bool deviceHasSDCard = false;  // is the SD card mounted on the board?
@@ -24,7 +24,7 @@ long checkInternetConnectionInterval = 2*30*1000;  // when to check for Internet
 bool isConnected;
 
 double gForce = 9.81;
-bool forceInitEEPROM = true;
+bool forceInitEEPROM = false;
 
 IPAddress ip;
 IPAddress dns;

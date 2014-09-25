@@ -45,7 +45,7 @@ void log(char *text) {
 	openLog();
 	//Serial.println(text);
 	fprintf(f, "%s", getGalileoDate());
-	fprintf(f, "%s\n", text);
+	fprintf(f, "> %s\n", text);
 	closeLog();
 }
 
@@ -53,7 +53,7 @@ void logLong(unsigned long text) {
 	openLog();
 	//Serial.println(text);
 	fprintf(f, "%s", getGalileoDate());
-	fprintf(f, "%ld\n", text);
+	fprintf(f, "> %ld\n", text);
 	closeLog();
 }
 

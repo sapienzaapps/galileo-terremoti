@@ -16,6 +16,7 @@
 #include <signal.h>
 #include <stdlib.h>  // for ntp_alt.h
 #endif
+
 // accelerometer values
 double pthresx = 0;
 double pthresy = 0;
@@ -103,8 +104,6 @@ void checkSensore()
   db->valy = getAvgY(valy);
   db->valz = getAvgZ(valz);
   db->overThreshold = isOverThresholdBasic(db, &td);
-
-  debug_Axis();
    
   if (isConnected) {
   	sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
@@ -143,7 +142,7 @@ void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
   //valy = accelero.getYAccel();
   //valz = accelero.getZAccel();
 
-  if (debugON && db->overThreshold) {
+  if (debugON) {
     Serial.print("Valori Accelerometro:  ");
     Serial.print(db->valx);
     Serial.print("   ");
@@ -306,7 +305,7 @@ void loop() {
 		log("Still running");
 		if (debugON) {
 			Serial.print("Still running__INTERVAL: ");
-			Serial.println(interval);
+			Serial.println(checkInternetConnectionInterval);
 			Serial.print("STATUS CONNECTION: ");
 			Serial.println(isConnected?"CONNECTED":"NOT CONNECTED");
 		}
@@ -334,6 +333,7 @@ void loop() {
 
 		checkCommandPacket();
 
+		//debug_Axis();
 		checkSensore();
 		//testNTP();
 		milldelayTime = millis();
