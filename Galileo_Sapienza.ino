@@ -32,7 +32,8 @@ long previousMillisNTP = 0;     // will store last time LED was updated
 long pingIntervalCheckCounter = 0;
 
 #include "AcceleroMMA7361.h"
-#include "config.h"
+//#include "config.h"
+#include "GalileoLog.h"
 #include "commons.h"
 //#include "ntp.h"
 #include "ntp_alt.h"
@@ -41,7 +42,6 @@ long pingIntervalCheckCounter = 0;
 #include "avg.h"
 #include "httpconn.h"
 #include "cfgupdate.h"
-#include "GalileoLog.h"
 
 //definition freeRam method
 #ifdef __IS_GALILEO
@@ -75,13 +75,13 @@ AcceleroMMA7361 accelero;
 int currentHour = -1;
 
 // return true if at least one of the axis is over the threshold
-boolean isOverThreshold(struct RECORD *db, struct TDEF *td) {
+boolean isOverThresholdBasic(struct RECORD *db, struct TDEF *td) {
   return (db->valx > td->pthresx || db->valx < td->nthresx)
       || (db->valy > td->pthresy || db->valy < td->nthresy)
       || (db->valz > td->pthresz || db->valz < td->nthresz);
 }
 
-boolean isOverThresholdBasic(struct RECORD *db, struct TDEF *td) {
+boolean isOverThresholdFixed(struct RECORD *db, struct TDEF *td) {
   return (abs(db->valx - gForce) > td->pthresx)
       || (abs(db->valy - gForce) > td->pthresy)
       || (abs(db->valz - gForce) > td->pthresz);
@@ -103,7 +103,18 @@ void checkSensore()
   db->valx = getAvgX(valx);
   db->valy = getAvgY(valy);
   db->valz = getAvgZ(valz);
-  db->overThreshold = isOverThresholdBasic(db, &td);
+  switch(thresholdAlghoritm) {
+  	case Basic:
+  		db->overThreshold = isOverThresholdBasic(db, &td);
+  		break;
+
+  	case Fixed:
+  		db->overThreshold = isOverThresholdFixed(db, &td);
+  		break;
+
+  	default:  // Basic
+  		db->overThreshold = isOverThresholdBasic(db, &td);
+  }
    
   if (isConnected) {
   	sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
@@ -138,17 +149,17 @@ void checkSensore()
 void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
   int valx, valy, valz;
   
-  //valx = accelero.getXAccel();
-  //valy = accelero.getYAccel();
-  //valz = accelero.getZAccel();
+  valx = accelero.getXAccel();
+  valy = accelero.getYAccel();
+  valz = accelero.getZAccel();
 
   if (debugON) {
     Serial.print("Valori Accelerometro:  ");
-    Serial.print(db->valx);
+    Serial.print(valx);
     Serial.print("   ");
-    Serial.print(db->valy);
+    Serial.print(valy);
     Serial.print("   ");
-    Serial.println(db->valz);
+    Serial.println(valz);
   }
 }
 

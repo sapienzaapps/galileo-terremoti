@@ -1,6 +1,8 @@
 #ifndef galileo_log_h
 #define galileo_log_h
 
+#include "config.h"
+
 FILE *f;
 static char date_log[30];
 
@@ -30,7 +32,7 @@ char *getGalileoDate() {
 }
 
 void openLog() {
-	f = fopen("log.txt", "a");
+	f = fopen(log_path, "a");
 	if (f == NULL) {
 		printf("Error opening file!\n");
 		exit(1);

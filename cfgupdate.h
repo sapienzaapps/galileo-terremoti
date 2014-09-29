@@ -154,12 +154,17 @@ void initConfigUpdates() {
     if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
   }
   // Read log.txt size, if too big delete it
-  fp = fopen("log.txt", "a");
+  char *rm_log_cmd = "rm ";
+  char *rm_log;
+  rm_log = (char*)malloc(strlen(rm_log_cmd) + strlen(log_path)); /* make space for the new string (should check the return value ...) */
+  strcpy(rm_log, rm_log_cmd); /* copy name into the new var */
+  strcat(rm_log, log_path);
+  fp = fopen(log_path, "a");
   fseek(fp, 0L, SEEK_END);
   int sz = ftell(fp);
   fclose (fp);
   if (sz > 4000) {
-    system("rm log.txt"); // TODO remove logfile if too old 
+    system(rm_log); // TODO remove logfile if too old
     if(debugON) Serial.println("log file removed");
     if(logON) log("log file removed");
   }
