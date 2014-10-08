@@ -5,7 +5,7 @@
 #define DEFAULT_HTTP_SERVER "www.sapienzaapps.it"
 
 char* path_domain = "/terremoti/galileo";
-byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x12, 0x0A };  // fictitious MAC address
+byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x11, 0x0A };  // fictitious MAC address
 typedef enum { Colossus, Panizzi, Home } DeviceLocations_t;
 DeviceLocations_t deviceLocation = Home;
 boolean isDhcpEnabled = false;
@@ -14,7 +14,7 @@ ThresholdAlghoritm_t thresholdAlghoritm = Basic;
 
 char* log_path = "media/realroot/log.txt";
 
-bool debugON = true;  // is debugging mode enabled?
+bool debugON = false;  // is debugging mode enabled?
 bool logON = true;  // is logging mode enabled?
 bool ledON = false;  // are the leds mounted on the board?
 bool deviceHasSDCard = false;  // is the SD card mounted on the board?

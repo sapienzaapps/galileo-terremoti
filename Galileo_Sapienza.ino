@@ -82,8 +82,8 @@ boolean isOverThresholdBasic(struct RECORD *db, struct TDEF *td) {
 }
 
 boolean isOverThresholdFixed(struct RECORD *db, struct TDEF *td) {
-  return (abs(db->valx - gForce) > td->pthresx)
-      || (abs(db->valy - gForce) > td->pthresy)
+  return (abs(db->valx) > td->pthresx)
+      || (abs(db->valy) > td->pthresy)
       || (abs(db->valz - gForce) > td->pthresz);
 }
 
