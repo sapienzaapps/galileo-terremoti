@@ -1,6 +1,13 @@
 #ifndef COMMONS_H_
 #define COMMONS_H_
 
+IPAddress ip;
+IPAddress dns;
+IPAddress gateway;
+IPAddress subnet;
+
+char* httpServer;
+IPAddress timeServer;
 
 // struct for time and axis variations logging
 struct RECORD {
@@ -40,14 +47,14 @@ void forceConfigUpdate();
 bool isConnectedToInternet() {
 	int ping = system("bin/busybox ping -w 2 8.8.8.8");
 
-	if (deviceLocation == Colossus) {
+	if (deviceLocation == 0) {
 		return true;
 	}
 
 	int pingWifexited = WIFEXITED(ping);
 	if (pingWifexited) {
 		if (WEXITSTATUS(ping) == 0) {
-			isConnected = true;
+			internetConnected = true;
 			return true;
 		}
 
@@ -61,11 +68,11 @@ bool isConnectedToInternet() {
 			Serial.print("Ping Wifexited STATUS: ");
 			Serial.println(pingWifexited);
 		}
-		isConnected = false;
+		internetConnected = false;
 		return false;
 	}
 
-	isConnected = false;
+	internetConnected = false;
 	return false;
 }
 

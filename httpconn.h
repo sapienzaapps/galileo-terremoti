@@ -21,10 +21,10 @@ int iret1;
 EthernetClient client;
 byte inEvent = 0;
 unsigned long seqid = 0;
-unsigned long nextContact = 0;
+unsigned long nextContact = 20;
 boolean isSendingMapped;
 boolean isLastMapped;
-unsigned long nextContactMapped;
+unsigned long nextContactMapped = 20;
 unsigned long stopClient = 0;
 int seqDBfd;
 unsigned long sendingIter = 0;
@@ -259,156 +259,274 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
 
 //######################## *pthread_httpSend() #############################
 //worker thread send on http*****************************
-  void *pthread_httpSend(void *ptr) {  // if its the child process
-    int fd = ramopen(tempseqid, tempsendingIter);  // store the file descriptor for the child file
-    if (fd == -1) {
-      if(debugON){
-        Serial.print("Error in ramopen fd: PTHREAD");
-        Serial.println(fd);
-      }
-      if (logON) log("Error in ramopen fd: PTHREAD ");
-    }
-    
-    int size = lseek(fd, 0, SEEK_END);  // get the size of the file
-    lseek(fd, 0, SEEK_SET);  // set the pointer to the beginning of the file
-    
-    char *sendBuffer = (char*) malloc(0);
-    int offset = 0;
-    int r = 0;
-    unsigned int totalValues = 0;
-    boolean isLast = true;
-    do {  // for as long as there is something to read
-      struct RECORD *rec = (struct RECORD*)malloc(sizeof(struct RECORD));
-      if (rec != NULL){
-        r = read(fd, rec, sizeof(struct RECORD));    //READING EVENTS FILE ON RAM
-        if(r > 0) {
-          if(rec->overThreshold){ 
-            isLast = false;
-          }else{
-            isLast = true;
-          }
-          totalValues++;
-          
-          char *rBuffer = (char *)malloc(300 * sizeof(char));
-          if (rBuffer != NULL){
-            int ls = prepareBuffer(rBuffer, rec);  // get the length of the string and store the string into the buffer
-            sendBuffer = (char*) realloc(sendBuffer, offset+ls);
-            memcpy(sendBuffer + offset, rBuffer, ls);
-            offset += ls;
-            free(rBuffer);
-          }else{ 
-            if (logON) log("MALLOC FAILED rBuffer - pthread_httpSend");
-            if (debugON) Serial.println("MALLOC FAILED rBuffer - pthread_httpSend");
-          }
-        }
-        free(rec);
-      }else{ 
-        if (logON) log("MALLOC FAILED - pthread_httpSend");
-        if (debugON) Serial.println("MALLOC FAILED - pthread_httpSend");
-        r = 0;// stop reading memory error
-      }
-    }while(r > 0);  // for as long as there is an Event to read
-    
-    if (debugON) {
-      Serial.print("OFFSET STRINGHE: ");
-      Serial.println(offset);
-      Serial.println(isLast?"TRUE":"FALSE");
-    }
-    sendBuffer = (char*) realloc(sendBuffer, offset+1);
-    sendBuffer[offset] = 0; //TERMINATE STRING
-    
-    if (client.connect(httpServer, 80) && totalValues > 0) {
-    	if (debugON) {
-          Serial.print("Current time on Pthread: ");
-          debugUNIXTime(nextContact);
-      }
-      if (debugON) {
-      	Serial.print("Sending ");
-      	Serial.print(totalValues);
-      	Serial.print(" values to:");
-      	Serial.println(httpServer);
-      }
-      
-      client.print("POST ");
-      client.print(path_domain);
-      client.print("/device.php?op=put&mac=");
-      for(int m=0; m < 6; m++) {
-        if(mac[m] < 0x10) client.print("0");
-        client.print(mac[m], HEX);
-      }
-      client.print("&seqid=");
-      client.print(seqid);
-      if(isLast) client.print("&last=1");
-      client.println(" HTTP/1.1");
-      client.print("Host: ");
-      client.println(httpServer);
-      client.println("Connection: close");
-      client.print("Content-Length: ");
-      client.println(offset);
-      client.println("Content-Type: text/plain");
-      client.println("");
-      
-      client.println(sendBuffer);  // SENDING BUFFER
-      
-      // Reading headers -----------SERVER RESPONCE--------------------
-      char rBuffer[300];
-      int s = getLine(client, rBuffer, 300);
-      if(strncmp(rBuffer, "HTTP/1.1 200", 12) != 0) {
-      	if (debugON) Serial.print("error in reply: ");
-      	if (debugON) Serial.println(rBuffer);
-      }
-      else {
-        int bodySize = 0;
-        do {
-          s = getLine(client, rBuffer, 300);
-          if(strncmp(rBuffer, "Content-Length", 14) == 0) {
-            char* separator = strchr(rBuffer, ':');
-            if(*(separator+1) == ' ') {
-              separator += 2;
-            } else {
-              separator++;
-            }
-            bodySize = atoi(separator);
-          }
-        } while(s > 0);
-        // Content
-        s = getLine(client, rBuffer, 300, bodySize);
-        nextContactMapped = atol(rBuffer) + getUNIXTime();
-        isLastMapped = isLast;
+void *pthread_httpSend(void *ptr) {  // if its the child process
+	int fd = ramopen(tempseqid, tempsendingIter);  // store the file descriptor for the child file
+	if (fd == -1) {
+		if(debugON){
+			Serial.print("Error in ramopen fd: PTHREAD");
+			Serial.println(fd);
+		}
+		if (logON) log("Error in ramopen fd: PTHREAD ");
+	}
 
-        if (debugON) Serial.println("done");
-        if (isLast) {  // debug only
-          //inEvent = 0;
-          if (debugON) Serial.println("No more relevant values, ending now- IS LAST: TRUE");
-          if (logON) log("No more relevant values, ending now");
-        }
-        else {
-          if (debugON) {
-            Serial.print("Next Contact scheduled for: ");
-            debugUNIXTime(nextContact);
-           }
-        }
-      }
-      if (debugON) Serial.println("closing connection... ");
-      client.stop();
-    }
-    
-    free(sendBuffer);
-    if (debugON) Serial.println("closed, freeing memory... ");
-    // RM file
-    close(fd);
-    ramunlink(tempseqid, tempsendingIter);
-    
-    isSendingMapped = false;
-    if (debugON) {
-      Serial.println("RAM UNLINK: ");
-      Serial.println("isSendingMapped:################ false");
-    }
-    if (debugON){
-      Serial.println("PTHREAD DONE");
-    }
-    
-    pthread_exit(NULL);
-  }
+	int size = lseek(fd, 0, SEEK_END);  // get the size of the file
+	lseek(fd, 0, SEEK_SET);  // set the pointer to the beginning of the file
+
+	char *sendBuffer = (char*) malloc(0);
+	int offset = 0;
+	int r = 0;
+	unsigned int totalValues = 0;
+	boolean isLast = true;
+	do {  // for as long as there is something to read
+		struct RECORD *rec = (struct RECORD*)malloc(sizeof(struct RECORD));
+		if (rec != NULL){
+			r = read(fd, rec, sizeof(struct RECORD));    //READING EVENTS FILE ON RAM
+			if(r > 0) {
+				if(rec->overThreshold){
+					isLast = false;
+				}else{
+					isLast = true;
+				}
+				totalValues++;
+
+				char *rBuffer = (char *)malloc(300 * sizeof(char));
+				if (rBuffer != NULL){
+					int ls = prepareBuffer(rBuffer, rec);  // get the length of the string and store the string into the buffer
+					sendBuffer = (char*) realloc(sendBuffer, offset+ls);
+					memcpy(sendBuffer + offset, rBuffer, ls);
+					offset += ls;
+					free(rBuffer);
+				}else{
+					if (logON) log("MALLOC FAILED rBuffer - pthread_httpSend");
+					if (debugON) Serial.println("MALLOC FAILED rBuffer - pthread_httpSend");
+				}
+			}
+			free(rec);
+		}else{
+			if (logON) log("MALLOC FAILED - pthread_httpSend");
+			if (debugON) Serial.println("MALLOC FAILED - pthread_httpSend");
+			r = 0;// stop reading memory error
+		}
+	}while(r > 0);  // for as long as there is an Event to read
+
+	if (debugON) {
+		Serial.print("OFFSET STRINGHE: ");
+		Serial.println(offset);
+		Serial.println(isLast?"TRUE":"FALSE");
+	}
+	sendBuffer = (char*) realloc(sendBuffer, offset+1);
+	sendBuffer[offset] = 0; //TERMINATE STRING
+
+	if (client.connect(httpServer, 80) && totalValues > 0) {
+		if (debugON) {
+				Serial.print("Current time on Pthread: ");
+				debugUNIXTime(nextContact);
+		}
+		if (debugON) {
+			Serial.print("Sending ");
+			Serial.print(totalValues);
+			Serial.print(" values to:");
+			Serial.println(httpServer);
+		}
+
+		client.print("POST ");
+		client.print(path_domain);
+		client.print("/device.php?op=put&mac=");
+		for(int m=0; m < 6; m++) {
+			if(mac[m] < 0x10) client.print("0");
+			client.print(mac[m], HEX);
+		}
+		client.print("&seqid=");
+		client.print(seqid);
+		if(isLast) client.print("&last=1");
+		client.println(" HTTP/1.1");
+		client.print("Host: ");
+		client.println(httpServer);
+		client.println("Connection: close");
+		client.print("Content-Length: ");
+		client.println(offset);
+		client.println("Content-Type: text/plain");
+		client.println("");
+
+		client.println(sendBuffer);  // SENDING BUFFER
+
+		// Reading headers -----------SERVER RESPONCE--------------------
+		char rBuffer[300];
+		int s = getLine(client, rBuffer, 300);
+		if(strncmp(rBuffer, "HTTP/1.1 200", 12) != 0) {
+			if (debugON) Serial.print("error in reply: ");
+			if (debugON) Serial.println(rBuffer);
+		}
+		else {
+			int bodySize = 0;
+			do {
+				s = getLine(client, rBuffer, 300);
+				if(strncmp(rBuffer, "Content-Length", 14) == 0) {
+					char* separator = strchr(rBuffer, ':');
+					if(*(separator+1) == ' ') {
+						separator += 2;
+					} else {
+						separator++;
+					}
+					bodySize = atoi(separator);
+				}
+			} while(s > 0);
+			// Content
+			s = getLine(client, rBuffer, 300, bodySize);
+			nextContactMapped = atol(rBuffer) + getUNIXTime();
+			isLastMapped = isLast;
+
+			if (debugON) Serial.println("done");
+			if (isLast) {  // debug only
+				//inEvent = 0;
+				if (debugON) Serial.println("No more relevant values, ending now- IS LAST: TRUE");
+				if (logON) log("No more relevant values, ending now");
+			}
+			else {
+				if (debugON) {
+					Serial.print("Next Contact scheduled for: ");
+					debugUNIXTime(nextContact);
+				 }
+			}
+		}
+		if (debugON) Serial.println("closing connection... ");
+		client.stop();
+	}
+
+	free(sendBuffer);
+	if (debugON) Serial.println("closed, freeing memory... ");
+	// RM file
+	close(fd);
+	ramunlink(tempseqid, tempsendingIter);
+
+	isSendingMapped = false;
+	if (debugON) {
+		Serial.println("RAM UNLINK: ");
+		Serial.println("isSendingMapped:################ false");
+	}
+	if (debugON){
+		Serial.println("PTHREAD DONE");
+	}
+
+	pthread_exit(NULL);
+}
+
+// store the given MAC address to a FILE into the SD card
+void storeMacAddressToSD(char *validMAC) {
+	macToFile = fopen(macAddressFilePath, "w");
+	if (macToFile == NULL) {
+		printf("Error opening file!\n");
+		exit(1);
+	}
+
+	fprintf(macToFile, "%s", validMAC);
+	fclose(macToFile);
+}
+
+// ask the server for a valid MAC address
+void getMacAddressFromServer() {
+	if (client.connect(httpServer, 80)) {
+		client.print("GET ");
+		client.print("/terremoti/galileo");
+		client.print("/getMacAddress.php");
+
+		client.println(" HTTP/1.1");
+		client.print("Host: ");
+		client.println(httpServer);
+		client.println("Connection: close");
+		client.println("");
+
+		delay(100);
+		char rBuffer[300];
+		while(!client.available()){;} // wait for data
+		int s = getLine(client, rBuffer, 300);
+		Serial.print("rBuffer: ");
+		Serial.println(rBuffer);
+		if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {
+			int bodySize = 0;
+			do {
+				s = getLine(client, rBuffer, 300);
+				if(strncmp(rBuffer, "Content-Length", 14) == 0) {
+					char* separator = strchr(rBuffer, ':');
+					if(*(separator+1) == ' ') {
+						separator += 2;
+					} else {
+						separator++;
+					}
+					bodySize = atoi(separator);
+				}
+			} while(s > 0);
+
+			// Content
+			s = getLine(client, rBuffer, 300, bodySize);
+			if (s > 0) {
+				Serial.print("MAC address: ");
+				Serial.println(rBuffer);
+				storeMacAddressToSD(rBuffer);  // store the MAC address
+			}
+			else {
+				Serial.println("Error getting the content");
+			}
+
+		}
+		else {
+			Serial.println("Connection error");
+		}
+
+		client.stop();
+	}
+	else {
+		Serial.println("Connection failed");
+	}
+}
+
+// check if a file exists
+int doesFileExist(const char *filename) {
+	if( access( filename, F_OK ) != -1 ) {
+	  // file exists
+		return 1;
+	}
+	else {
+	  // file doesn't exist
+		return 0;
+	}
+}
+
+// given a string made of pair of characters in HEX base, convert them in decimal base
+uint8_t* HEXtoDecimal(const char *in, size_t len, uint8_t *out) {
+	unsigned int i, t, hn, ln;
+	char *ptr;
+	char tmp[2];
+	long decimal;
+	for (t = 0, i = 0; i < len; i+=2, ++t) {
+		tmp[0] = in[i];
+		tmp[1] = in[i+1];
+		decimal = strtol(tmp, &ptr, 16);
+
+		out[t] = decimal;
+		Serial.print(out[t]);
+		Serial.print(":");
+	}
+
+	return out;
+}
+
+// convert MAC address from char* to byte[]
+void convertMACFromStringToByte() {
+	macToFile = fopen(macAddressFilePath, "r");
+	if (macToFile == NULL) {
+		printf("Error opening file!\n");
+		exit(1);
+	}
+
+	char validMAC[12];
+	fread(validMAC, 12, 1, macToFile);
+	validMAC[12] = '\0';
+
+	fclose(macToFile);
+
+	HEXtoDecimal(validMAC, strlen(validMAC), mac);
+}
+
 
 #endif

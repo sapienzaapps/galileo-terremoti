@@ -7,7 +7,7 @@ unsigned long lastCfgUpdate = 0;
 unsigned long cfgUpdateInterval = 60;
 
 long previousMillisConfig = 0;        // will store last time LED was updated
-long intervalConfig = 3*60*1000;
+long intervalConfig = 1*60*1000;// 3 minuti
 
 IPAddress getFromString(char* ipAddr) {
   char *p1 = strchr(ipAddr, '.');
@@ -103,22 +103,22 @@ boolean getConfigUpdates(boolean noupdate) {
 }
 
 void doConfigUpdates() {
-	unsigned long currentMillisConfig = millis();
-	if (currentMillisConfig - previousMillisConfig > intervalConfig) {
-		previousMillisConfig = currentMillisConfig;
+	//unsigned long currentMillisConfig = millis();
+	//if (currentMillisConfig - previousMillisConfig > intervalConfig) {
+		//previousMillisConfig = currentMillisConfig;
 		log("Still running Config Update");
-		if (isConnectedToInternet()) {
+		//if (isConnectedToInternet()) {
 			log("isConnectedToInternet");
-		}
+		//}
 		log("lastCfgUpdate");
 		logLong(lastCfgUpdate);
 		log("cfgUpdateInterval");
 		logLong(cfgUpdateInterval);
 		log("getUNIXTime()");
 		logLong(getUNIXTime());
-	}
+	//}
 
-  if (lastCfgUpdate+cfgUpdateInterval < getUNIXTime() && isConnectedToInternet()) {
+  //if (lastCfgUpdate+cfgUpdateInterval < getUNIXTime() && isConnectedToInternet()) {
     // Get Updates
     if (getConfigUpdates(false)) {
     	if (debugON) Serial.println("Configuration update succeded");
@@ -128,7 +128,7 @@ void doConfigUpdates() {
     	if (debugON) Serial.println("Configuration update failed");
     	if (logON) log("Configuration update failed");
     }
-  }
+ // }
 }
 
 void forceConfigUpdate(boolean noupdate) { //controllare frequenza chiamata
@@ -154,20 +154,15 @@ void initConfigUpdates() {
     if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
   }
   // Read log.txt size, if too big delete it
-  char *rm_log_cmd = "rm ";
-  char *rm_log;
-  rm_log = (char*)malloc(strlen(rm_log_cmd) + strlen(log_path)); /* make space for the new string (should check the return value ...) */
-  strcpy(rm_log, rm_log_cmd); /* copy name into the new var */
-  strcat(rm_log, log_path);
-  fp = fopen(log_path, "a");
-  fseek(fp, 0L, SEEK_END);
-  int sz = ftell(fp);
-  fclose (fp);
-  if (sz > 4000) {
-    system(rm_log); // TODO remove logfile if too old
-    if(debugON) Serial.println("log file removed");
-    if(logON) log("log file removed");
-  }
+//  fp = fopen("log.txt", "a");
+//  fseek(fp, 0L, SEEK_END);
+//  int sz = ftell(fp);
+//  fclose (fp);
+//  if (sz > 4000) {
+//    system("rm log.txt"); // TODO remove logfile if too old 
+//    if(debugON) Serial.println("log file removed");
+//    if(logON) log("log file removed");
+//  }
   forceConfigUpdate();
 }
 

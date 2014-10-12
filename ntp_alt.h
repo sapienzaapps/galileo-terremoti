@@ -16,7 +16,7 @@ static char bufSTR[13];
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
 #define SECONDS_PER_DAY 86400L
-#define GMT 0
+#define GMT 0 // Time Zone is managed on the mobile app side
 
 #define SECONDS_FROM_1970_TO_2000 946684800
 uint8_t yOff, m, d, hh, mm, ss;  // data
