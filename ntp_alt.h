@@ -112,11 +112,12 @@ void NTPdataPacket() {
   memset(cmd0, 0, 30);
   memset(bufSTR, 0, 13);
 	// while (!NTPsynced) {
+  if(isConnectedToInternet()){
 		sendNTPpacket(timeServer); // send an NTP packet to a time server
-
+  
 		// wait to see if a reply is available
-		delay(1000);
-		if ( isConnectedToInternet() && UDP_as_NTP.parsePacket() ) {
+		delay(500);
+		if ( /* isConnectedToInternet() && */ UDP_as_NTP.parsePacket() ) {
 			NTPsynced = true;
 			// We've received a packet, read the data from it
 			UDP_as_NTP.read(packetBuffer,NTP_PACKET_SIZE);  // read the packet into the buffer
@@ -172,6 +173,10 @@ void NTPdataPacket() {
 			if (debugON) Serial.println("ERROR NTP PACKET NOT RECEIVED");
 			if (logON) log("ERROR NTP PACKET NOT RECEIVED");
 		}
+    }else{
+    //  Internet not connected while try to sync with NTP  
+      resetConnection = true;
+    }
 	//}
 }
 

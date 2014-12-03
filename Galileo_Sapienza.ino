@@ -270,14 +270,14 @@ void setup() {
   if (debugON) Serial.println("Setting up ethernet connection");
   // Config connction on Ethernet module
 
-  if (!doesFileExist(macAddressFilePath)) {
-		getMacAddressFromServer();
-	}
-	convertMACFromStringToByte();
+  // if (!doesFileExist(macAddressFilePath)) {
+		// getMacAddressFromServer();
+	// }
+	// convertMACFromStringToByte();
   setupEthernet();
 
   internetConnected = isConnectedToInternet();
-  
+  delay(500); // wait internet connaction Status 
   Serial.print("STATUS CONNECTION: ");
   Serial.println(internetConnected ? "CONNECTED" : "NOT CONNECTED");
   delay(500);  
@@ -313,6 +313,7 @@ void setup() {
   if (debugON) Serial.println("\n#############INIZIALIZATION COMPLETE!#############");
   milldelayTime = millis();
 }
+// end SETUP
 
 void loop() {
 	currentMillis = millis();
@@ -321,11 +322,15 @@ void loop() {
 		internetConnected = isConnectedToInternet();
 		if (!internetConnected) {
 			if (ledON) digitalWrite(12,LOW);
+      // Workaround for Galileo (and other boards with Linux)
+      if(logON) log("networking restart - NOT CONNECTED");
+      if(debugON) Serial.println("networking restart");
+      system("/etc/init.d/networking restart");
+      delay(1000);
 		}
 		else {
 			if (ledON) digitalWrite(12,HIGH);
-                        doConfigUpdates();
-
+        doConfigUpdates();
 		}
                  
 		log("Still running");
@@ -342,24 +347,32 @@ void loop() {
 	unsigned long currentMillisNTP = millis();
 	if (currentMillisNTP - previousMillisNTP > NTPInterval) {
 		NTPdataPacket();
-		previousMillisNTP = currentMillisNTP;
-	}
-
-  //doNTPActions();
-  //delay(50);
-  if (millis() - milldelayTime > checkSensoreInterval) {
-		
-
-		int cHour = (getUNIXTime() % 86400L) / 3600;
+    // check calibration sensor 
+    int cHour = (getUNIXTime() % 86400L) / 3600;
 		if (currentHour != cHour) {
 			currentHour = cHour;
 			if (debugON) Serial.println("checkCalibrationNeeded");
 			checkCalibrationNeeded(accelero, cHour);
 		}
+		previousMillisNTP = currentMillisNTP;
+	}
+  
+/*   if (millis() - milldelayTime > checkSensoreInterval) {
+  // Workaround for Galileo (and other boards with Linux)
+    system("/etc/init.d/networking restart");
+    delay(1000);
+    milldelayTime = millis();
+  } */
+  
 
+  //doNTPActions();
+  //delay(50);
+  if (millis() - milldelayTime > checkSensoreInterval) {
+    // read sensor values
+		checkSensore();
+    // check mobile command
 		checkCommandPacket();
 
-		checkSensore();
 		//testNTP();
 		milldelayTime = millis();
   }
