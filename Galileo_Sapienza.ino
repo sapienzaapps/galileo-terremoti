@@ -26,9 +26,9 @@ double nthresz = 0;
 
 unsigned long freeRam();
 
-long previousMillis = 0;        // will store last time LED was updated
-long previousMillisNTP = 0;     // will store last time LED was updated
-long pingIntervalCheckCounter = 0;
+unsigned long previousMillis = 0;        // will store last time LED was updated
+unsigned long previousMillisNTP = 0;     // will store last time LED was updated
+unsigned long pingIntervalCheckCounter = 0;
 
 #include "AcceleroMMA7361.h"
 #include "GalileoLog.h"
@@ -93,7 +93,8 @@ void checkSensore()
   db->valx = getAvgX(valx);
   db->valy = getAvgY(valy);
   db->valz = getAvgZ(valz);
-  db->overThreshold = isOverThresholdBasic(db, &td);
+  //db->overThreshold = isOverThresholdBasic(db, &td);
+  db->overThreshold = false;
 
 
   switch(thresholdAlghoritm) {
@@ -118,6 +119,7 @@ void checkSensore()
   // if the values of the accelerometer have passed the threshold
   //  or if an "event" is currently running
   if (db->overThreshold || inEvent == 1) {
+    Serial.println(db->overThreshold?"overThreshold":"inEvent");
     if (internetConnected) {
       if (ledON) digitalWrite(10,HIGH);
       httpSendValues(db, &td);
@@ -208,6 +210,7 @@ void setupEthernet() {
 					boolean isDhcpWorking = false;
 					while (!isDhcpWorking) { // WARNING: add DHCP timeout
 						/* Trying to get an IP address */
+            Serial.println("Trying get DHCP IP");
 						if (Ethernet.begin(mac) == 0) {
 							if (debugON) Serial.println("Error while attempting to get an IP, retrying in 5 seconds...");
 							delay(5000);
@@ -260,7 +263,7 @@ void setup() {
   if (debugON) Serial.println("calibrate()");
   accelero.calibrate();
   accelero.setAveraging(10);  // number of samples that have to be averaged
-  if (debugON) Serial.println("setAveraging(1)");
+  if (debugON) Serial.println("setAveraging(10)");
 //  #ifdef __IS_GALILEO
 //	  // Workaround for Galileo (and other boards with Linux)
 //	  system("/etc/init.d/networking restart");
@@ -318,13 +321,13 @@ void setup() {
 void loop() {
 	currentMillis = millis();
 	// debug only, check if the sketch is still running
-	if (currentMillis - previousMillis > checkInternetConnectionInterval) {
+	if ((currentMillis - previousMillis > checkInternetConnectionInterval) /*|| resetConnection*/) {
 		internetConnected = isConnectedToInternet();
 		if (!internetConnected) {
 			if (ledON) digitalWrite(12,LOW);
-      // Workaround for Galileo (and other boards with Linux)
       if(logON) log("networking restart - NOT CONNECTED");
       if(debugON) Serial.println("networking restart");
+      // Workaround for Galileo (and other boards with Linux)
       system("/etc/init.d/networking restart");
       delay(1000);
 		}
@@ -369,9 +372,9 @@ void loop() {
   //delay(50);
   if (millis() - milldelayTime > checkSensoreInterval) {
     // read sensor values
-		checkSensore();
     // check mobile command
 		checkCommandPacket();
+		checkSensore();
 
 		//testNTP();
 		milldelayTime = millis();
