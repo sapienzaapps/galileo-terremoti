@@ -54,7 +54,7 @@ class AcceleroMMA7361
   public:
     AcceleroMMA7361();
     void begin();
-    void begin(int sleepPin, int selfTestPin, int zeroGPin, int gSelectPin, int xPin, int yPin, int zPin);
+    void begin(/* int sleepPin, int selfTestPin, int zeroGPin, int gSelectPin, */ int xPin, int yPin, int zPin);
     int getXRaw();
     int getYRaw();
     int getZRaw();
@@ -73,15 +73,15 @@ class AcceleroMMA7361
     void setAveraging(int avg);
     int getOrientation();
     void setSensitivity(boolean sensi);
-    void sleep();
-    void wake();
+    /* void sleep(); */
+    //void wake();
 
   private:
     int _mapMMA7361V(int value);
     int _mapMMA7361G(int value);
-    int _sleepPin;
-    int _selfTestPin;
-    int _zeroGPin;
+    //int _sleepPin;
+    //int _selfTestPin;
+    //int _zeroGPin;
     int _gSelectPin;
     int _xPin;
     int _yPin;

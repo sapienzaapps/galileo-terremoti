@@ -27,7 +27,7 @@ AcceleroMMA7361::AcceleroMMA7361() { /* empty */ }
 /// begin function to set pins: sleepPin = 13, selfTestPin = 12, zeroGPin = 11, gSelectPin = 10, xPin = A0, yPin = A1, zPin = A2.
 /// When you use begin() with an empty parameter list, these standard values are used
 void AcceleroMMA7361::begin() {
-  begin(13, 12, 11, 10, A0, A1, A2);
+  begin(/* 13, 12, 11, 10, */ A0, A1, A2);
 }
 
 /// begin variables
@@ -40,20 +40,20 @@ void AcceleroMMA7361::begin() {
 /// - int zPin: number indicating to which pin the z-axis  pin is connected to. ANALOG IN
 /// - int offset: array indicating the G offset on the x,y and z-axis
 /// When you use begin() without variables standard values are loaded: A0,A1,A2 as input for X,Y,Z and digital pins 13,12,11,10 for sleep, selftest, zeroG and gSelect
-void AcceleroMMA7361::begin(int sleepPin, int selfTestPin, int zeroGPin, int gSelectPin, int xPin, int yPin, int zPin) {
-  pinMode(sleepPin, OUTPUT);
-  pinMode(selfTestPin, OUTPUT);
-  pinMode(zeroGPin, INPUT);
-  pinMode(gSelectPin, OUTPUT);
+void AcceleroMMA7361::begin(/* int sleepPin, int selfTestPin, int zeroGPin, int gSelectPin, */ int xPin, int yPin, int zPin) {
+  //pinMode(sleepPin, OUTPUT);
+  //pinMode(selfTestPin, OUTPUT);
+  //pinMode(zeroGPin, INPUT);
+  //pinMode(gSelectPin, OUTPUT);
   pinMode(xPin, INPUT);
   pinMode(yPin, INPUT);
   pinMode(zPin, INPUT);
-  digitalWrite(sleepPin, HIGH);
-  digitalWrite(selfTestPin, LOW);
-  _sleepPin = sleepPin;
-  _selfTestPin = selfTestPin;
-  _zeroGPin = zeroGPin;
-  _gSelectPin = gSelectPin;
+  //digitalWrite(sleepPin, HIGH);
+  //digitalWrite(selfTestPin, LOW);
+  //_sleepPin = sleepPin;
+  //_selfTestPin = selfTestPin;
+  //_zeroGPin = zeroGPin;
+  //_gSelectPin = gSelectPin;
   _xPin = xPin;
   _yPin = yPin;
   _zPin = zPin;
@@ -61,7 +61,7 @@ void AcceleroMMA7361::begin(int sleepPin, int selfTestPin, int zeroGPin, int gSe
   setOffSets(0,0,0);
   setARefVoltage(5);
   setAveraging(10);
-  setSensitivity(HIGH);
+  //setSensitivity(HIGH);
 }
 
 /// setOffSets( int offSetX, int offSetY, int offSetZ): Sets the offset values for the x,y,z axis.
@@ -98,27 +98,27 @@ void AcceleroMMA7361::setAveraging(int avg) {
 }
 
 /// setSensitivity sets the sensitivity to +/-1.5 G (HIGH) or +/-6 G (LOW) using a boolean HIGH (1.5 G) or LOW (6 G)
-void AcceleroMMA7361::setSensitivity(boolean sensi) {
+/* void AcceleroMMA7361::setSensitivity(boolean sensi) {
   _sensi = sensi;
   digitalWrite(_gSelectPin, !sensi);
-}
+} */
 
 /// sleep lets the device sleep (when device is sleeping already this does nothing)
-void AcceleroMMA7361::sleep() {
+/* void AcceleroMMA7361::sleep() {
   if (!_sleep) {
     digitalWrite(_sleepPin, LOW);
     _sleep = true;
   }
-}
+} */
 
 /// wake enables the device after sleep (when device is not sleeping this does nothing) there is a 2 ms delay, due to enable response time (datasheet: typ 0.5 ms, max 2 ms)
-void AcceleroMMA7361::wake() {
+/* void AcceleroMMA7361::wake() {
   if (_sleep == true) {
     digitalWrite(_sleepPin, HIGH);
     _sleep = false;
     delay(2);
-  }
-}
+  } 
+}*/
 
 /// getXRaw(): Returns the raw data from the X-axis analog I/O port of the Arduino as an integer
 int AcceleroMMA7361::getXRaw() {
