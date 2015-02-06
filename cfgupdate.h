@@ -97,6 +97,11 @@ boolean getConfigUpdates(boolean noupdate) {
     	if (debugON) Serial.println(rBuffer);
     }
     client.stop();
+  }else{
+      client.stop();
+      if(debugON) Serial.println("Connection error");
+      if(logON)log("connessione fallita");
+      resetEthernet = true;
   }
   if (!noupdate) lastCfgUpdate = getUNIXTime();
   return ret;

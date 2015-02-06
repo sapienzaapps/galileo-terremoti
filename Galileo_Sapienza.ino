@@ -24,11 +24,15 @@ double nthresx = 0;
 double nthresy = 0;
 double nthresz = 0;
 
+bool resetEthernet = false;
 unsigned long freeRam();
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
 unsigned long previousMillisNTP = 0;     // will store last time LED was updated
 unsigned long pingIntervalCheckCounter = 0;
+unsigned long calibrationInterval = 60*60*1000;
+unsigned long prevMillisCalibration = 0;
+
 
 #include "AcceleroMMA7361.h"
 #include "GalileoLog.h"
@@ -175,69 +179,148 @@ void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
 // set up the ethernet connection per location;
 // use the linux underneath the device to force manual DNS and so on
 void setupEthernet() {
-	switch (deviceLocation) {
-			case Colossus:  // Sapienza Colossus
-				ip = IPAddress(10, 10, 1, 101);
-				dns = IPAddress(151, 100, 17, 18);
-				gateway = IPAddress(10, 10, 1, 1);
-				subnet = IPAddress(255, 255, 255, 0);
+  switch (deviceLocation) {
+	  case Colossus:  // Sapienza Colossus
+	    ip = IPAddress(10, 10, 1, 101);
+	    dns = IPAddress(151, 100, 17, 18);
+	    gateway = IPAddress(10, 10, 1, 1);
+	    subnet = IPAddress(255, 255, 255, 0);
+            Ethernet.begin(mac, ip, dns, gateway); //vedere
+	    timeServer = IPAddress(10, 10, 1, 1);
+            system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+	    system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
+	    system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
+	    break;
 
-				Ethernet.begin(mac, ip, dns, gateway); //vedere
-				timeServer = IPAddress(10, 10, 1, 1);
+	  case Panizzi:  // Panizzi's room
+	    ip = IPAddress(151, 100, 17, 143);
+	    dns = IPAddress(151, 100, 17, 18);
+	    gateway = IPAddress(151, 100, 17, 1);
+	    subnet = IPAddress(255, 255 ,255 ,0);
+            Ethernet.begin(mac, ip, dns, gateway);
+	    timeServer = IPAddress(37, 247, 49, 133);
+            system("ifconfig eth0 151.100.17.143 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+	    system("route add default gw 151.100.17.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
+	    system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
+            break;
 
-				system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-				system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
-				system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
-				break;
+	  case Home:  // Home
+	    timeServer = IPAddress(132, 163, 4, 101);
+	    if (isDhcpEnabled) {
+	      boolean isDhcpWorking = false;
+	      while (!isDhcpWorking) { // WARNING: add DHCP timeout
+        /* Trying to get an IP address */
+        if (Ethernet.begin(mac) == 0) {  // Error retrieving DHCP IP 
+          if (debugON) Serial.println("Error while attempting to get an IP, retrying in 5 seconds...");
+          delay(5000);
+        }else {  // DHCP IP retireved successfull
+          if (debugON) Serial.print("IP retrived successfully from DHCP: ");
+          if (debugON) Serial.println(Ethernet.localIP());
+          isDhcpWorking = true;
+      }
+          }
+         break;
+	    }
+	    else { // Home Static Configuration 
+        if (debugON) Serial.println("Static Configuration");
+        if (logON) log("Static Configuration\n");
+	      //add your static IP here
+  	    ip = IPAddress(192, 168, 1, 36);
+  	    dns = IPAddress(8,8,8,8);
+  	    gateway = IPAddress(192,168,1,254);
+        subnet = IPAddress(255, 255 ,255 ,0);
+        // ARDUINO START CONNECTION		
+	      Ethernet.begin(mac, ip, dns, gateway, subnet); // Static address configuration 
+        //LINUX SYSTEM START CONNECTION
+        system("ifconfig eth0 192.168.1.177 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+	      system("route add default gw 192.168.1.254 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
+	      system("echo 'nameserver 8.8.8.8' > /etc/resolv.conf");  // add the GOOGLE DNS
+				  
+              //system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
+	      //system("ifconfig > /dev/ttyGS0");  // debug
+              if (debugON) {
+                Serial.print("Static IP: ");
+            	Serial.println(Ethernet.localIP());
+              }
+              break;
+            }// END - Home Static Configuration 
+	    break;
 
-			case Panizzi:  // Panizzi's room
-				ip = IPAddress(151, 100, 17, 143);
-				dns = IPAddress(151, 100, 17, 18);
-				gateway = IPAddress(151, 100, 17, 1);
-				subnet = IPAddress(255, 255 ,255 ,0);
+	  default:  // like case 0, Sapienza Colossus
+	    Ethernet.begin(mac, ip, dns, gateway);
+	    system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+	    system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
+	    system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
+      system("ifconfig > /dev/ttyGS0");  // debug
+  }// END switch device location
+}// END SetupEthernet()
 
-				Ethernet.begin(mac, ip, dns, gateway);
-				timeServer = IPAddress(37, 247, 49, 133);
+// set up the ethernet connection per location;
+// use the linux underneath the device to force manual DNS and so on
+// void setupEthernet() {
+	// switch (deviceLocation) {
+			// case Colossus:  // Sapienza Colossus
+				// ip = IPAddress(10, 10, 1, 101);
+				// dns = IPAddress(151, 100, 17, 18);
+				// gateway = IPAddress(10, 10, 1, 1);
+				// subnet = IPAddress(255, 255, 255, 0);
 
-				system("ifconfig eth0 151.100.17.143 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-				system("route add default gw 151.100.17.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
-				system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
-				break;
+				// Ethernet.begin(mac, ip, dns, gateway); //vedere
+				// timeServer = IPAddress(10, 10, 1, 1);
 
-			case Home:  // Home
-				timeServer = IPAddress(132, 163, 4, 101);
-				if (isDhcpEnabled) {
-					boolean isDhcpWorking = false;
-					while (!isDhcpWorking) { // WARNING: add DHCP timeout
-						/* Trying to get an IP address */
-            Serial.println("Trying get DHCP IP");
-						if (Ethernet.begin(mac) == 0) {
-							if (debugON) Serial.println("Error while attempting to get an IP, retrying in 5 seconds...");
-							delay(5000);
-						}
-						else {
-							if (debugON) Serial.print("IP retrived successfully from DHCP: ");
-							if (debugON) Serial.println(Ethernet.localIP());
-							isDhcpWorking = true;
-						}
-					}
-				}
-				else {
-						// add your static IP here
+				// system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+				// system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
+				// system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
+				// break;
+
+			// case Panizzi:  // Panizzi's room
+				// ip = IPAddress(151, 100, 17, 143);
+				// dns = IPAddress(151, 100, 17, 18);
+				// gateway = IPAddress(151, 100, 17, 1);
+				// subnet = IPAddress(255, 255 ,255 ,0);
+
+				// Ethernet.begin(mac, ip, dns, gateway);
+				// timeServer = IPAddress(37, 247, 49, 133);
+
+				// system("ifconfig eth0 151.100.17.143 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+				// system("route add default gw 151.100.17.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
+				// system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
+				// break;
+
+			// case Home:  // Home
+				// timeServer = IPAddress(132, 163, 4, 101);
+				// if (isDhcpEnabled) {
+					// boolean isDhcpWorking = false;
+					// while (!isDhcpWorking) { // WARNING: add DHCP timeout
+						// /* Trying to get an IP address */
+            // Serial.println("Trying get DHCP IP");
+						// if (Ethernet.begin(mac) == 0) {
+							// if (debugON) Serial.println("Error while attempting to get an IP, retrying in 5 seconds...");
+							// delay(5000);
+						// }
+						// else {
+							// if (debugON) Serial.print("IP retrived successfully from DHCP: ");
+							// if (debugON) Serial.println(Ethernet.localIP());
+							// isDhcpWorking = true;
+						// }
+					// }
+				// }
+				// else {
+						//add your static IP here
 						//ip = IPAddress(192, 168, 1, 36);
-						Ethernet.begin(mac); // controllare errore
+						// Ethernet.begin(mac); // controllare errore
 						//system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
-						system("ifconfig > /dev/ttyGS0");  // debug
-				}
-				break;
+						// system("ifconfig > /dev/ttyGS0");  // debug
+				// }
+				// break;
 
-			default:  // like case 0, Sapienza Colossus
-				Ethernet.begin(mac, ip, dns, gateway);
-				system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-				system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
-				system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
-	}
-}
+			// default:  // like case 0, Sapienza Colossus
+				// Ethernet.begin(mac, ip, dns, gateway);
+				// system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+				// system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
+				// system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
+	// }
+// }
 
 void setup() {
 	#ifdef __IS_GALILEO
@@ -258,11 +341,11 @@ void setup() {
   Serial.println("#############INITIALIZING DEVICE#############\n");
   if (logON) log("#########INITIALIZING DEVICE##########\n");
   /* Calibrating Accelerometer */
-  accelero.begin(13, 12, 11, 10, A0, A1, A2);     // set the proper pin x y z
-  accelero.setSensitivity(LOW);                  // sets the sensitivity to +/-6G
+  accelero.begin(/* 13, 12, 11, 10, */ A0, A1, A2);     // set the proper pin x y z
+  //accelero.setSensitivity(LOW);                  // sets the sensitivity to +/-6G
   if (debugON) Serial.println("calibrate()");
-  accelero.calibrate();
   accelero.setAveraging(10);  // number of samples that have to be averaged
+  accelero.calibrate();
   if (debugON) Serial.println("setAveraging(10)");
 //  #ifdef __IS_GALILEO
 //	  // Workaround for Galileo (and other boards with Linux)
@@ -325,10 +408,10 @@ void loop() {
 		internetConnected = isConnectedToInternet();
 		if (!internetConnected) {
 			if (ledON) digitalWrite(12,LOW);
-      if(logON) log("networking restart - NOT CONNECTED");
-      if(debugON) Serial.println("networking restart");
+      if(logON) log("networking restart - NOT CONNECTED FINTO!!!");
+      if(debugON) Serial.println("networking restart FINTO!!!");
       // Workaround for Galileo (and other boards with Linux)
-      system("/etc/init.d/networking restart");
+      //system("/etc/init.d/networking restart");
       delay(1000);
 		}
 		else {
@@ -336,7 +419,7 @@ void loop() {
         doConfigUpdates();
 		}
                  
-		log("Still running");
+		if(logON)log("Still running");
 		if (debugON) {
 			Serial.print("Still running__INTERVAL: ");
 			Serial.println(checkInternetConnectionInterval);
@@ -346,8 +429,31 @@ void loop() {
 		previousMillis = currentMillis;
 	}
 
-	// sync with the NTP server
+  
+  // sync with the NTP server
 	unsigned long currentMillisNTP = millis();
+	if ((currentMillisNTP - previousMillisNTP > NTPInterval) && internetConnected && !resetEthernet) {
+	  NTPdataPacket();
+	  previousMillisNTP = currentMillisNTP;
+    // doConfigUpdates(); // test test!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	}
+  
+  // Check for calibration Sensor
+  unsigned long currentMillisCalibration = millis();
+	if ((currentMillisCalibration - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
+     int cHour = (getUNIXTime() % 86400L) / 3600;
+	   if (currentHour != cHour || ForceCalibrationNeeded ) {
+	     if (debugON) Serial.println("checkCalibrationNeeded---------------------------------------");
+	     checkCalibrationNeeded(accelero, cHour);
+       currentHour = cHour;
+       ForceCalibrationNeeded = false;
+	  }
+    prevMillisCalibration = currentMillisCalibration;
+  }
+  
+  
+	// sync with the NTP server
+/* 	unsigned long currentMillisNTP = millis();
 	if (currentMillisNTP - previousMillisNTP > NTPInterval) {
 		NTPdataPacket();
     // check calibration sensor 
@@ -358,7 +464,7 @@ void loop() {
 			checkCalibrationNeeded(accelero, cHour);
 		}
 		previousMillisNTP = currentMillisNTP;
-	}
+	} */
   
 /*   if (millis() - milldelayTime > checkSensoreInterval) {
   // Workaround for Galileo (and other boards with Linux)
@@ -371,9 +477,9 @@ void loop() {
   //doNTPActions();
   //delay(50);
   if (millis() - milldelayTime > checkSensoreInterval) {
-    // read sensor values
     // check mobile command
 		checkCommandPacket();
+    // read sensor values
 		checkSensore();
 
 		//testNTP();

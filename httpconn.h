@@ -250,6 +250,11 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
       	if (logON) log(rBuffer);
       }
       client.stop();
+    }else{
+      client.stop();
+      if(debugON) Serial.println("Connection error");
+      if(logON)log("connessione fallita");
+      resetEthernet = true;
     }
     //free(db);
     if(debugON) Serial.println("exiting from - httpSendValues");
@@ -391,7 +396,12 @@ void *pthread_httpSend(void *ptr) {  // if its the child process
 		}
 		if (debugON) Serial.println("closing connection... ");
 		client.stop();
-	}
+	}else{
+      client.stop();
+      if(debugON) Serial.println("Connection error");
+      if(logON)log("connessione fallita");
+      resetEthernet = true;
+  }
 
 	free(sendBuffer);
 	if (debugON) Serial.println("closed, freeing memory... ");
@@ -474,10 +484,11 @@ void getMacAddressFromServer() {
 		}
 
 		client.stop();
-	}
-	else {
-		Serial.println("Connection failed");
-	}
+	}else{
+      client.stop();
+      if(debugON) Serial.println("Connection error");
+      if(logON)log("connessione fallita");
+  }
 }
 
 // check if a file exists
