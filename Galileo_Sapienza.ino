@@ -116,7 +116,7 @@ void checkSensore()
 
   //debug_Axis(); // Debug Only
    
-  if (internetConnected) {
+  if (internetConnected || !testNoInternet) {
   	sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
   }
   
@@ -124,9 +124,9 @@ void checkSensore()
   //  or if an "event" is currently running
   if (db->overThreshold || inEvent == 1) {
     Serial.println(db->overThreshold?"overThreshold":"inEvent");
-    if (internetConnected) {
+    if (internetConnected || !testNoInternet) {
       if (ledON) digitalWrite(10,HIGH);
-      httpSendValues(db, &td);
+      if(testNoInternet)httpSendValues(db, &td);
       //Serial.println("IN EVENT - __CONNECTED__");
     }
     else {
@@ -226,7 +226,7 @@ void setupEthernet() {
         if (logON) log("Static Configuration\n");
 	      //add your static IP here
   	    ip = IPAddress(192, 168, 1, 36);
-  	    dns = IPAddress(8,8,8,8);
+  	    dns = IPAddress(192,168,1,254);
   	    gateway = IPAddress(192,168,1,254);
         subnet = IPAddress(255, 255 ,255 ,0);
         // ARDUINO START CONNECTION		
@@ -380,13 +380,14 @@ void setup() {
   
   if (debugON) Serial.println("Forcing config update...");
 
-  initConfigUpdates();
+  if (testNoInternet) initConfigUpdates();
   
   if (debugON) Serial.println("Syncing NTP...");
-  initNTP();
-  // We need to set this AFTER ntp sync...
-  lastCfgUpdate = getUNIXTime();
-  
+  if (testNoInternet){
+    initNTP();
+    // We need to set this AFTER ntp sync...
+    lastCfgUpdate = getUNIXTime();
+  }
   if (debugON) Serial.println("EEPROM init");
   initEEPROM(forceInitEEPROM);
   
@@ -404,7 +405,7 @@ void setup() {
 void loop() {
 	currentMillis = millis();
 	// debug only, check if the sketch is still running
-	if ((currentMillis - previousMillis > checkInternetConnectionInterval) /*|| resetConnection*/) {
+	if ((testNoInternet) && (currentMillis - previousMillis > checkInternetConnectionInterval) /*|| resetConnection*/) {
 		internetConnected = isConnectedToInternet();
 		if (!internetConnected) {
 			if (ledON) digitalWrite(12,LOW);
@@ -432,7 +433,7 @@ void loop() {
   
   // sync with the NTP server
 	unsigned long currentMillisNTP = millis();
-	if ((currentMillisNTP - previousMillisNTP > NTPInterval) && internetConnected && !resetEthernet) {
+	if ((testNoInternet) &&(currentMillisNTP - previousMillisNTP > NTPInterval) && internetConnected && !resetEthernet) {
 	  NTPdataPacket();
 	  previousMillisNTP = currentMillisNTP;
     // doConfigUpdates(); // test test!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -440,7 +441,7 @@ void loop() {
   
   // Check for calibration Sensor
   unsigned long currentMillisCalibration = millis();
-	if ((currentMillisCalibration - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
+	if ((testNoInternet) &&(currentMillisCalibration - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
      int cHour = (getUNIXTime() % 86400L) / 3600;
 	   if (currentHour != cHour || ForceCalibrationNeeded ) {
 	     if (debugON) Serial.println("checkCalibrationNeeded---------------------------------------");
