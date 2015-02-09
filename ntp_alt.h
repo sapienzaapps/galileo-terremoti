@@ -107,17 +107,17 @@ unsigned long sendNTPpacket(IPAddress& address) {
   UDP_as_NTP.endPacket();
 }
 
-void NTPdataPacket() {
+bool NTPdataPacket() {
 	bool NTPsynced = false;
   memset(cmd0, 0, 30);
   memset(bufSTR, 0, 13);
 	// while (!NTPsynced) {
-  if(isConnectedToInternet()){
+  if(internetConnected){
 		sendNTPpacket(timeServer); // send an NTP packet to a time server
   
 		// wait to see if a reply is available
 		delay(500);
-		if ( /* isConnectedToInternet() && */ UDP_as_NTP.parsePacket() ) {
+		if ( UDP_as_NTP.parsePacket() ) {
 			NTPsynced = true;
 			// We've received a packet, read the data from it
 			UDP_as_NTP.read(packetBuffer,NTP_PACKET_SIZE);  // read the packet into the buffer
@@ -169,14 +169,16 @@ void NTPdataPacket() {
 			if (debugON) Serial.print("Date and Time Command: ");
 			if (debugON) Serial.println(cmd0);
 			//memset(cmd, 0, 21);
+      return 1;
 		}else{
 			if (debugON) Serial.println("ERROR NTP PACKET NOT RECEIVED");
 			if (logON) log("ERROR NTP PACKET NOT RECEIVED");
 		}
     }else{
     //  Internet not connected while try to sync with NTP  
-      resetConnection = true;
+      resetEthernet = true;
     }
+      return 0;
 	//}
 }
 
@@ -184,7 +186,7 @@ void NTPdataPacket() {
 void initNTP() {
 	UDP_as_NTP.begin(localPort);
 	delay(1000);
-	NTPdataPacket();
+	if(NTPdataPacket()){
   // setting system clock
 	char buf[64];
 	  FILE *ptr;
@@ -197,6 +199,10 @@ void initNTP() {
 	  }
 	  (void) pclose(ptr);
 	  //_unixTimeUpdate = millis();
+  }else{
+	  if (debugON) Serial.println("Errore NTPdataPacket() ");
+    
+  }
 }
 
 // for debug purpose only

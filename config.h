@@ -19,14 +19,14 @@ DeviceLocations_t deviceLocation = Home;
 boolean isDhcpEnabled = false;
 
 typedef enum { Basic, Fixed } ThresholdAlghoritm_t;
-ThresholdAlghoritm_t thresholdAlghoritm = Fixed;
+ThresholdAlghoritm_t thresholdAlghoritm = Basic;
 
 bool debugON = true;  // is debugging mode enabled?
 bool logON = true;  // is logging mode enabled?
 bool ledON = true;  // are the leds mounted on the board?
 bool deviceHasSDCard = true;  // is the SD card mounted on the board?
 bool ForceCalibrationNeeded = true;// reset connection if there's not one Active
-bool resetConnection = false;// reset connection if there's not one Active
+//bool resetConnection = false;// reset connection if there's not one Active
 bool testNoInternet = true;// debug purpose test on local network NO Internet - Use Static IP
 
 //long pingIntervalCheck = 30*1000; not USED

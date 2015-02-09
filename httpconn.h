@@ -262,6 +262,101 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
 }
 
 
+
+
+
+// send the accelerometer values that got over the threshold
+void httpSendAlert(struct RECORD *db, struct TDEF *td) {
+    // New Event ----------------------------------------------------------
+  	if (debugON) Serial.print("New Event, values (X-Y-Z): ");
+  	if (logON) log("New Event, values (X-Y-Z): ");
+    printRecord(db); // Debug print recorded axis values
+    if (debugON) Serial.println();
+
+    if(client.connect(httpServer, 80)) {	// Connecting to server to retrieve "sequence id"
+    	if (debugON) Serial.print("Requesting SEQID to:");
+    	if (debugON) Serial.println(httpServer);
+
+      char rBuffer[300];
+      int rsize = prepareFirstBuffer(rBuffer, db, td);  // prepare the info for the new entry into the DB
+
+      client.print("POST ");
+      client.print(path_domain);
+      //client.print("/device.php?op=put1&mac="); // 
+      client.print("/device.php?op=put&mac=");
+      for(int m=0; m < 6; m++) {
+        if(mac[m] < 0x10) client.print("0");
+        client.print(mac[m], HEX);
+      }
+      client.println(" HTTP/1.1");
+      client.print("Host: ");
+      client.println(httpServer);
+      client.println("Content-Type: text/plain");
+      client.print("Content-Length: ");
+      client.println(rsize);
+      client.println("Connection: close");
+      client.println("");
+      client.print(rBuffer);
+      // Reading headers
+      while(!client.available()){;} // Attende che arrivino i dati ******************
+      int s = getLine(client, rBuffer, 300);
+      if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {
+        int bodySize = 0;
+        do {
+          s = getLine(client, rBuffer, 300);
+          if(strncmp(rBuffer, "Content-Length", 14) == 0) {
+            char* separator = strchr(rBuffer, ':');
+            if(*(separator+1) == ' ') {
+              separator += 2;
+            } else {
+              separator++;
+            }
+            bodySize = atoi(separator);
+          }
+        } while(s > 0);
+        // Content
+        s = getLine(client, rBuffer, 300, bodySize);
+
+        char* separator = strchr(rBuffer, ';');  // ?
+        *separator = 0;
+        seqid = atol(rBuffer);  // get the sequence ID
+        nextContact = atol(separator+1) + getUNIXTime();  // ?
+        inEvent = 1;  // Set ON the Event 
+        milldelayTimeEvent = millis(); // timestamp in millis for Event Interval
+        if (debugON) Serial.print("SEQID:");
+        if (debugON) Serial.println(seqid);
+        if (debugON) Serial.print("tempo offset per nextContact:");
+        if (debugON) Serial.println(atol(separator+1));
+        if (logON) log("SEQID:");
+        if (logON) log(rBuffer);
+        if (debugON){ Serial.print("Next Contact scheduled for new EVENT: ");}
+        debugUNIXTime(nextContact);
+
+        sendingIter = 0;
+/*         seqDBfd = ramopen(seqid, sendingIter);
+        if ((debugON) && (seqDBfd ==-1)) Serial.println("Error in ramopen: httpSendValues");
+        if (logON && (seqDBfd ==-1)) log("Error in ramopen: httpSendValues"); */
+      } else {
+      	if (debugON) Serial.print("Error in reply: ");
+      	if (debugON) Serial.println(rBuffer);
+      	if (logON) log("Error in reply: ");
+      	if (logON) log(rBuffer);
+      }
+      client.stop();
+    }else{
+      client.stop();
+      if(debugON) Serial.println("Connection error");
+      if(logON)log("connessione fallita");
+      resetEthernet = true;
+    }
+    //free(db);
+    if(debugON) Serial.println("exiting from - httpSendValues");
+  }
+
+
+
+
+
 //######################## *pthread_httpSend() #############################
 //worker thread send on http*****************************
 void *pthread_httpSend(void *ptr) {  // if its the child process

@@ -126,8 +126,8 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
   
   // do calibration every random amount of hours? or if it's the first time ever
   if (nextHour == currentHour || temp == 0) {
-  	setThresholdValuesBasic(ac, currentHour);
-        //setThresholdValues(ac, currentHour);
+  	//setThresholdValuesBasic(ac, currentHour);
+    setThresholdValues(ac, currentHour);
     int pos = 4 + currentHour*48;
     
     writeDouble(pos, pthresx);
@@ -145,7 +145,8 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
     
     if (debugON) Serial.println("Calibration ended");
     if (logON) log("Calibration ended");
-    nextHour = (random() % 23);
+    //nextHour = (random() % 24);
+    nextHour = ((currentHour + 1) % 24);
     if (debugON) Serial.print("Next calibration scheduled for ");
     if (debugON) Serial.println(nextHour);
   }
