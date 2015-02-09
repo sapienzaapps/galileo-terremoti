@@ -297,8 +297,13 @@ void httpSendAlert(struct RECORD *db, struct TDEF *td) {
       client.println("Connection: close");
       client.println("");
       client.print(rBuffer);
+      unsigned long responseMill = millis();
+      
       // Reading headers
-      while(!client.available()){;} // Attende che arrivino i dati ******************
+      while(!client.available() && !(millis() - responseMill > timeoutResponse ) ){
+      
+      }
+      // Attende che arrivino i dati ******************
       int s = getLine(client, rBuffer, 300);
       if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {
         int bodySize = 0;

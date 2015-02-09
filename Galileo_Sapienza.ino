@@ -409,13 +409,13 @@ void loop() {
         inEvent = 0;
       }
   }
-  if (resetEthernet) {
+/*   if (resetEthernet) {
       if(logON) log("networking restart - NOT CONNECTED FINTO!!!");
       if(debugON) Serial.println("networking restart FINTO!!!");
       // Workaround for Galileo (and other boards with Linux)
       //system("/etc/init.d/networking restart");
       //delay(1000);
-   }
+   } */
   
 
   //doNTPActions();

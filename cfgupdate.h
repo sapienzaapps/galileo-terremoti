@@ -168,7 +168,9 @@ void initConfigUpdates() {
 //    if(debugON) Serial.println("log file removed");
 //    if(logON) log("log file removed");
 //  }
-  forceConfigUpdate();
+  if (internetConnected){
+    forceConfigUpdate();
+  }
 }
 
 #endif
