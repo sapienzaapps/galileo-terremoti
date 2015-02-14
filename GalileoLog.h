@@ -6,6 +6,7 @@
 FILE *f;
 static char date_log[30];
 
+
 char *getGalileoDate() {
 	char *cmdDate = "/bin/date +%F%t%T";
 	char buf[64];
@@ -59,5 +60,15 @@ void logLong(unsigned long text) {
 
 	closeLog();
 }
+
+void logInt(int  text) {
+	openLog();
+	//Serial.println(text);
+	fprintf(f, "%s> ", getGalileoDate());
+	fprintf(f, "%d\n", text);
+	closeLog();
+}
+
+
 
 #endif

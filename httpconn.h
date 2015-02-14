@@ -205,8 +205,10 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
       client.println("Connection: close");
       client.println("");
       client.print(rBuffer);
+      unsigned long responseMill = millis();
       // Reading headers
-      while(!client.available()){;} // Attende che arrivino i dati ******************
+      //while(!client.available()){;} // Attende che arrivino i dati ******************
+      while(!client.available() && !(millis() - responseMill > timeoutResponse ) ){;}
       int s = getLine(client, rBuffer, 300);
       if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {
         int bodySize = 0;
@@ -299,11 +301,9 @@ void httpSendAlert(struct RECORD *db, struct TDEF *td) {
       client.print(rBuffer);
       unsigned long responseMill = millis();
       
-      // Reading headers
-      while(!client.available() && !(millis() - responseMill > timeoutResponse ) ){
-      
-      }
       // Attende che arrivino i dati ******************
+      while(!client.available() && !(millis() - responseMill > timeoutResponse ) ){;}
+      // Reading headers
       int s = getLine(client, rBuffer, 300);
       if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {
         int bodySize = 0;
@@ -454,9 +454,11 @@ void *pthread_httpSend(void *ptr) {  // if its the child process
 		client.println("");
 
 		client.println(sendBuffer);  // SENDING BUFFER
-
-		// Reading headers -----------SERVER RESPONCE--------------------
+    unsigned long responseMill = millis();
+    // WAIT FOR SERVER RESPONCE
+    while(!client.available() && !(millis() - responseMill > timeoutResponse ) ){;}
 		char rBuffer[300];
+		// Reading headers -----------SERVER RESPONCE--------------------
 		int s = getLine(client, rBuffer, 300);
 		if(strncmp(rBuffer, "HTTP/1.1 200", 12) != 0) {
 			if (debugON) Serial.print("error in reply: ");
@@ -545,10 +547,13 @@ void getMacAddressFromServer() {
 		client.println(httpServer);
 		client.println("Connection: close");
 		client.println("");
+    unsigned long responseMill = millis();
 
 		delay(100);
 		char rBuffer[300];
-		while(!client.available()){;} // wait for data
+		//while(!client.available()){;} // wait for data
+    while(!client.available() && !(millis() - responseMill > timeoutResponse ) ){
+    }
 		int s = getLine(client, rBuffer, 300);
 		Serial.print("rBuffer: ");
 		Serial.println(rBuffer);
@@ -591,17 +596,7 @@ void getMacAddressFromServer() {
   }
 }
 
-// check if a file exists
-int doesFileExist(const char *filename) {
-	if( access( filename, F_OK ) != -1 ) {
-	  // file exists
-		return 1;
-	}
-	else {
-	  // file doesn't exist
-		return 0;
-	}
-}
+
 
 // given a string made of pair of characters in HEX base, convert them in decimal base
 uint8_t* HEXtoDecimal(const char *in, size_t len, uint8_t *out) {

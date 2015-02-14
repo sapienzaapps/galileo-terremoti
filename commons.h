@@ -9,6 +9,13 @@ IPAddress subnet;
 char* httpServer;
 IPAddress timeServer;
 
+FILE *script;
+static char *script_path = "/gscript/prova.sh";
+static char *script_reset =  "/gscript/reset.sh";
+static char *reboot_scriptText = "#!/bin/bash\nshutdown -r -t sec 00\n";
+unsigned long resetConnetcionMills = 0;
+unsigned long resetConnectionInterval = 3*1000;
+
 // struct for time and axis variations logging
 struct RECORD {
   unsigned long ts;
@@ -77,4 +84,123 @@ bool isConnectedToInternet() {
 }
 
 
-#endif /* COMMONS_H_ */
+
+// check if a file exists
+int doesFileExist(const char *filename) {
+	if( access( filename, F_OK ) != -1 ) {
+	  // file exists
+		return 1;
+	}
+	else {
+	  // file doesn't exist
+		return 0;
+	}
+}
+
+
+
+
+// create a script
+void createScript(char *path, char *text) {
+	script = fopen(path, "w");
+	if (script == NULL) {
+    if (debugON) Serial.println("Error opening script!\n");
+	  //exit(1);
+    return;
+	}else{
+    if (debugON) Serial.println(text);
+    //fprintf(script, "%s> ", getGalileoDate());
+    fprintf(script, "%s\n", text);
+    fclose(script);
+    delay(5);
+    char *rights = "chmod a+rx %s";
+    char str[80];
+    int len = sprintf(str, rights, path);
+    if (false){// debug only
+      Serial.print("createScript - bytes written: ");
+      Serial.println(len);
+    }
+    str[len] = '\0';// togliere!!!??
+    //system("chmod a+rx /gscript/prova.sh");
+    system(str);
+    Serial.println("chmod a+rx script file");
+  }
+}
+
+// execute a script
+void execScript(char *path) {
+        if (doesFileExist(path)){
+          if (debugON){
+            Serial.print("executing script: ");
+            Serial.println(path);
+          }
+          if (logON) log(path);
+          delay(5);
+          system(path);
+          //system("/gscript/prova.sh");
+          delay(500);
+        }else{
+          if (debugON) Serial.println("script not found!!!");
+          if (logON) log("script not found!!!");
+        }
+}
+
+// RESET CONNECTION IF IS NOT CONNECTED TO INTERNET
+void resetConnection(int numTry){
+  if (millis() - resetConnetcionMills > resetConnectionInterval){
+    resetConnetcionMills = millis();
+    if (debugON){
+      Serial.print("Trying to restore INTERNET CONNECTION: ");
+      Serial.println(numTry);
+    }
+    if (logON){
+      log("Trying to restore INTERNET CONNECTION: ");
+      logInt(numTry);
+    }
+    if(numTry % 2 == 0){  // LED RESET CONNECTION BLINK
+      digitalWrite(10, LOW);
+      digitalWrite(12, HIGH);
+    
+    }else{
+      digitalWrite(10, HIGH);
+      digitalWrite(12, LOW);
+    }
+    // Workaround for Galileo (and other boards with Linux)
+    system("/etc/init.d/networking restart");
+    delay(3000);
+    internetConnected = isConnectedToInternet();
+    if (!internetConnected){// TEST TEST TEST TEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      if (debugON){ 
+        Serial.println("---- FAILED ----  restore Internet connection");
+        Serial.println("+++++ setupEthernet() ++++++");
+      }
+      if (logON){ 
+        log("---- FAILED ----  restore Internet connection");
+        log("+++++ setupEthernet() ++++++");
+      }
+      //setupEthernet();// After network restart try to set Arduino network
+      delay(1000);
+      if(!(internetConnected = isConnectedToInternet()) && numTry <= 0){
+        // TRYING TO REBOOT DEVICE
+        if (debugON) Serial.println("----- REBOOT GALILEO -----");
+        if (logON) log("----- REBOOT GALILEO -----");
+        
+        //system("reboot");
+        if(!doesFileExist(script_reset)){ // check if reboot script exists
+          createScript(script_path, reboot_scriptText);
+          delay(5);          
+        }
+        //system("/gscript/reset.sh");
+        system(script_reset);
+        while(1){;} // lock HERE for  SYSTEM RESET
+      }
+    }else {
+      if (debugON) Serial.println("---- SUCCESS ----  restore Internet connection");
+      if (logON) log("---- SUCCESS ----  restore Internet connection");
+    }
+  }
+}
+
+//avr-objdump -S {compiled *.elf file}
+/* COMMONS_H_ */
+#endif 
