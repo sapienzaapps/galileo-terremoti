@@ -1,6 +1,6 @@
 
 #define CALIBRATIONITER 1000
-#define ORANGEZONE 7
+#define ORANGEZONE 5
 
 #include "GalileoLog.h"
 

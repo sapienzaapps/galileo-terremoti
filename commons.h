@@ -10,8 +10,10 @@ char* httpServer;
 IPAddress timeServer;
 
 FILE *script;
-static char *script_path = "/gscript/prova.sh";
-static char *script_reset =  "/gscript/reset.sh";
+/* static char *script_path = "/gscript/prova.sh";
+static char *script_reset =  "/gscript/reset.sh"; */
+static char *script_path = "media/realroot/prova.sh";
+static char *script_reset =  "media/realroot/reset.sh";
 static char *reboot_scriptText = "#!/bin/bash\nshutdown -r -t sec 00\n";
 unsigned long resetConnetcionMills = 0;
 unsigned long resetConnectionInterval = 3*1000;
@@ -50,7 +52,7 @@ void printRecord(struct RECORD *db) {
 }
 
 void forceConfigUpdate();
-
+// check if Internet Connection is available
 bool isConnectedToInternet() {
 	int ping = system("bin/busybox ping -w 2 8.8.8.8");
 
@@ -84,7 +86,6 @@ bool isConnectedToInternet() {
 }
 
 
-
 // check if a file exists
 int doesFileExist(const char *filename) {
 	if( access( filename, F_OK ) != -1 ) {
@@ -98,13 +99,11 @@ int doesFileExist(const char *filename) {
 }
 
 
-
-
 // create a script
 void createScript(char *path, char *text) {
 	script = fopen(path, "w");
-	if (script == NULL) {
-    if (debugON) Serial.println("Error opening script!\n");
+	if (script  == NULL) {
+    if (debugON) Serial.println("F_Error opening script!\n");
 	  //exit(1);
     return;
 	}else{
@@ -120,7 +119,7 @@ void createScript(char *path, char *text) {
       Serial.print("createScript - bytes written: ");
       Serial.println(len);
     }
-    str[len] = '\0';// togliere!!!??
+    //str[len] = '\0';// togliere!!!??
     //system("chmod a+rx /gscript/prova.sh");
     system(str);
     Serial.println("chmod a+rx script file");
@@ -203,4 +202,31 @@ void resetConnection(int numTry){
 
 //avr-objdump -S {compiled *.elf file}
 /* COMMONS_H_ */
+
+
+
+/* void galileoCreateFile(String fileName) {
+Serial.println("\n*****Creation Started*****");
+String status_message = String();
+status_message = fileName;
+char charFileName[fileName.length() + 1];
+fileName.toCharArray(charFileName, sizeof(charFileName));
+ 
+if (SD.exists(charFileName)) {
+status_message += " exists already.";
+}
+else {
+char system_message[256];
+char directory[] = "/media/realroot";
+sprintf(system_message, "touch %s/%s", directory, charFileName);
+system(system_message);
+if (SD.exists(charFileName)) {
+status_message += " created.";
+}
+else {
+status_message += " creation tried and failed.";
+}
+}
+Serial.println(status_message);
+}  */
 #endif 

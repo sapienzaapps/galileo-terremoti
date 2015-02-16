@@ -34,9 +34,11 @@ unsigned long calibrationInterval = 60*60*1000;
 unsigned long prevMillisCalibration = 0;
 unsigned long TimeEvent = 60*1000;// 60 second per Event
 unsigned long milldelayTimeEvent = 0;
+unsigned long millis24h;
 
-const byte red_Led = 12;
-const byte green_Led = 10;
+
+const byte red_Led = 10;
+const byte green_Led = 12;
 bool redLedStatus = false;
 bool greenLedStatus = false;
 
@@ -140,9 +142,13 @@ void checkSensore()
     }
     if (internetConnected && testNoInternet) {// send value data if there is a connection
       //if (ledON) digitalWrite(green_Led,HIGH);
-      //if(testNoInternet)httpSendValues(db, &td);
-      httpSendAlert(db, &td);
-      //Serial.println("IN EVENT - __CONNECTED__");
+      if(alert){
+        httpSendAlert(db, &td);
+      }else{
+        httpSendValues(db, &td);
+        //Serial.println("IN EVENT - __CONNECTED__");
+        }
+  
     }
     else {
       //saveToSDhttpSendValues();  // not yet implemented
@@ -289,7 +295,8 @@ void setup() {
   //system("/etc/init.d/networking restart");
   //delay(1000);
   //system("telnetd -l /bin/sh");
-  Serial.begin(9600);
+  /* Serial.begin(9600); */
+  Serial.begin(115200);
   delay(500);
 
   Serial.println("#############INITIALIZING DEVICE#############\n");
@@ -349,11 +356,19 @@ void setup() {
     // We need to set this AFTER ntp sync...
     lastCfgUpdate = getUNIXTime();
   }
+  
+  if(doesFileExist(script_reset)!= 1){
+    if (debugON) Serial.println("createScript...");
+    createScript(script_reset, reboot_scriptText); 
+    //if (debugON) Serial.println("execScript...");
+    //execScript(script_path);
+  }
+  
   if (debugON) Serial.print("Free RAM: ");
   if (debugON) Serial.println(freeRam()); //debug
   
   if (debugON) Serial.println("\n#############INIZIALIZATION COMPLETE!#############");
-  milldelayTime = millis();
+  millis24h = milldelayTime = millis();
 }
 // end SETUP
 
@@ -405,7 +420,7 @@ void loop() {
   }  
   if (inEvent) {
       unsigned long millisTimeEvent = millis();
-      if (millisTimeEvent - milldelayTimeEvent > TimeEvent) { // unlock Alert after xxx millisecs
+      if (millisTimeEvent - milldelayTimeEvent >nextContact /* TimeEvent */) { // unlock Alert after xxx millisecs
         inEvent = 0;
       }
   }
@@ -429,6 +444,13 @@ void loop() {
 		//testNTP();
 		milldelayTime = millis();
   }
+  if ((millis () - millis24h >=  8640000UL ) && !inEvent /* && !inEventSD */){
+    log("Reboot after 24h of activity");
+    if (debugON) Serial.println("<---------- Reboot after 24h of activity ----------->");
+    execScript(script_reset);
+    //delay(500);
+    while(1){;}
+}
   delay(1);
 }
 

@@ -24,6 +24,7 @@ ThresholdAlghoritm_t thresholdAlghoritm = Basic;
 bool debugON = true;  // is debugging mode enabled?
 bool logON = true;  // is logging mode enabled?
 bool ledON = true;  // are the leds mounted on the board?
+bool alert = true;  // select communication type for Events
 bool deviceHasSDCard = true;  // is the SD card mounted on the board?
 bool ForceCalibrationNeeded = true;// reset connection if there's not one Active
 //bool resetConnection = false;// reset connection if there's not one Active

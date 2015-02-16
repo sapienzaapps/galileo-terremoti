@@ -21,7 +21,7 @@ int iret1;
 EthernetClient client;
 byte inEvent = 0;
 unsigned long seqid = 0;
-unsigned long nextContact = 5;
+unsigned long nextContact = 5000;
 unsigned long nextContactMapped = 5;
 boolean isSendingMapped;
 boolean isLastMapped;
@@ -30,13 +30,16 @@ int seqDBfd;
 unsigned long sendingIter = 0;
 boolean isSending = false;
 
+// get data from server to buffer line per line
 int getLine(EthernetClient c, char* buffer, int maxsize, int toRead) { //???????
   int i;
   byte done = 0;
   memset(buffer, 0, maxsize);  // set the buffer to 0
+  //if (debugON) Serial.print("Header: ");
   for (i=0; i < maxsize-1 && done == 0; i++) {
     //while(!client.available() && client.connected());
     buffer[i] = c.read();
+    //if (debugON) Serial.print(buffer[i]);
     if (buffer[i] == '\r') i--;
     if (buffer[i] == '\n' || buffer[i] == -1) {  // if there is nothing more to read
       done = 1;
@@ -53,6 +56,7 @@ int getLine(EthernetClient c, char* buffer, int maxsize, int toRead) { //???????
     }
   }
 
+  if (debugON) Serial.println("");
   return i-1;
 }
 
@@ -122,7 +126,6 @@ void realHttpSendValues() {
    exit(EXIT_FAILURE);
   }
 }
-
 
 //######################## httpSendValues() #############################
 // send the accelerometer values that got over the threshold
@@ -263,103 +266,138 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
   }
 }
 
-
-
-
-
 // send the accelerometer values that got over the threshold
 void httpSendAlert(struct RECORD *db, struct TDEF *td) {
-    // New Event ----------------------------------------------------------
-  	if (debugON) Serial.print("New Event, values (X-Y-Z): ");
-  	if (logON) log("New Event, values (X-Y-Z): ");
+  // New Event ----------------------------------------------------------
+  if (debugON){ 
+    Serial.print("New Event, values (X-Y-Z): ");
     printRecord(db); // Debug print recorded axis values
-    if (debugON) Serial.println();
-
-    if(client.connect(httpServer, 80)) {	// Connecting to server to retrieve "sequence id"
-    	if (debugON) Serial.print("Requesting SEQID to:");
-    	if (debugON) Serial.println(httpServer);
-
-      char rBuffer[300];
-      int rsize = prepareFirstBuffer(rBuffer, db, td);  // prepare the info for the new entry into the DB
-
-      client.print("POST ");
-      client.print(path_domain);
-      //client.print("/device.php?op=put1&mac="); // 
-      client.print("/device.php?op=put&mac=");
-      for(int m=0; m < 6; m++) {
-        if(mac[m] < 0x10) client.print("0");
-        client.print(mac[m], HEX);
+    Serial.println();
+  }
+  if (logON) log("New Event, values (X-Y-Z): ");
+  char rBuffer[300];
+  bool sent = false;
+  bool received = false;
+  unsigned long prevSend = 0;
+  int connection_status = 0;
+  byte ntimes = 3; // numbers of connection tryies
+  while((!sent || !received) && (millis() - prevSend > 1500) && ntimes > 0){// testare 
+    ntimes--;
+    // Connecting to server to retrieve "sequence id"
+    if(!sent && (connection_status != 1)){
+      connection_status = client.connect(httpServer, 80);
+    }
+    if(connection_status) { // if connection enstabilished	
+      if(!sent){
+        
+        if (debugON){
+          Serial.print("Requesting SEQID to:");
+          Serial.println(httpServer);
+        }
+        
+        int rsize = prepareFirstBuffer(rBuffer, db, td);  // prepare the info for the new entry to be send to DB
+        // sendig request to server
+        client.print("POST ");
+        client.print(path_domain);
+        //client.print("/device.php?op=put1&mac="); // 
+        client.print("/device.php?op=put&mac=");
+        for(int m=0; m < 6; m++) {// sending mac address
+          if(mac[m] < 0x10) client.print("0");
+          client.print(mac[m], HEX);
+        }
+        client.println(" HTTP/1.1");
+        client.print("Host: ");
+        client.println(httpServer);
+        client.println("Content-Type: text/plain");
+        client.print("Content-Length: ");
+        client.println(rsize);
+        client.println("Connection: close"); // ???
+        client.println("");
+        client.print(rBuffer);
+        sent = true;
       }
-      client.println(" HTTP/1.1");
-      client.print("Host: ");
-      client.println(httpServer);
-      client.println("Content-Type: text/plain");
-      client.print("Content-Length: ");
-      client.println(rsize);
-      client.println("Connection: close");
-      client.println("");
-      client.print(rBuffer);
+    
       unsigned long responseMill = millis();
-      
-      // Attende che arrivino i dati ******************
-      while(!client.available() && !(millis() - responseMill > timeoutResponse ) ){;}
-      // Reading headers
-      int s = getLine(client, rBuffer, 300);
-      if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {
-        int bodySize = 0;
-        do {
-          s = getLine(client, rBuffer, 300);
-          if(strncmp(rBuffer, "Content-Length", 14) == 0) {
-            char* separator = strchr(rBuffer, ':');
-            if(*(separator+1) == ' ') {
-              separator += 2;
-            } else {
-              separator++;
+      // Attende che arrivino i dati con timeout nella risposta ***************
+      while(!client.available() && (millis() - responseMill < timeoutResponse ) ){;}
+      if(client.available()){ // gestire il caso in cui la connessione con il server avviene ma i dati non arrivano
+      // il problema sussiste nel fatto che vengono inviati di nuovo i dati al server
+       // client has sent a response
+        // Reading headers
+        int s = getLine(client, rBuffer, 300);
+        if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) { // risposta ok dal server
+          int bodySize = 0;
+          do { // read from client response
+            s = getLine(client, rBuffer, 300);
+            if(strncmp(rBuffer, "Content-Length", 14) == 0) {
+              char* separator = strchr(rBuffer, ':');
+              if(*(separator+1) == ' ') {
+                separator += 2;
+              } else {
+                separator++;
+              }
+              bodySize = atoi(separator); // get body size response
+              //break; // stop 
             }
-            bodySize = atoi(separator);
+          } while(s > 0); // get data till new line
+          // Content
+          s = getLine(client, rBuffer, 300, bodySize); // get content size 
+          char* separator = strchr(rBuffer, ';');  // ?
+          //*separator = 0;
+          seqid = atol(rBuffer);  // get the sequence ID
+          //nextContact = atol(separator+1) + getUNIXTime();  // TIME FOR SENDING COLLECTED DATA
+          nextContact = (atol(separator+1) *1000UL);  // get next time to send new data
+          inEvent = 1;  // Set ON the Event 
+          milldelayTimeEvent = millis(); // timestamp in millis for Event Interval
+          if (debugON){
+            Serial.print("SEQID:");
+            Serial.println(seqid);
+            Serial.print("tempo offset per nextContact:");
+            Serial.println(atol(separator+1));
+            Serial.println(nextContact);
           }
-        } while(s > 0);
-        // Content
-        s = getLine(client, rBuffer, 300, bodySize);
+          if (logON){ 
+            log("SEQID:");
+            log(rBuffer);
+          }
+          if (debugON){ Serial.print("Next Contact scheduled for new EVENT: ");}
+          debugUNIXTime(nextContact);
 
-        char* separator = strchr(rBuffer, ';');  // ?
-        *separator = 0;
-        seqid = atol(rBuffer);  // get the sequence ID
-        nextContact = atol(separator+1) + getUNIXTime();  // ?
-        inEvent = 1;  // Set ON the Event 
-        milldelayTimeEvent = millis(); // timestamp in millis for Event Interval
-        if (debugON) Serial.print("SEQID:");
-        if (debugON) Serial.println(seqid);
-        if (debugON) Serial.print("tempo offset per nextContact:");
-        if (debugON) Serial.println(atol(separator+1));
-        if (logON) log("SEQID:");
-        if (logON) log(rBuffer);
-        if (debugON){ Serial.print("Next Contact scheduled for new EVENT: ");}
-        debugUNIXTime(nextContact);
-
-        sendingIter = 0;
-/*         seqDBfd = ramopen(seqid, sendingIter);
-        if ((debugON) && (seqDBfd ==-1)) Serial.println("Error in ramopen: httpSendValues");
-        if (logON && (seqDBfd ==-1)) log("Error in ramopen: httpSendValues"); */
-      } else {
-      	if (debugON) Serial.print("Error in reply: ");
-      	if (debugON) Serial.println(rBuffer);
-      	if (logON) log("Error in reply: ");
-      	if (logON) log(rBuffer);
-      }
-      client.stop();
-    }else{
-      client.stop();
+          received = true;
+          //sendingIter = 0;
+  /*      seqDBfd = ramopen(seqid, sendingIter);
+          if ((debugON) && (seqDBfd ==-1)) Serial.println("Error in ramopen: httpSendValues");
+          if (logON && (seqDBfd ==-1)) log("Error in ramopen: httpSendValues"); */
+        } else { // connetion response != 200
+          if (debugON){ 
+            Serial.print("Error in reply: ");
+            Serial.println(rBuffer);
+          }
+          if (logON){ 
+            log("Error in reply: ");
+            log(rBuffer);
+          }
+          sent = false;
+        }
+     }else{ // client not responding - data not available
+      if(logON){log("Client not available on: getMacAddressFromServer");}
+      if(debugON){Serial.println("Client not available on: getMacAddressFromServer");}
+     }
+     //client.stop();
+    }else{ // connection to server Failed!!!
+      // client.stop();
       if(debugON) Serial.println("Connection error");
       if(logON)log("connessione fallita");
-      resetEthernet = true;
+      //resetEthernet = true; check if is there an Internet Connection!!!!!!!!!!!
     }
-    //free(db);
-    if(debugON) Serial.println("exiting from - httpSendValues");
+    prevSend = millis();
+  if(received || (connection_status != 1)){ // if data received or connection failed close socket
+    client.stop();
   }
-
-
-
+ }
+  //free(db);
+  if(debugON) Serial.println("exiting from - httpSendAlert");
+}
 
 
 //######################## *pthread_httpSend() #############################
@@ -552,48 +590,52 @@ void getMacAddressFromServer() {
 		delay(100);
 		char rBuffer[300];
 		//while(!client.available()){;} // wait for data
-    while(!client.available() && !(millis() - responseMill > timeoutResponse ) ){
+    while(!client.available() && !(millis() - responseMill > timeoutResponse ) ){;}
+    if(client.available()){
+      int s = getLine(client, rBuffer, 300);
+      Serial.print("rBuffer: ");
+      Serial.println(rBuffer);
+      if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {
+        int bodySize = 0;
+        do {
+          s = getLine(client, rBuffer, 300);
+          if(strncmp(rBuffer, "Content-Length", 14) == 0) {
+            char* separator = strchr(rBuffer, ':');
+            if(*(separator+1) == ' ') {
+              separator += 2;
+            } else {
+              separator++;
+            }
+            bodySize = atoi(separator);
+          }
+        } while(s > 0);
+
+        // Content
+        s = getLine(client, rBuffer, 300, bodySize);
+        if (s > 0) {
+          Serial.print("MAC address: ");
+          Serial.println(rBuffer);
+          storeMacAddressToSD(rBuffer);  // store the MAC address
+        }
+        else {
+          Serial.println("Error getting the content");
+        }
+
+      }
+      else {
+        Serial.println("Connection error");
+      }
+    }else{
+      if(logON){log("Client not available on: getMacAddressFromServer");}
+      if(debugON){Serial.println("Client not available on: getMacAddressFromServer");}
     }
-		int s = getLine(client, rBuffer, 300);
-		Serial.print("rBuffer: ");
-		Serial.println(rBuffer);
-		if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {
-			int bodySize = 0;
-			do {
-				s = getLine(client, rBuffer, 300);
-				if(strncmp(rBuffer, "Content-Length", 14) == 0) {
-					char* separator = strchr(rBuffer, ':');
-					if(*(separator+1) == ' ') {
-						separator += 2;
-					} else {
-						separator++;
-					}
-					bodySize = atoi(separator);
-				}
-			} while(s > 0);
-
-			// Content
-			s = getLine(client, rBuffer, 300, bodySize);
-			if (s > 0) {
-				Serial.print("MAC address: ");
-				Serial.println(rBuffer);
-				storeMacAddressToSD(rBuffer);  // store the MAC address
-			}
-			else {
-				Serial.println("Error getting the content");
-			}
-
-		}
-		else {
-			Serial.println("Connection error");
-		}
-
-		client.stop();
+		//client.stop();
 	}else{
-      client.stop();
+      //client.stop();
       if(debugON) Serial.println("Connection error");
       if(logON)log("connessione fallita");
   }
+  client.stop();
 }
 
 
