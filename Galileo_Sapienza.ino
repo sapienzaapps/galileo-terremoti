@@ -143,12 +143,11 @@ void checkSensore()
     if (internetConnected && testNoInternet) {// send value data if there is a connection
       //if (ledON) digitalWrite(green_Led,HIGH);
       if(alert){
-        httpSendAlert(db, &td);
+        httpSendAlert2(db, &td);
       }else{
         httpSendValues(db, &td);
         //Serial.println("IN EVENT - __CONNECTED__");
         }
-  
     }
     else {
       //saveToSDhttpSendValues();  // not yet implemented
@@ -211,9 +210,9 @@ void setupEthernet() {
 	    dns = IPAddress(151, 100, 17, 18);
 	    gateway = IPAddress(10, 10, 1, 1);
 	    subnet = IPAddress(255, 255, 255, 0);
-            Ethernet.begin(mac, ip, dns, gateway); //vedere
+      Ethernet.begin(mac, ip, dns, gateway); //vedere
 	    timeServer = IPAddress(10, 10, 1, 1);
-            system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+      system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
 	    system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
 	    system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
 	    break;
@@ -283,6 +282,9 @@ void setupEthernet() {
 }// END SetupEthernet()
 
 void setup() {
+  Serial.begin(9600);
+  delay(500);
+  Serial.println("Starting.........");
 	#ifdef __IS_GALILEO
     // Fixing Arduino Galileo bug
     signal(SIGPIPE, SIG_IGN);
@@ -296,8 +298,6 @@ void setup() {
   //delay(1000);
   //system("telnetd -l /bin/sh");
   /* Serial.begin(9600); */
-  Serial.begin(115200);
-  delay(500);
 
   Serial.println("#############INITIALIZING DEVICE#############\n");
   if (logON) log("#########INITIALIZING DEVICE##########\n");
@@ -331,12 +331,17 @@ void setup() {
   
   if (ledON) {
   	pinMode(green_Led, OUTPUT);
+		digitalWrite(green_Led,HIGH);  
+    delay(500);
 		digitalWrite(green_Led,LOW);    
 		if (internetConnected){
       digitalWrite(green_Led,HIGH);
       greenLedStatus = true;
     }else greenLedStatus = false;
-		digitalWrite(red_Led,LOW);
+    
+		digitalWrite(red_Led,HIGH);
+    delay(500);
+    digitalWrite(red_Led,LOW);
 		pinMode(red_Led, OUTPUT);
 		digitalWrite(red_Led,LOW);
     redLedStatus = false;

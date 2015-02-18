@@ -47,7 +47,7 @@ boolean getConfigUpdates(boolean noupdate) {
     
     delay(100); // ATTENDERE ARRIVO RISPOSTA!!!
     while (!client.available()) {;}  // Attendere che il client risponda
-
+    Serial.println("Dati arrivati - getConfigUpdates");
     char rBuffer[300];
     // Reading headers
     int s = getLine(client, rBuffer, 300);
@@ -168,7 +168,7 @@ void initConfigUpdates() {
 //    if(debugON) Serial.println("log file removed");
 //    if(logON) log("log file removed");
 //  }
-  if (internetConnected){
+  if (internetConnected && false){
     forceConfigUpdate();
   }
 }
