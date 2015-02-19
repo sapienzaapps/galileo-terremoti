@@ -15,6 +15,7 @@ char *mac_string = "001320ff146f";
 FILE *macToFile;
 char *macAddressFilePath = "media/realroot/mac_address.txt";
 char* log_path = "media/realroot/log.txt";
+char* config_path = "media/realroot/seismoconfig.txt";
 
 typedef enum { Colossus, Panizzi, Home } DeviceLocations_t;
 DeviceLocations_t deviceLocation = Home;

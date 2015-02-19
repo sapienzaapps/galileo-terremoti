@@ -172,8 +172,7 @@ void checkSensore()
       //Serial.println("freeing memory for db");
       //Serial.println("NOT IN EVENT");
    }
-   
-   
+ 
   db->ts = 0;
   db->ms = 0;
   db->valx = 0;
@@ -373,6 +372,18 @@ void setup() {
   if (debugON) Serial.println(freeRam()); //debug
   
   if (debugON) Serial.println("\n#############INIZIALIZATION COMPLETE!#############");
+  if (debugON) Serial.println("\n#############strMacToByte#############");
+  byte mac2[] ={ 0x00, 0x13, 0x20, 0xFF, 0x15, 0x9F };
+  //strMacToByte(mac_string, strlen(mac_string));
+  HEXtoDecimal(mac_string, strlen(mac_string), mac2);
+  Serial.println("");
+  Serial.println("Testttttttt");
+  byteMacToString( mac2);
+/*   for(int z=0; z<6; z++){
+    Serial.print(mac2[z],HEX);
+    Serial.print(":");
+  } */
+  Serial.println("");
   millis24h = milldelayTime = millis();
 }
 // end SETUP

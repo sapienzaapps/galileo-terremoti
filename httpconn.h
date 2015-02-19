@@ -35,11 +35,11 @@ int getLine(EthernetClient c, char* buffer, int maxsize, int toRead) { //???????
   int i;
   byte done = 0;
   memset(buffer, 0, maxsize);  // set the buffer to 0
-  //if (debugON) Serial.print("Header: ");
+  if (debugON) Serial.print("Header: ");
   for (i=0; i < maxsize-1 && done == 0; i++) {
     //while(!client.available() && client.connected());
     buffer[i] = c.read();
-    //if (debugON) Serial.print(buffer[i]);
+    if (debugON) Serial.print(buffer[i]);
     if (buffer[i] == '\r') i--;
     if (buffer[i] == '\n' || buffer[i] == -1) {  // if there is nothing more to read
       done = 1;
@@ -74,11 +74,11 @@ void hexToDecimal(char *mac_address ){
 }
 
 
-int prepareFastBuffer(char* buf, struct RECORD *db) {
+int prepareFastBuffer(char* buf, struct RECORD *db, struct TDEF *td) {
 	// ts, ms, pthresx, pthresy, pthresz, nthresx, nthresy, nthresz, deltax, deltay, deltaz
    if(debugON) Serial.print("mac testo: ");
    if(debugON) Serial.println(mac_string);
-  return sprintf(buf, "%ld;%s", db->ts, mac_string );
+  return sprintf(buf, "tsstart=%ul&deviceid=%s&pthresx=%.2f&pthresy=%.2f&pthresz=%.2f", db->ts, mac_string, td->pthresx,td->pthresy,td->pthresz );
 }
 
 
@@ -316,12 +316,12 @@ void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
           Serial.println(httpServer);
         }
         
-        int rsize = prepareFastBuffer(rBuffer, db);  // prepare the info for the new entry to be send to DB
+        int rsize = prepareFastBuffer(rBuffer, db, td);  // prepare the info for the new entry to be send to DB
         // sendig request to server
         client.print("POST ");
         client.print(path_domain);
         //client.print("/device.php?op=put1&mac="); // 
-        client.print("/terremoto.php");
+        client.print("/terremoto_test.php");
 /*      for(int m=0; m < 6; m++) {// sending mac address
           if(mac[m] < 0x10) client.print("0");
           client.print(mac[m], HEX);
@@ -329,12 +329,15 @@ void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
         client.println(" HTTP/1.1");
         client.print("Host: ");
         client.println(httpServer);
-        client.println("Content-Type: text/plain");
+        /* client.println("Content-Type: text/plain"); */
+        client.println("Content-Type: application/x-www-form-urlencoded");
         client.print("Content-Length: ");
         client.println(rsize);
         client.println("Connection: close"); // ???
         client.println("");
-        client.print(rBuffer);
+        client.println(rBuffer);
+        if(debugON) Serial.print("sending Buffer: "); 
+        if(debugON) Serial.println(rBuffer); 
         sent = true;
       }
     
@@ -787,7 +790,7 @@ void getMacAddressFromServer() {
 
 
 
-// given a string made of pair of characters in HEX base, convert them in decimal base
+// given a string made of pair of characters in HEX base, convert them in decimal base - OK
 uint8_t* HEXtoDecimal(const char *in, size_t len, uint8_t *out) {
 	unsigned int i, t, hn, ln;
 	char *ptr;
@@ -799,7 +802,8 @@ uint8_t* HEXtoDecimal(const char *in, size_t len, uint8_t *out) {
 		decimal = strtol(tmp, &ptr, 16);
 
 		out[t] = decimal;
-		Serial.print(out[t]);
+    if(decimal < 1) Serial.print(out[t],HEX);
+		Serial.print(out[t],HEX);
 		Serial.print(":");
 	}
 
@@ -812,16 +816,28 @@ void convertMACFromStringToByte() {
 	if (macToFile == NULL) {
 		printf("Error opening file!\n");
 		exit(1);
-	}
+	}else{
 
-	char validMAC[12];
-	fread(validMAC, 12, 1, macToFile);
-	validMAC[12] = '\0';
-
+    char validMAC[13];
+    fread(validMAC, 12, 1, macToFile);
+    validMAC[13] = '\0';
+    HEXtoDecimal(validMAC, strlen(validMAC), mac);
+    }
+  
 	fclose(macToFile);
 
-	HEXtoDecimal(validMAC, strlen(validMAC), mac);
 }
+
+
+void byteMacToString(byte mac_address[]){
+  char macstr[18];
+  snprintf(macstr, 18, "%02x:%02x:%02x:%02x:%02x:%02x", mac_address[0], mac_address[1], mac_address[2], mac_address[3], mac_address[4], mac_address[5]);
+  Serial.print("MAC ADDRESS TO STRING: ");
+  Serial.println((char * )macstr);
+  
+}
+ 
+
 
 
 #endif
