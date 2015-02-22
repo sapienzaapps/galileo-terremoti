@@ -17,6 +17,10 @@ static char *script_reset =  "media/realroot/reset.sh";
 static char *reboot_scriptText = "#!/bin/bash\nshutdown -r -t sec 00\n";
 unsigned long resetConnetcionMills = 0;
 unsigned long resetConnectionInterval = 3*1000;
+float lat = 45;
+float lon = 32;
+float version = 1.1;
+char *model = "galileo";
 
 // struct for time and axis variations logging
 struct RECORD {

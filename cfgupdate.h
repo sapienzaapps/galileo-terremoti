@@ -113,7 +113,7 @@ void doConfigUpdates() {
 		//previousMillisConfig = currentMillisConfig;
 		log("Still running Config Update");
 		//if (isConnectedToInternet()) {
-			log("isConnectedToInternet");
+    log("isConnectedToInternet");
 		//}
 		log("lastCfgUpdate");
 		logLong(lastCfgUpdate);

@@ -17,6 +17,8 @@ struct SEQDB {
 //PTHREAD
 pthread_t thread1;
 int iret1;
+IPAddress getFromString(char* ipAddr);
+
 
 EthernetClient client;
 byte inEvent = 0;
@@ -78,7 +80,14 @@ int prepareFastBuffer(char* buf, struct RECORD *db, struct TDEF *td) {
 	// ts, ms, pthresx, pthresy, pthresz, nthresx, nthresy, nthresz, deltax, deltay, deltaz
    if(debugON) Serial.print("mac testo: ");
    if(debugON) Serial.println(mac_string);
-  return sprintf(buf, "tsstart=%ul&deviceid=%s&pthresx=%.2f&pthresy=%.2f&pthresz=%.2f", db->ts, mac_string, td->pthresx,td->pthresy,td->pthresz );
+  return sprintf(buf, "tsstart=%u&deviceid=%s&lat=%.2f&lon=%.2f", db->ts, mac_string, lat,lon );
+}
+
+int prepareConfigBuffer(char* buf) {
+	// ts, ms, pthresx, pthresy, pthresz, nthresx, nthresy, nthresz, deltax, deltay, deltaz
+   if(debugON) Serial.print("mac testo: ");
+   if(debugON) Serial.println(mac_string);
+  return sprintf(buf, "deviceid=%s&lat=%.2f&lon=%.2f&version=%.2f&model=%s", mac_string, lat,lon, version, model );
 }
 
 
@@ -321,7 +330,7 @@ void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
         client.print("POST ");
         client.print(path_domain);
         //client.print("/device.php?op=put1&mac="); // 
-        client.print("/terremoto_test.php");
+        client.print("/terremoto.php");
 /*      for(int m=0; m < 6; m++) {// sending mac address
           if(mac[m] < 0x10) client.print("0");
           client.print(mac[m], HEX);
@@ -414,6 +423,234 @@ void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
   if(debugON) Serial.println("exiting from - httpSendAlert2");
 }
 
+
+// send the accelerometer values that got over the threshold
+void httpTestConfig() {
+  // New Event ----------------------------------------------------------
+  if (debugON){ 
+    Serial.println("Asking for config: ");
+   
+  }
+  char rBuffer[300];
+  bool sent = false;
+  bool received = false;
+  unsigned long prevSend = 0;
+  int connection_status = 0;
+  byte ntimes = 3; // numbers of connection tryies
+  while((!sent || !received) && (millis() - prevSend > 1500) && ntimes > 0){// testare 
+    ntimes--;
+    // Connecting to server to retrieve "sequence id"
+    if(!sent && (connection_status != 1)){
+      connection_status = client.connect(httpServer, 80);
+    }
+    if(connection_status) { // if connection enstabilished	
+      if(!sent){
+        
+        if (debugON){
+          Serial.print("Connecting to:");
+          Serial.println(httpServer);
+        }
+        
+        int rsize = prepareConfigBuffer(rBuffer);  // prepare the info for the new entry to be send to DB
+        // sendig request to server
+        client.print("POST ");
+        client.print(path_domain);
+        //client.print("/device.php?op=put1&mac="); // 
+        client.print("/alive.php");
+/*      for(int m=0; m < 6; m++) {// sending mac address
+          if(mac[m] < 0x10) client.print("0");
+          client.print(mac[m], HEX);
+        } */
+        client.println(" HTTP/1.1");
+        client.print("Host: ");
+        client.println(httpServer);
+        /* client.println("Content-Type: text/plain"); */
+        client.println("Content-Type: application/x-www-form-urlencoded");
+        client.print("Content-Length: ");
+        client.println(rsize);
+        client.println("Connection: close"); // ???
+        client.println("");
+        client.println(rBuffer);
+        if(debugON) Serial.print("sending Buffer: "); 
+        if(debugON) Serial.println(rBuffer); 
+        sent = true;
+      }
+    
+      unsigned long responseMill = millis();
+      // Attende che arrivino i dati con timeout nella risposta ***************
+      while(!client.available() && (millis() - responseMill < timeoutResponse ) ){;}
+      if (millis() - responseMill > timeoutResponse) Serial.println("TIMEOUT SERVER CONNECTION");
+      if(client.available()){ // gestire il caso in cui la connessione con il server avviene ma i dati non arrivano
+      // il problema sussiste nel fatto che vengono inviati di nuovo i dati al server
+       // client has sent a response
+        // Reading headers
+        int s = getLine(client, rBuffer, 300);
+        if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) { // risposta ok dal server
+          int bodySize = 0;
+          do { // read from client response
+            s = getLine(client, rBuffer, 300);
+            if(strncmp(rBuffer, "Content-Length", 14) == 0) {
+              char* separator = strchr(rBuffer, ':');
+              if(*(separator+1) == ' ') {
+                separator += 2;
+              } else {
+                separator++;
+              }
+              bodySize = atoi(separator); // get body size response
+              //break; // stop 
+            }
+          } while(s > 0); // get data till new line
+          // Content
+          s = getLine(client, rBuffer, 300, bodySize); // get content size 
+          //nextContact = atol(separator+1) + getUNIXTime();  // TIME FOR SENDING COLLECTED DATA
+          //nextContact = (atol(rBuffer) *1000UL);  // get next time to send new data
+          if(strncmp(rBuffer, "server", 6) == 0){
+            char* separator = strchr(rBuffer, ':');
+            if(*(separator+1) == ' ') {
+                separator += 2;
+            } 
+            //httpServer = strncpy(
+            
+          }
+          
+          inEvent = 1;  // Set ON the Event 
+          milldelayTimeEvent = millis(); // timestamp in millis for Event Interval
+          if (debugON){
+            Serial.print("tempo offset per nextContact:");
+            Serial.println(nextContact);
+          }
+          if (debugON){ Serial.print("Next Contact scheduled for new EVENT: ");}
+          debugUNIXTime(nextContact);
+
+          received = true;
+          //sendingIter = 0;
+  /*      seqDBfd = ramopen(seqid, sendingIter);
+          if ((debugON) && (seqDBfd ==-1)) Serial.println("Error in ramopen: httpSendValues");
+          if (logON && (seqDBfd ==-1)) log("Error in ramopen: httpSendValues"); */
+        } else { // connetion response != 200
+          if (debugON){ 
+            Serial.print("Error in reply: ");
+            Serial.println(rBuffer);
+          }
+          if (logON){ 
+            log("Error in reply: ");
+            log(rBuffer);
+          }
+          sent = false;
+        }
+     }else{ // client not responding - data not available
+      if(logON){log("Client not available on: sendAlert2");}
+      if(debugON){Serial.println("Client not available on: sendAlert2");}
+     }
+     //client.stop();
+    }else{ // connection to server Failed!!!
+      // client.stop();
+      if(debugON) Serial.println("Connection error on sendAlert2");
+      if(logON)log("connessione fallita");
+      //resetEthernet = true; check if is there an Internet Connection!!!!!!!!!!!
+    }
+    prevSend = millis();
+  if(received || (connection_status != 1)){ // if data received or connection failed close socket
+    client.stop();
+  }
+ }
+  //free(db);
+  if(debugON) Serial.println("exiting from - httpSendAlert2");
+}
+
+// ask config to server - New Da finire
+boolean getConfigNew() {
+  boolean ret = false;
+  if (client.connect(httpServer, 80)) {
+  	if (debugON) Serial.print("Requesting CONFIG to: ");
+  	if (debugON) Serial.println(httpServer);
+    char rBuffer[300];
+    int rsize = prepareConfigBuffer(rBuffer);  // prepare the info for the new entry to be send to DB
+    // sendig request to server
+    client.print("POST ");
+    client.print(path_domain);
+    client.print("/alive.php");
+    client.println(" HTTP/1.1");
+    client.print("Host: ");
+    client.println(httpServer);
+    client.println("Content-Type: application/x-www-form-urlencoded");
+    client.print("Content-Length: ");
+    client.println(rsize);
+    client.println("Connection: close"); // ???
+    client.println("");
+    client.println(rBuffer);
+    //client.println("");
+    if(debugON) Serial.print("sending Buffer: "); 
+    if(debugON) Serial.println(rBuffer); 
+    
+    delay(100); // ATTENDERE ARRIVO RISPOSTA!!!
+    while (!client.available()) {;}  // Attendere che il client risponda
+    Serial.println("Dati arrivati - getConfigUpdates");
+    memset( rBuffer, 0, 300);
+    // Reading headers
+    int s = getLine(client, rBuffer, 300);
+
+    if (strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {  // if it is an HTTP 200 response
+      int bodySize = 0;
+      do {
+        s = getLine(client, rBuffer, 300);
+        if (strncmp(rBuffer, "Content-Length", 14) == 0) {
+          char* separator = strchr(rBuffer, ':');
+          if (*(separator+1) == ' ') {
+            separator += 2;
+          }
+          else {
+            separator++;
+          }
+          bodySize = atoi(separator);
+        }
+      } while(s > 0);
+      // Content
+      
+      do {
+        s = getLine(client, rBuffer, 300);
+        if (s > 0) {
+          char* separator = strchr(rBuffer, ':');
+          *separator = 0;
+          char* argument = separator+1;
+          if (strncmp(rBuffer, "server", 6) == 0) {
+            free(httpServer);  // ?
+            httpServer = (char*)malloc(strlen(argument)*sizeof(char));
+            if(httpServer!=NULL){
+              strcpy(httpServer, argument);
+            }else{
+              if (logON) log("Malloc FAILED - getConfigUpdates");
+              if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
+            }
+          }
+          else if(strncmp(rBuffer, "ntpserver", 9) == 0) {
+            timeServer = getFromString(argument);
+          }
+          else if(strncmp(rBuffer, "script", 6) == 0) {
+            separator = strchr(rBuffer, ':');
+            separator++;
+            char scriptTest[100] ;
+            strncpy(scriptTest, separator, strlen(rBuffer));
+            Serial.println("Script");
+            Serial.println(separator);
+          }
+        }
+      } while(s > 0);
+      ret = true;
+    }
+    else {
+    	if (debugON) Serial.print("Error in reply: ");
+    	if (debugON) Serial.println(rBuffer);
+    }
+    client.stop();
+  }else{
+      client.stop();
+      if(debugON) Serial.println("Connection error");
+      if(logON)log("connessione fallita");
+      resetEthernet = true;
+  }
+  return ret;
+}
 
 
 // send the accelerometer values that got over the threshold
@@ -837,7 +1074,4 @@ void byteMacToString(byte mac_address[]){
   
 }
  
-
-
-
 #endif

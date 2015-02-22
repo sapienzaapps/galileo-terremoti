@@ -143,7 +143,9 @@ void checkSensore()
     if (internetConnected && testNoInternet) {// send value data if there is a connection
       //if (ledON) digitalWrite(green_Led,HIGH);
       if(alert){
-        httpSendAlert2(db, &td);
+        //httpSendAlert2(db, &td);
+        //httpTestConfig();
+        getConfigNew();
       }else{
         httpSendValues(db, &td);
         //Serial.println("IN EVENT - __CONNECTED__");
@@ -229,7 +231,8 @@ void setupEthernet() {
       break;
 
 	  case Home:  // Home
-	    timeServer = IPAddress(132, 163, 4, 101);
+	    /* timeServer = IPAddress(132, 163, 4, 101); */
+	    timeServer = IPAddress(178, 33, 50, 131);
 	    if (isDhcpEnabled) {
 	      boolean isDhcpWorking = false;
 	      while (!isDhcpWorking) { // WARNING: add DHCP timeout
@@ -375,10 +378,10 @@ void setup() {
   if (debugON) Serial.println("\n#############strMacToByte#############");
   byte mac2[] ={ 0x00, 0x13, 0x20, 0xFF, 0x15, 0x9F };
   //strMacToByte(mac_string, strlen(mac_string));
-  HEXtoDecimal(mac_string, strlen(mac_string), mac2);
+/*   HEXtoDecimal(mac_string, strlen(mac_string), mac2);
   Serial.println("");
   Serial.println("Testttttttt");
-  byteMacToString( mac2);
+  byteMacToString( mac2); */
 /*   for(int z=0; z<6; z++){
     Serial.print(mac2[z],HEX);
     Serial.print(":");
