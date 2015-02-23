@@ -39,6 +39,8 @@ unsigned long millis24h;
 
 const byte red_Led = 10;
 const byte green_Led = 12;
+// const byte red_Led = 12;
+// const byte green_Led = 10;
 bool redLedStatus = false;
 bool greenLedStatus = false;
 
@@ -144,8 +146,8 @@ void checkSensore()
       //if (ledON) digitalWrite(green_Led,HIGH);
       if(alert){
         //httpSendAlert2(db, &td);
-        //httpTestConfig();
-        getConfigNew();
+        getConfigNew();// on testing
+        
       }else{
         httpSendValues(db, &td);
         //Serial.println("IN EVENT - __CONNECTED__");
@@ -439,7 +441,7 @@ void loop() {
   }  
   if (inEvent) {
       unsigned long millisTimeEvent = millis();
-      if (millisTimeEvent - milldelayTimeEvent >nextContact /* TimeEvent */) { // unlock Alert after xxx millisecs
+      if (millisTimeEvent - milldelayTimeEvent >10000/*nextContact  TimeEvent */) { // unlock Alert after xxx millisecs
         inEvent = 0;
       }
   }
