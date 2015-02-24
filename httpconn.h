@@ -14,6 +14,9 @@ struct SEQDB {
   struct RECORD *record;
   struct SEQDB *next;
 };
+byte mac2[] ={ 0x00, 0x13, 0x20, 0xFF, 0x15, 0x9F };
+
+
 //PTHREAD
 pthread_t thread1;
 int iret1;
@@ -98,15 +101,6 @@ int getPipe(EthernetClient c, char* buffer, int maxsize, int toRead = -1) { //??
 
   // if (debugON) Serial.println("");
   return i-1;
-}
-
-// convert mac address to a string 
-void hexToDecimal(char *mac_address ){
-/*   for(int m=0; m < 6; m++) {// sending mac address
-    if(mac[m] < 0x10) mac_address[m] = 0;
-    sprintf(mac_address[m], "%hex", mac[m]);
-  }   */
-  Serial.println(mac_address);
 }
 
 
@@ -740,6 +734,7 @@ void *pthread_httpSend(void *ptr) {  // if its the child process
 	pthread_exit(NULL);
 }
 
+
 // store the given MAC address to a FILE into the SD card
 void storeMacAddressToSD(char *validMAC) {
 	macToFile = fopen(macAddressFilePath, "w");
@@ -750,6 +745,19 @@ void storeMacAddressToSD(char *validMAC) {
 
 	fprintf(macToFile, "%s", validMAC);
 	fclose(macToFile);
+}
+
+// store the given MAC address to a FILE into the SD card
+void storeConfigToSD() {
+	FILE *fp = fopen(config_path, "w");
+	if (fp == NULL) {
+		printf("Error opening file!\n");
+		exit(1);
+	}
+
+	fprintf(fp, "deviceid:%s\nlat:%.2f\nlon:%.2f",mac_string,lat,lon);
+	
+	fclose(fp);
 }
 
 // ask the server for a valid MAC address
@@ -794,7 +802,8 @@ void getMacAddressFromServer() {
         if (s > 0) {
           Serial.print("MAC address: ");
           Serial.println(rBuffer);
-          storeMacAddressToSD(rBuffer);  // store the MAC address
+          strncpy(mac_string, rBuffer, strlen(rBuffer) * sizeof(char)); // copiato mac in stringa
+          //storeMacAddressToSD(rBuffer);  // store the MAC address
         }
         else {
           Serial.println("Error getting the content");
@@ -823,19 +832,83 @@ uint8_t* HEXtoDecimal(const char *in, size_t len, uint8_t *out) {
 	char *ptr;
 	char tmp[2];
 	long decimal;
+  Serial.println("HEXtoDecimal");
 	for (t = 0, i = 0; i < len; i+=2, ++t) {
 		tmp[0] = in[i];
 		tmp[1] = in[i+1];
 		decimal = strtol(tmp, &ptr, 16);
 
 		out[t] = decimal;
-    if(decimal < 1) Serial.print(out[t],HEX);
+    if(decimal < 1 ) {Serial.print(0);}
 		Serial.print(out[t],HEX);
-		Serial.print(":");
+    Serial.print(":");
 	}
+	Serial.println("");
 
 	return out;
 }
+
+// read configuration file
+void readConfig(){
+  Serial.println("ON CONFIG READING");
+  FILE *fpconf;
+  fpconf = fopen(config_path, "r");
+  if (fpconf!=NULL){
+    char buffer[100];
+    char tmp[30];
+    char* argument;
+    int latlon = 0;
+    while(fgets(buffer,50,fpconf) !=NULL){
+      Serial.println("while READING");
+      if (!strncmp("deviceid",buffer, 8)){
+        argument = strchr(buffer, ':');
+        *argument=0;
+        argument++;
+        int a = snprintf(tmp,15,"%s",argument);
+/*      Serial.print("argument: ");
+        Serial.println(argument);
+        Serial.print("argument-length: ");
+        Serial.println(strlen(argument),DEC); */
+        Serial.print("tmp: ");
+        Serial.println(tmp);
+        Serial.print("tmp-length: ");
+        Serial.println(a,DEC);
+        if (a == 12){
+          strncpy(mac_string, tmp, 12); // copio il MAC in formato stringa
+          mac_string[12] = '\0';
+          HEXtoDecimal(mac_string, strlen(mac_string), mac); // trasformo il mac da stringa ad array di byte HEX
+/*           for(int z=0; z<6; z++){
+            if (mac2[z] < 0x10) Serial.print(0);
+            Serial.print(mac2[z],HEX);
+            Serial.print(":");
+          }  */ 
+          request_mac_from_server = false; // 
+          Serial.println("Finished mac reading\n\n");
+        }else{
+          request_mac_from_server = true;
+        }
+      }else if (!strncmp("lat",buffer, 3)){
+        
+        argument = strchr(buffer, ':');
+        argument++;
+        lat = stringToFloat(argument);
+        Serial.print("latitudine: ");
+        Serial.println(lat);
+        latlon++;
+      }else if (!strncmp("lon",buffer, 3)){
+        argument = strchr(buffer, ':');
+        argument++;
+        lon = stringToFloat(argument);
+        Serial.print("longitudine: ");
+        Serial.println(lon);
+        latlon++;
+      }
+    }
+    if (latlon == 2) request_lat_lon = false;
+  }else Serial.println("FOPEN FAILED ON CONFIG READING");
+  
+}
+
 
 // convert MAC address from char* to byte[]
 void convertMACFromStringToByte() {
@@ -855,12 +928,13 @@ void convertMACFromStringToByte() {
 
 }
 
-
+// convert byte array into C String
 void byteMacToString(byte mac_address[]){
-  char macstr[18];
-  snprintf(macstr, 18, "%02x:%02x:%02x:%02x:%02x:%02x", mac_address[0], mac_address[1], mac_address[2], mac_address[3], mac_address[4], mac_address[5]);
+  //char macstr[18];
+  // snprintf(mac_string, 18, "%02x:%02x:%02x:%02x:%02x:%02x", mac_address[0], mac_address[1], mac_address[2], mac_address[3], mac_address[4], mac_address[5]);
   Serial.print("MAC ADDRESS TO STRING: ");
-  Serial.println((char * )macstr);
+  sprintf(mac_string,"%02x%02x%02x%02x%02x%02x", mac_address[0], mac_address[1], mac_address[2], mac_address[3], mac_address[4], mac_address[5]);
+  Serial.println(mac_string);
   
 }
  

@@ -142,11 +142,13 @@ void checkSensore()
         digitalWrite(red_Led,HIGH);
         redLedStatus = !redLedStatus;
     }
-    if (internetConnected && testNoInternet) {// send value data if there is a connection
+    if (internetConnected && testNoInternet && start) {// send value data if there is a connection
       //if (ledON) digitalWrite(green_Led,HIGH);
       if(alert){
-        //httpSendAlert2(db, &td);
-        getConfigNew();// on testing
+        httpSendAlert2(db, &td);
+/*         getConfigNew();// on testing
+        inEvent = 1;
+        milldelayTimeEvent = millis(); // timestamp in millis for Event Interval */
         
       }else{
         httpSendValues(db, &td);
@@ -157,7 +159,8 @@ void checkSensore()
       //saveToSDhttpSendValues();  // not yet implemented
       //free(db); // Memory leak debugged
       //if (ledON) digitalWrite(green_Led,LOW);
-      if (logON) log("NOT CONNECTED");
+      //if (logON) log("NOT CONNECTED");
+      if (debugON) Serial.println("NOT CONNECTED - or not in start!");
       //Serial.println("freeing memory for db");
       //Serial.println("IN EVENT - BUT NOT CONNECTED");
       
@@ -303,8 +306,13 @@ void setup() {
   //system("telnetd -l /bin/sh");
   /* Serial.begin(9600); */
 
+  //Serial.println("STOREConfig()");
+  //storeConfigToSD();
+  //delay(300);
   Serial.println("#############INITIALIZING DEVICE#############\n");
   if (logON) log("#########INITIALIZING DEVICE##########\n");
+  Serial.println("readConfig()");
+  readConfig(); // read config from SD Card
   /* Calibrating Accelerometer */
   accelero.begin(/* 13, 12, 11, 10, */ A0, A1, A2);     // set the proper pin x y z
   //accelero.setSensitivity(LOW);                  // sets the sensitivity to +/-6G
@@ -312,20 +320,17 @@ void setup() {
   accelero.setAveraging(10);  // number of samples that have to be averaged
   accelero.calibrate();
   if (debugON) Serial.println("setAveraging(10)");
-//  #ifdef __IS_GALILEO
-//	  // Workaround for Galileo (and other boards with Linux)
-//	  system("/etc/init.d/networking restart");
-//          delay(1000);
-//  #endif
-
+  // Config connection on Ethernet module
   if (debugON) Serial.println("Setting up ethernet connection");
-  // Config connction on Ethernet module
-
-  // if (!doesFileExist(macAddressFilePath)) {
-		// getMacAddressFromServer();
-	// }
-	// convertMACFromStringToByte();
   setupEthernet();
+  byteMacToString(mac); // create string for MAC address
+  if (request_mac_from_server) {
+    Serial.println("Requesting deviceID to server... ");
+		getMacAddressFromServer(); // asking for new mac address/deviceid
+    HEXtoDecimal(mac_string, strlen(mac_string), mac);
+	// convertMACFromStringToByte();
+	}
+  if(!request_lat_lon) start = true;
 
   internetConnected = isConnectedToInternet();
   delay(500); // wait internet connaction Status 
@@ -352,6 +357,7 @@ void setup() {
   }
 
   //system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
+  if (debugON) Serial.println("Forcing config update...");
   initConfigUpdates();
   if (debugON) Serial.println("EEPROM init");
   initEEPROM(forceInitEEPROM);
@@ -359,14 +365,13 @@ void setup() {
   commandInterfaceInit(); // open port for mobile app
   
   if(internetConnected && testNoInternet){
-    if (debugON) Serial.println("Forcing config update...");
     if (debugON) Serial.println("Syncing NTP...");
     initNTP(); // controllare il ritorno ++++++++++++++++++++++++++++++++++++++++++++
     // We need to set this AFTER ntp sync...
     lastCfgUpdate = getUNIXTime();
   }
   
-  if(doesFileExist(script_reset)!= 1){
+  if(doesFileExist(script_reset)!= 1){ // check if reset script exists
     if (debugON) Serial.println("createScript...");
     createScript(script_reset, reboot_scriptText); 
     //if (debugON) Serial.println("execScript...");
@@ -377,19 +382,22 @@ void setup() {
   if (debugON) Serial.println(freeRam()); //debug
   
   if (debugON) Serial.println("\n#############INIZIALIZATION COMPLETE!#############");
-  if (debugON) Serial.println("\n#############strMacToByte#############");
-  byte mac2[] ={ 0x00, 0x13, 0x20, 0xFF, 0x15, 0x9F };
-  //strMacToByte(mac_string, strlen(mac_string));
+  //if (debugON) Serial.println("\n#############strMacToByte#############");
+  //byte mac2[] ={ 0x00, 0x13, 0x20, 0xFF, 0x15, 0x9F };
 /*   HEXtoDecimal(mac_string, strlen(mac_string), mac2);
   Serial.println("");
   Serial.println("Testttttttt");
-  byteMacToString( mac2); */
-/*   for(int z=0; z<6; z++){
+   for(int z=0; z<6; z++){
+     if (mac2[z] < 0x10) Serial.print(0);
+    
     Serial.print(mac2[z],HEX);
     Serial.print(":");
-  } */
-  Serial.println("");
-  millis24h = milldelayTime = millis();
+  } 
+  Serial.println(""); */
+  
+  Serial.println("Testttttttt - FINITOOOOO");
+  millis24h =  millis();
+  milldelayTime = millis24h;
 }
 // end SETUP
 
@@ -410,7 +418,8 @@ void loop() {
         digitalWrite(green_Led,HIGH);
         greenLedStatus = !greenLedStatus;
       }
-      doConfigUpdates(); // controllare +++++++++++++++++++++++++++++++++++++++++
+      //doConfigUpdates(); // controllare +++++++++++++++++++++++++++++++++++++++++
+      if (start)getConfigNew();
 		}
 		if(logON)log("Still running");
 		if (debugON) {
@@ -441,7 +450,7 @@ void loop() {
   }  
   if (inEvent) {
       unsigned long millisTimeEvent = millis();
-      if (millisTimeEvent - milldelayTimeEvent >10000/*nextContact  TimeEvent */) { // unlock Alert after xxx millisecs
+      if (millisTimeEvent - milldelayTimeEvent >nextContact /* TimeEvent */) { // unlock Alert after xxx millisecs
         inEvent = 0;
       }
   }
@@ -465,7 +474,7 @@ void loop() {
 		//testNTP();
 		milldelayTime = millis();
   }
-  if ((millis () - millis24h >=  8640000UL ) && !inEvent /* && !inEventSD */){
+  if ((millis () - millis24h >=  86400000UL ) && !inEvent /* && !inEventSD */){
     log("Reboot after 24h of activity");
     if (debugON) Serial.println("<---------- Reboot after 24h of activity ----------->");
     execScript(script_reset);
