@@ -9,7 +9,7 @@
 
 #define SECONDS_PER_DAY 86400L
 
-#define SECONDS_FROM_1970_TO_2000 946684800
+#define SECONDS_FROM_1970_TO_2000 946684800UL
 
 #if (ARDUINO >= 100)
  #include <Arduino.h> // capital A so it is error prone on case-sensitive filesystems

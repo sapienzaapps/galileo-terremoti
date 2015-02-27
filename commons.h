@@ -46,9 +46,9 @@ struct RECORD *rec = &recddl;
 void printRecord(struct RECORD *db) {
 	if (debugON) {
 		Serial.print(db->valx);
-		Serial.print("-");
+		Serial.print(":");
 		Serial.print(db->valy);
-		Serial.print("-");
+		Serial.print(":");
 		Serial.print(db->valz);
 	}
 }

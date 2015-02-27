@@ -154,7 +154,7 @@ int prepareConfigBuffer(char* buf) {
 
 // ask config to server - New Da finire
 boolean getConfigNew() {
-  Serial.print("getConfigNew()------------------------------------------------");
+  Serial.println("getConfigNew()------------------ START ----------------------");
   //inEvent = 1;
   //milldelayTimeEvent = millis(); // timestamp in millis for Event Interval
   boolean ret = false;
@@ -210,20 +210,29 @@ boolean getConfigNew() {
         // Serial.println("GetPipe");
         p = getPipe(client, rBuffer, 300);
         if (p > 0) {
+          size_t l;
           char* separator = strchr(rBuffer, ':');
           *separator = 0;
           char* argument = separator+1;
+          l = strlen(argument);
           if (strncmp(rBuffer, "server", 6) == 0) { // SERVER TO CONTACT 
             free(httpServer);  // ?
-            httpServer = (char*)malloc(strlen(argument)*sizeof(char));
+            httpServer = (char*)malloc(l*sizeof(char));
+           
             Serial.print("dimensione server: ");
-            Serial.println(strlen(argument), DEC);
-            Serial.print("Argomento: ");
-            Serial.println(argument);
-            if(httpServer!=NULL){
-              strncpy(httpServer, argument,strlen(argument));
+            Serial.println(l, DEC);
+            Serial.print("Argomento:#");
+            Serial.print(argument);
+            Serial.println("#");
+            if(httpServer!=NULL && (l > 0) ){
+              strncpy(httpServer, argument,l);
+              httpServer[l] = '\0';
               Serial.print("Server: ");
               Serial.println(httpServer);
+              if (logON){
+                log("cfg Server:");
+                log(httpServer);
+              }  
             }else{
               if (logON) log("Malloc FAILED - getConfigUpdates");
               if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
@@ -239,7 +248,7 @@ boolean getConfigNew() {
           else if(strncmp(rBuffer, "script", 6) == 0) { // Check for executing script
             if (strlen(argument) > 0){
               char scriptTest[100] ;
-              int len = strlen(argument);
+              size_t len = strlen(argument);
               strncpy(scriptTest, argument, len);
               scriptTest[len] = '\0';
               createScript("/media/realroot/script.sh", scriptTest);
@@ -254,10 +263,10 @@ boolean getConfigNew() {
             }
           }
           else if(strncmp(rBuffer, "path", 4) == 0) { // Check for downloading file
-            if (strlen(argument) > 0){
+            size_t len = strlen(argument);
+            if (len > 0){
               char pathTest[300] ;
               char pathScriptDownload[300] ;
-              int len = strlen(argument);
               strncpy(pathTest, argument, len); // remote peth for file downloading
               pathTest[len] = '\0';
               sprintf(pathScriptDownload,download_scriptText,pathTest); 
@@ -303,7 +312,7 @@ boolean getConfigNew() {
   }else{ // impossible to contact the server
       client.stop();
       if(debugON) Serial.println("Connection error");
-      if(logON)log("connessione fallita");
+      if(logON)log("getConfigNew() - connessione fallita");
       resetEthernet = true;
   }
   if(logON){
@@ -317,8 +326,9 @@ boolean getConfigNew() {
     logLong(cfgUpdateInterval);
     log("getUNIXTime()");
     logLong(getUNIXTime());
-    if(!ret) log("Config Update ERROR!!!");
+    if(!ret) log("getConfigNew() Update ERROR!!!");
   }
+  Serial.println("getConfigNew()------------------ EXIT ----------------------");
   return ret;
 }
 
@@ -344,7 +354,7 @@ void initConfigUpdates() {
     if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
   }
  // Read log.txt size, if too big delete it
- FILE *fp2 = fopen("/media/realroot/log.txt", "a");
+/*  FILE *fp2 = fopen("/media/realroot/log.txt", "a");
  fseek(fp2, 0L, SEEK_END);
  int sz = ftell(fp2);
  fclose (fp2);
@@ -352,7 +362,7 @@ void initConfigUpdates() {
    system("rm /media/realroot/log.txt"); // remove logfile if too old 
    if(debugON) Serial.println("log file removed");
    if(logON) log("log file removed");
- }
+ } */
   if (internetConnected && start ){ // get config onli if Galileo is connected and lat/lon are setted
     //forceConfigUpdate(false);
     boolean ret = getConfigNew();

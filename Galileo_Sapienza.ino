@@ -145,13 +145,15 @@ void checkSensore()
     if (internetConnected && testNoInternet && start) {// send value data if there is a connection
       //if (ledON) digitalWrite(green_Led,HIGH);
       if(alert){
-        httpSendAlert2(db, &td);
-/*         getConfigNew();// on testing
         inEvent = 1;
         milldelayTimeEvent = millis(); // timestamp in millis for Event Interval */
         
+        httpSendAlert2(db, &td);
+        //getConfigNew();// on testing
+        
       }else{
-        httpSendValues(db, &td);
+        Serial.println("IN EVENT - BUT NOT ADJUSTED SENDVALUES");
+        //httpSendValues(db, &td);
         //Serial.println("IN EVENT - __CONNECTED__");
         }
     }
@@ -257,7 +259,7 @@ void setupEthernet() {
         if (debugON) Serial.println("Static Configuration");
         if (logON) log("Static Configuration\n");
 	      //add your static IP here
-  	    ip = IPAddress(192, 168, 1, 36);
+  	    ip = IPAddress(192, 168, 1, 177);
   	    //dns = IPAddress(192,168,1,1);
   	    dns = IPAddress(192,168,1,254);
   	    //gateway = IPAddress(192,168,1,1);
@@ -267,7 +269,7 @@ void setupEthernet() {
 	      Ethernet.begin(mac, ip, dns, gateway, subnet); // Static address configuration 
         //LINUX SYSTEM START CONNECTION
         system("ifconfig eth0 192.168.1.177 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-	      system("route add default gw 192.168.1.254 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
+	      system("route add default gw 192.168.1.254 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gateway for the Ethernet
 	      system("echo 'nameserver 8.8.8.8' > /etc/resolv.conf");  // add the GOOGLE DNS
 				//system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
 	      //system("ifconfig > /dev/ttyGS0");  // debug
@@ -289,6 +291,7 @@ void setupEthernet() {
 }// END SetupEthernet()
 
 void setup() {
+  delay(1000);
   Serial.begin(9600);
   delay(500);
   Serial.println("Starting.........");
@@ -310,7 +313,7 @@ void setup() {
   //storeConfigToSD();
   //delay(300);
   Serial.println("#############INITIALIZING DEVICE#############\n");
-  if (logON) log("#########INITIALIZING DEVICE##########\n");
+  if (logON) log("###INITIALIZING DEVICE###");
   Serial.println("readConfig()");
   readConfig(); // read config from SD Card
   /* Calibrating Accelerometer */
@@ -413,17 +416,19 @@ void loop() {
       }
       resetEthernet = true;
 		}
-		else {
+		else { // IF INTERNET IS PRESENT 
       if (ledON && !greenLedStatus){
         digitalWrite(green_Led,HIGH);
         greenLedStatus = !greenLedStatus;
       }
       //doConfigUpdates(); // controllare +++++++++++++++++++++++++++++++++++++++++
-      if (start)getConfigNew();
+      if (start)getConfigNew(); // CHEK FOR UPDATES
 		}
 		if(logON)log("Still running");
 		if (debugON) {
-			Serial.print("Still running__INTERVAL: ");
+			Serial.print("Loop - Still running: ");
+      Serial.println(getGalileoDate());
+			Serial.print("CHECK INTERNET INTERVAL: ");
 			Serial.println(checkInternetConnectionInterval);
 			Serial.print("STATUS CONNECTION: ");
 			Serial.println(internetConnected?"CONNECTED":"NOT CONNECTED");
@@ -436,7 +441,6 @@ void loop() {
 	if ((testNoInternet) &&(currentMillisNTP - previousMillisNTP > NTPInterval) && internetConnected && !resetEthernet) {
 	  NTPdataPacket();
 	  previousMillisNTP = currentMillisNTP;
-    // doConfigUpdates(); // test test!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	}
   
   // Check for calibration Sensor
@@ -449,10 +453,10 @@ void loop() {
     prevMillisCalibration = currentMillisCalibration;
   }  
   if (inEvent) {
-      unsigned long millisTimeEvent = millis();
-      if (millisTimeEvent - milldelayTimeEvent >nextContact /* TimeEvent */) { // unlock Alert after xxx millisecs
-        inEvent = 0;
-      }
+    unsigned long millisTimeEvent = millis();
+    if (millisTimeEvent - milldelayTimeEvent > nextContact /* TimeEvent */) { // unlock Alert after xxx millisecs
+      inEvent = 0;
+    }
   }
 /*   if (resetEthernet) {
       if(logON) log("networking restart - NOT CONNECTED FINTO!!!");
@@ -461,10 +465,7 @@ void loop() {
       //system("/etc/init.d/networking restart");
       //delay(1000);
    } */
-  
 
-  //doNTPActions();
-  // chek for sensor read
   if (millis() - milldelayTime > checkSensoreInterval) {
     // check mobile command
 		checkCommandPacket();
@@ -480,7 +481,7 @@ void loop() {
     execScript(script_reset);
     //delay(500);
     while(1){;}
-}
+  }
   delay(1);
 }
 

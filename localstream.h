@@ -78,7 +78,7 @@ int checkCommandPacket() {
           // start = true;
           break;
       }
-    }else {
+    }else { // ricezione dati di latitudine/longitudine
       
       if (memcmp("DATA\0", _pktBuffer, 5)){ // if lat lon are coming
         char *argument = (char*)_pktBuffer+6;

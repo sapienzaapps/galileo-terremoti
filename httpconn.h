@@ -63,7 +63,8 @@ int getLine(EthernetClient c, char* buffer, int maxsize, int toRead) { //???????
 
   // if (debugON) Serial.print("LENGTH ROW: ");
   // if (debugON) Serial.println(i-1,DEC);
-  return i-1;
+  if(toRead == 1) return 1;
+  else  return i-1;
 }
 
 int getLine(EthernetClient c, char* buffer, int maxsize) {
@@ -105,7 +106,7 @@ int getPipe(EthernetClient c, char* buffer, int maxsize, int toRead = -1) { //??
 
 
 int prepareFastBuffer(char* buf, struct RECORD *db, struct TDEF *td) {
-	// ts, ms, pthresx, pthresy, pthresz, nthresx, nthresy, nthresz, deltax, deltay, deltaz
+	// tsstart, deviceid, lat, lon
    if(debugON) Serial.print("mac testo: ");
    if(debugON) Serial.println(mac_string);
   return sprintf(buf, "tsstart=%u&deviceid=%s&lat=%.2f&lon=%.2f", db->ts, mac_string, lat,lon );
@@ -316,10 +317,13 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
 // send the accelerometer values that got over the threshold
 void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
   // New Event ----------------------------------------------------------
+  if(debugON) Serial.println("---- httpSendAlert2 ---------START-------");
   if (debugON){ 
     Serial.print("New Event, values (X-Y-Z): ");
     printRecord(db); // Debug print recorded axis values
     Serial.println();
+    Serial.print("Date: ");
+    Serial.println(getGalileoDate());
   }
   if (logON) log("New Event, values (X-Y-Z): ");
   char rBuffer[300];
@@ -327,20 +331,27 @@ void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
   bool received = false;
   unsigned long prevSend = 0;
   int connection_status = 0;
-  byte ntimes = 3; // numbers of connection tryies
-  while((!sent || !received) && (millis() - prevSend > 1500) && ntimes > 0){// testare 
+  int ntimes = 4; // numbers of connection tryies
+  while((!sent || !received) && ntimes > 0){// testare 
+  if(millis() - prevSend > 1000){
     ntimes--;
     // Connecting to server to retrieve "sequence id"
-    if(!sent && (connection_status != 1)){
+    if(!sent /* && (connection_status != 1) */){
+      Serial.print("Connecting to:#");
+      Serial.print(httpServer);
+      Serial.print("#  num try: ");
+      Serial.println(4 - ntimes);
       connection_status = client.connect(httpServer, 80);
+      Serial.print("connection_status: ");
+      Serial.println(connection_status, DEC);
     }
-    if(connection_status) { // if connection enstabilished	
+    if(connection_status) { // if connection established	
       if(!sent){
         
         if (debugON){
-          Serial.print("Connecting to:");
-          Serial.println(httpServer);
-        }
+          Serial.println("not SENT! TRYING NOW!!!!");
+          //Serial.println(httpServer);
+        } 
         
         int rsize = prepareFastBuffer(rBuffer, db, td);  // prepare the info for the new entry to be send to DB
         // sendig request to server
@@ -359,14 +370,16 @@ void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
         client.println("Content-Type: application/x-www-form-urlencoded");
         client.print("Content-Length: ");
         client.println(rsize);
-        client.println("Connection: close"); // ???
+        client.println("Connection: close"); // ??? close????
         client.println("");
         client.println(rBuffer);
         if(debugON) Serial.print("sending Buffer: "); 
         if(debugON) Serial.println(rBuffer); 
         sent = true;
       }
-    
+      Serial.print("Attendiamo i dati... ");
+      Serial.println(ntimes);
+      
       unsigned long responseMill = millis();
       // Attende che arrivino i dati con timeout nella risposta ***************
       while(!client.available() && (millis() - responseMill < timeoutResponse ) ){;}
@@ -375,15 +388,15 @@ void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
       // il problema sussiste nel fatto che vengono inviati di nuovo i dati al server
        // client has sent a response
         // Reading headers
+        int bodySize = 0;
         int s = getLine(client, rBuffer, 300);
         if(strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) { // risposta ok dal server
-          int bodySize = 0;
           do { // read from client response
             s = getLine(client, rBuffer, 300);
             if(strncmp(rBuffer, "Content-Length", 14) == 0) {
               char* separator = strchr(rBuffer, ':');
               if(*(separator+1) == ' ') {
-                separator += 2;
+                separator =  separator + 2;
               } else {
                 separator++;
               }
@@ -392,30 +405,46 @@ void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
             }
           } while(s > 0); // get data till new line
           // Content
+/*           if (debugON){
+            Serial.print("bodySize:");
+            Serial.println(bodySize);
+          } */
           s = getLine(client, rBuffer, 300, bodySize); // get content size 
+          Serial.print("rBuffer LENGTH = ");
+          Serial.println(s,DEC );
+          Serial.print("rBuffer = ");
+          Serial.println(atol(rBuffer) );
           //nextContact = atol(separator+1) + getUNIXTime();  // TIME FOR SENDING COLLECTED DATA
-          nextContact = (atol(rBuffer) *1000UL);  // get next time to send new data
-          inEvent = 1;  // Set ON the Event 
-          milldelayTimeEvent = millis(); // timestamp in millis for Event Interval
+           if ( s >0){
+            nextContact = (atol(rBuffer) *1000UL);  // get next time to send new data
+            received = true;
+            Serial.println("received = true;");
+            
+           inEvent = 1;  // Set ON the Event 
+           milldelayTimeEvent = millis(); // timestamp in millis for Event Interval */
+           }
           if (debugON){
-            Serial.print("tempo offset per nextContact:");
-            Serial.println(nextContact);
+            Serial.print("tempo offset per nextContact: ");
+            Serial.println(nextContact);  
+            Serial.print("bodySize: ");
+            Serial.println(bodySize, DEC);
           }
-          if (debugON){ Serial.print("Next Contact scheduled for new EVENT: ");}
-          debugUNIXTime(nextContact);
+          //if (debugON){ Serial.print("Next Contact scheduled for new EVENT: ");}
+          //debugUNIXTime(nextContact);
 
-          received = true;
+          // received = true;
           //sendingIter = 0;
-  /*      seqDBfd = ramopen(seqid, sendingIter);
+          /*seqDBfd = ramopen(seqid, sendingIter);
           if ((debugON) && (seqDBfd ==-1)) Serial.println("Error in ramopen: httpSendValues");
           if (logON && (seqDBfd ==-1)) log("Error in ramopen: httpSendValues"); */
         } else { // connetion response != 200
           if (debugON){ 
-            Serial.print("Error in reply: ");
+            Serial.print("connetion response != 200 ");
+            Serial.print("Error in reply for req: ");
             Serial.println(rBuffer);
           }
           if (logON){ 
-            log("Error in reply: ");
+            log("HTTPsENDALERT2 connetion response != 200");
             log(rBuffer);
           }
           sent = false;
@@ -432,12 +461,13 @@ void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
       //resetEthernet = true; check if is there an Internet Connection!!!!!!!!!!!
     }
     prevSend = millis();
-  if(received || (connection_status != 1)){ // if data received or connection failed close socket
+  if(received || (connection_status != 1) || !sent){ // if data received or connection failed close socket
     client.stop();
+  }
   }
  }
   //free(db);
-  if(debugON) Serial.println("exiting from - httpSendAlert2");
+  if(debugON) Serial.println("---- httpSendAlert2------- EXIT ------------");
 }
 
 // send the accelerometer values that got over the threshold
@@ -458,7 +488,10 @@ void httpSendAlert(struct RECORD *db, struct TDEF *td) {
   while((!sent || !received) && (millis() - prevSend > 1500) && ntimes > 0){// testare 
     ntimes--;
     // Connecting to server to retrieve "sequence id"
-    if(!sent && (connection_status != 1)){
+/*     if(!sent && (connection_status != 1)){
+      connection_status = client.connect(httpServer, 80);
+    }  */
+    if(!sent){
       connection_status = client.connect(httpServer, 80);
     }
     if(connection_status) { // if connection enstabilished	
@@ -565,7 +598,7 @@ void httpSendAlert(struct RECORD *db, struct TDEF *td) {
       //resetEthernet = true; check if is there an Internet Connection!!!!!!!!!!!
     }
     prevSend = millis();
-  if(received || (connection_status != 1)){ // if data received or connection failed close socket
+  if(received || (connection_status != 1) || sent ){ // if data received or connection failed close socket
     client.stop();
   }
  }
@@ -762,6 +795,7 @@ void storeConfigToSD() {
 
 // ask the server for a valid MAC address
 void getMacAddressFromServer() {
+  Serial.print("getMacAddressFromServer() --------------- START------ ");
 	if (client.connect(httpServer, 80)) {
 		client.print("GET ");
 		client.print("/terremoti/galileo");
@@ -794,6 +828,8 @@ void getMacAddressFromServer() {
               separator++;
             }
             bodySize = atoi(separator);
+            Serial.print("bodySize: ");
+            Serial.println(bodySize);
           }
         } while(s > 0);
 
@@ -811,7 +847,7 @@ void getMacAddressFromServer() {
 
       }
       else {
-        Serial.println("Connection error");
+        Serial.println("Connection error - not 200!");
       }
     }else{
       if(logON){log("Client not available on: getMacAddressFromServer");}
@@ -824,6 +860,7 @@ void getMacAddressFromServer() {
       if(logON)log("connessione fallita");
   }
   client.stop();
+  Serial.print("getMacAddressFromServer() --------------- END ------ ");
 }
 
 // given a string made of pair of characters in HEX base, convert them in decimal base - OK
@@ -862,7 +899,7 @@ void readConfig(){
       Serial.println("while READING");
       if (!strncmp("deviceid",buffer, 8)){
         argument = strchr(buffer, ':');
-        *argument=0;
+        //*argument=0;
         argument++;
         int a = snprintf(tmp,15,"%s",argument);
 /*      Serial.print("argument: ");
@@ -873,7 +910,7 @@ void readConfig(){
         Serial.println(tmp);
         Serial.print("tmp-length: ");
         Serial.println(a,DEC);
-        if (a == 12){
+        if (a == 13){
           strncpy(mac_string, tmp, 12); // copio il MAC in formato stringa
           mac_string[12] = '\0';
           HEXtoDecimal(mac_string, strlen(mac_string), mac); // trasformo il mac da stringa ad array di byte HEX
@@ -885,6 +922,7 @@ void readConfig(){
           request_mac_from_server = false; // 
           Serial.println("Finished mac reading\n\n");
         }else{
+          Serial.println("config request_mac_from_server please!!!!");
           request_mac_from_server = true;
         }
       }else if (!strncmp("lat",buffer, 3)){

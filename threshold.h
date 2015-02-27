@@ -143,8 +143,24 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
     pos += 8;
     writeDouble(pos, nthresz);
     
-    if (debugON) Serial.println("Calibration ended");
     if (logON) log("Calibration ended");
+    if (debugON){ 
+      Serial.println("Calibration ended - with values:");
+      Serial.println("------------------");
+      Serial.print("pthresx: ");
+      Serial.print(pthresx);
+      Serial.print(" pthresy: ");
+      Serial.print(pthresy);
+      Serial.print(" pthresz: ");
+      Serial.println(pthresz);
+      Serial.print("nthresx: ");
+      Serial.print(nthresx);
+      Serial.print(" nthresy: ");
+      Serial.print(nthresy);
+      Serial.print(" nthresz: ");
+      Serial.println(nthresz);
+      Serial.println("------------------");
+    }
     //nextHour = (random() % 24);
     nextHour = ((currentHour + 1) % 24);
     if (debugON) Serial.print("Next calibration scheduled for ");
