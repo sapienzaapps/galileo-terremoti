@@ -85,7 +85,7 @@ void dateGalileo(uint32_t t) {
 // end conversion date from epoch
 
 // send an NTP request to the time server at the given address
-unsigned long sendNTPpacket(IPAddress& address) {
+unsigned long sendNTPpacket(IPAddress &address) {
   // set all bytes in the buffer to 0
   memset(packetBuffer, 0, NTP_PACKET_SIZE);
   // Initialize values needed to form NTP request
@@ -182,22 +182,49 @@ bool NTPdataPacket() {
 	//}
 }
 
+// Set date and time to NTP's retrieved one
+void execSystemTimeUpdate(){
+  char buf[64];
+  FILE *ptr;
+  if (debugON){ 
+    Serial.print("COMANDO: ");
+    Serial.println(cmd0);
+  }
+  if ((ptr = popen((char *)cmd0, "r")) != NULL) {
+    while (fgets(buf, 64, ptr) != NULL) {
+      if (debugON) Serial.print(buf);
+    }
+    (void) pclose(ptr);
+  }else{
+    if (debugON){ 
+      Serial.println("error popen NTP init ");
+    }
+  }
+}
+
 // Connect to NTP server and set System Clock
 void initNTP() {
 	UDP_as_NTP.begin(localPort);
 	delay(1000);
 	if(NTPdataPacket()){
-  // setting system clock
-	char buf[64];
+    execSystemTimeUpdate();
+/*     // setting system clock
+    char buf[64];
 	  FILE *ptr;
-	  if (debugON) Serial.print("COMANDO: ");
-	  if (debugON) Serial.println(cmd0);
+	  if (debugON){ 
+      Serial.print("COMANDO: ");
+      Serial.println(cmd0);
+    }
 	  if ((ptr = popen((char *)cmd0, "r")) != NULL) {
 	    while (fgets(buf, 64, ptr) != NULL) {
 	    	if (debugON) Serial.print(buf);
 	    }
-	  }
-	  (void) pclose(ptr);
+      (void) pclose(ptr);
+	  }else{
+      if (debugON){ 
+        Serial.println("error popen NTP init ");
+      }
+    } */
 	  //_unixTimeUpdate = millis();
   }else{
 	  if (debugON) Serial.println("Errore NTPdataPacket() ");
