@@ -8,7 +8,7 @@
 #include <EEPROM.h>
 #include <SD.h>
 #include <math.h>
-
+#define GEN1 1 
 #ifdef __IS_GALILEO
 	#include <EthernetUdp.h>
 	#include <sys/sysinfo.h>
@@ -39,10 +39,12 @@ unsigned long millis24h;
 
 const byte red_Led = 10;
 const byte green_Led = 12;
+const byte yellow_Led = 8;
 // const byte red_Led = 12;
 // const byte green_Led = 10;
 bool redLedStatus = false;
 bool greenLedStatus = false;
+bool yellowLedStatus = false;
 
 
 #include "AcceleroMMA7361.h"
@@ -259,7 +261,8 @@ void setupEthernet() {
         if (debugON) Serial.println("Static Configuration");
         if (logON) log("Static Configuration\n");
 	      //add your static IP here
-  	    ip = IPAddress(192, 168, 1, 177);
+        if (GEN1) ip = IPAddress(192, 168, 1, 177);// gen1
+        else ip = IPAddress(192, 168, 1, 178); // gen2
   	    //dns = IPAddress(192,168,1,1);
   	    dns = IPAddress(192,168,1,254);
   	    //gateway = IPAddress(192,168,1,1);
@@ -268,7 +271,8 @@ void setupEthernet() {
         // ARDUINO START CONNECTION		
 	      Ethernet.begin(mac, ip, dns, gateway, subnet); // Static address configuration 
         //LINUX SYSTEM START CONNECTION
-        system("ifconfig eth0 192.168.1.177 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+        if (GEN1) system("ifconfig eth0 192.168.1.177 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+        else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
 	      system("route add default gw 192.168.1.254 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gateway for the Ethernet
 	      system("echo 'nameserver 8.8.8.8' > /etc/resolv.conf");  // add the GOOGLE DNS
 				//system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
@@ -297,7 +301,7 @@ void setup() {
   Serial.println("Starting.........");
 	#ifdef __IS_GALILEO
     // Fixing Arduino Galileo bug
-    signal(SIGPIPE, SIG_IGN);
+    //signal(SIGPIPE, SIG_IGN); Removed - caused not restarting sketch
     // Workaround for Galileo (and other boards with Linux)
     system("/etc/init.d/networking restart");
     delay(1000);
@@ -314,6 +318,7 @@ void setup() {
   //delay(300);
   Serial.println("#############INITIALIZING DEVICE#############\n");
   if (logON) log("###INITIALIZING DEVICE###");
+  //if (logON) log("###INITIALIZING DEVICE###");
   Serial.println("readConfig()");
   readConfig(); // read config from SD Card
   /* Calibrating Accelerometer */
@@ -343,7 +348,7 @@ void setup() {
   
   if (ledON) {
   	pinMode(green_Led, OUTPUT);
-		digitalWrite(green_Led,HIGH);  
+		digitalWrite(green_Led,HIGH);
     delay(500);
 		digitalWrite(green_Led,LOW);    
 		if (internetConnected){
@@ -357,6 +362,10 @@ void setup() {
 		pinMode(red_Led, OUTPUT);
 		digitalWrite(red_Led,LOW);
     redLedStatus = false;
+   	pinMode(yellow_Led, OUTPUT);
+		digitalWrite(yellow_Led,HIGH);  
+    delay(500);
+		digitalWrite(yellow_Led,LOW);  
   }
 
   //system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
@@ -440,6 +449,7 @@ void loop() {
 	unsigned long currentMillisNTP = millis();
 	if ((testNoInternet) &&(currentMillisNTP - previousMillisNTP > NTPInterval) && internetConnected && !resetEthernet) {
 	  NTPdataPacket();
+    execSystemTimeUpdate();
 	  previousMillisNTP = currentMillisNTP;
 	}
   

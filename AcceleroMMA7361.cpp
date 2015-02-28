@@ -20,7 +20,8 @@
 // For more information: variable declaration, changelog,... see AcceleroMMA7361.h
 
 #include "AcceleroMMA7361.h"
-
+double oneG = 1672;
+double oneGplusHalf = 1876;
 /// constructor
 AcceleroMMA7361::AcceleroMMA7361() { /* empty */ }
 
@@ -227,9 +228,9 @@ int AcceleroMMA7361::_mapMMA7361G(int value) {
 /// WARNING WHEN CALIBRATED YOU HAVE TO MAKE SURE THE Z-AXIS IS PERPENDICULAR WITH THE EARTHS SURFACE
 void AcceleroMMA7361::calibrate() {
   Serial.println(getOrientation());
+  _sensi = false;
   Serial.print("\nCalibrating MMA7361011");
-  double var = 5000;
-  var = 5;
+  double var = 1000;
   double sumX = 0;
   double sumY = 0;
   double sumZ = 0;
@@ -241,8 +242,8 @@ void AcceleroMMA7361::calibrate() {
       Serial.print(".");
     }
   }
-  if (_sensi == false) {
-    setOffSets(1672 - sumX / var,1671 - sumY / var, + 1876 - sumZ / var);
+  if (_sensi == false) { // if ref is 3,3V
+    setOffSets(oneG - sumX / var, oneG - sumY / var, + oneGplusHalf - sumZ / var);
   }
   else {
     setOffSets(1650 - sumX / var,1650 - sumY / var, + 2450 - sumZ / var);

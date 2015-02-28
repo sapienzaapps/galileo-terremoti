@@ -1,6 +1,6 @@
 
 #define CALIBRATIONITER 1000
-#define ORANGEZONE 5
+#define ORANGEZONE 6
 
 #include "GalileoLog.h"
 
@@ -127,6 +127,10 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
   // do calibration every random amount of hours? or if it's the first time ever
   if (nextHour == currentHour || temp == 0) {
   	//setThresholdValuesBasic(ac, currentHour);
+    if(!yellowLedStatus){
+      digitalWrite(yellow_Led,!yellowLedStatus);
+      yellowLedStatus = !yellowLedStatus;
+    }
     setThresholdValues(ac, currentHour);
     int pos = 4 + currentHour*48;
     
@@ -197,5 +201,9 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
     nthresz = readDouble(pos);
     if (debugON) Serial.print(" nthresz: ");
     if (debugON) Serial.println(nthresz);
+  }
+  if(yellowLedStatus){
+    digitalWrite(yellow_Led,!yellowLedStatus);
+    yellowLedStatus = !yellowLedStatus;
   }
 }
