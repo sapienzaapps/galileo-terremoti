@@ -49,7 +49,7 @@ bool start = false;
 
 //long pingIntervalCheck = 30*1000; not USED
 unsigned long checkSensoreInterval = 60;
-unsigned long NTPInterval = 1*60*1000;  // last NTP update time
+unsigned long NTPInterval = 30*60*1000;  // last NTP update time
 unsigned long checkInternetConnectionInterval = 10*30*1000;  // when to check for Internet connection availability
 unsigned long timeoutResponse = 5000;
 
@@ -57,10 +57,10 @@ double gForce = 9.81;  // gravity force
 float lat = 41.283799;
 float lon = 13.251675;
 float version = 1.3;
-#ifdef GEN1
-  char *model = "galileo";
-#else
+#ifdef GEN2
   char *model = "galileo2";
+#else
+  char *model = "galileo";
 #endif
 
 #endif

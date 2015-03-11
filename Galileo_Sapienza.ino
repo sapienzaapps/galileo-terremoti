@@ -8,7 +8,9 @@
 #include <EEPROM.h>
 #include <SD.h>
 #include <math.h>
-#define GEN1 1 
+#define GEN1 0 // 1 if gen1 else 0
+#define GEN2 1 // remove if gen1 = 1
+
 #ifdef __IS_GALILEO
 	#include <EthernetUdp.h>
 	#include <sys/sysinfo.h>
@@ -150,7 +152,7 @@ void checkSensore()
         inEvent = 1;
         milldelayTimeEvent = millis(); // timestamp in millis for Event Interval */
         
-        httpSendAlert2(db, &td);
+        httpSendAlert1(db, &td);
         //getConfigNew();// on testing
         
       }else{
@@ -271,9 +273,11 @@ void setupEthernet() {
         // ARDUINO START CONNECTION		
 	      Ethernet.begin(mac, ip, dns, gateway, subnet); // Static address configuration 
         //LINUX SYSTEM START CONNECTION
-        if (GEN1) system("ifconfig eth0 192.168.1.177 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-        else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-	      system("route add default gw 192.168.1.254 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gateway for the Ethernet
+        if (GEN1) system("ifconfig eth0 192.168.1.177 netmask 255.255.255.0 up");  // set IP and SubnetMask for the Ethernet
+        else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up");  // set IP and SubnetMask for the Ethernet
+        //else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+	      //system("route add default gw 192.168.1.254 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gateway for the Ethernet
+	      system("route add default gw 192.168.1.254 eth0");  // change the Gateway for the Ethernet
 	      system("echo 'nameserver 8.8.8.8' > /etc/resolv.conf");  // add the GOOGLE DNS
 				//system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
 	      //system("ifconfig > /dev/ttyGS0");  // debug
@@ -492,7 +496,7 @@ void loop() {
     //delay(500);
     while(1){;}
   }
-  delay(1);
+  //delay(1);
 }
 
 

@@ -60,7 +60,7 @@ void AcceleroMMA7361::begin(/* int sleepPin, int selfTestPin, int zeroGPin, int 
   _zPin = zPin;
   _sleep = false;
   setOffSets(0,0,0);
-  setARefVoltage(5);
+  setARefVoltage(3.3);
   setAveraging(10);
   //setSensitivity(HIGH);
 }
@@ -121,11 +121,21 @@ void AcceleroMMA7361::setAveraging(int avg) {
   } 
 }*/
 
+// test and read voltage AXIS on idle
+void AcceleroMMA7361::test_voltage(){
+  Serial.println("VOLTAGE TEST ++++++++++++++START+++++++++++++++ ");
+  Serial.print("VOLTAGE X: ");
+  Serial.println(analogRead(_xPin), DEC); 
+  Serial.print("VOLTAGE Y: ");
+  Serial.println(analogRead(_yPin), DEC);  
+  Serial.print("VOLTAGE Z: ");
+  Serial.println(analogRead(_zPin), DEC);
+  Serial.println("VOLTAGE TEST ++++++++++++++END+++++++++++++ ");
+}
 /// getXRaw(): Returns the raw data from the X-axis analog I/O port of the Arduino as an integer
 int AcceleroMMA7361::getXRaw() {
   return analogRead(_xPin)+_offSets[0]+2;
 }
-
 /// getYRaw(): Returns the raw data from the Y-axis analog I/O port of the Arduino as an integer
 int AcceleroMMA7361::getYRaw() {
   return analogRead(_yPin)+_offSets[1]+2;
@@ -227,10 +237,12 @@ int AcceleroMMA7361::_mapMMA7361G(int value) {
 /// calibrate(): Sets X and Y values via setOffsets to zero. The Z axis will be set to 100 = 1G
 /// WARNING WHEN CALIBRATED YOU HAVE TO MAKE SURE THE Z-AXIS IS PERPENDICULAR WITH THE EARTHS SURFACE
 void AcceleroMMA7361::calibrate() {
-  Serial.println(getOrientation());
+  //Serial.println(getOrientation());
+  test_voltage();
+  delay(1000);
   _sensi = false;
   Serial.print("\nCalibrating MMA7361011");
-  double var = 1000;
+  double var = 5000;
   double sumX = 0;
   double sumY = 0;
   double sumZ = 0;
@@ -253,6 +265,16 @@ void AcceleroMMA7361::calibrate() {
     setOffSets(0,0,0);
   }
   else {
+    Serial.print(" ORIENTATION: ");
+    
+    if(getOrientation()== 3) Serial.println(" RIGHT! ");
+    else Serial.println(" WRONG!!! ");
+    Serial.println(" sum: X Y Z");
+    Serial.print(sumX/var, DEC);
+    Serial.print(" ");
+    Serial.print(sumY/var, DEC);
+    Serial.print(" ");
+    Serial.println(sumZ/var, DEC);
     Serial.println("\nDONE");
   }
 }

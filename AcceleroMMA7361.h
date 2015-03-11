@@ -64,6 +64,7 @@ class AcceleroMMA7361
     int getXAccel();
     int getYAccel();
     int getZAccel();
+    void test_voltage();
     void getAccelXYZ(int *_XAxis, int *_YAxis, int *_ZAxis);
     int getTotalVector();
     void setOffSets(int xOffSet, int yOffSet, int zOffSet);
