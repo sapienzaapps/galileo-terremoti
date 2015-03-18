@@ -179,142 +179,157 @@ boolean getConfigNew() {
     //client.println("");
     if(debugON) Serial.print("sending Buffer: "); 
     if(debugON) Serial.println(rBuffer); 
-    
     delay(100); // ATTENDERE ARRIVO RISPOSTA!!!
-    while (!client.available()) {;}  // Attendere che il client risponda
-    Serial.println("Dati arrivati - getConfigNew()");
-    memset( rBuffer, 0, 300*sizeof(char));
-    // Reading headers
-    int s = getLine(client, rBuffer, 300);
-
-    if (s & strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {  // if it is an HTTP 200 response
-      int bodySize = 0;
-      do {
-        s = getLine(client, rBuffer, 300);
-        if (strncmp(rBuffer, "Content-Length", 14) == 0) {
-          char* separator = strchr(rBuffer, ':');
-          if (*(separator+1) == ' ') {
-            separator += 2;
-          }
-          else {
-            separator++;
-          }
-          bodySize = atoi(separator);
-        }
-      } while(s > 0);
-      // Content after "\n" , there is body response --------------------
-      int p = 0;
-      bool exec_status = false;
+    unsigned long responseMill = millis();
+    // while (!client.available()) {;}  // Attendere che il client risponda
+    while(!client.available() && (millis() - responseMill < timeoutResponse ) ){;}
+    if (millis() - responseMill > timeoutResponse){ 
+      if(debugON)Serial.println("TIMEOUT SERVER CONNECTION");
+      if(logON)log("TIMEOUT SERVER CONNECTION- getConfigNew()");
+    }else{ // data arrived
+      if(debugON)Serial.println("Dati arrivati - getConfigNew()");
       memset( rBuffer, 0, 300*sizeof(char));
-      do {
-        // Serial.println("GetPipe");
-        p = getPipe(client, rBuffer, 300);
-        if (p > 0) {
-          size_t l;
-          char* separator = strchr(rBuffer, ':');
-          *separator = 0;
-          char* argument = separator+1;
-          l = strlen(argument);
-          if (strncmp(rBuffer, "server", 6) == 0) { // SERVER TO CONTACT 
-            free(httpServer);  // ?
-            httpServer = (char*)malloc(l*sizeof(char));
-           
-            Serial.print("dimensione server: ");
-            Serial.println(l, DEC);
-            Serial.print("Argomento:#");
-            Serial.print(argument);
-            Serial.println("#");
-            if(httpServer!=NULL && (l > 0) ){
-              strncpy(httpServer, argument,l);
-              httpServer[l] = '\0';
-              Serial.print("Server: ");
-              Serial.println(httpServer);
-              if (logON){
-                log("cfg Server:");
-                log(httpServer);
-              }  
-            }else{
-              if (logON) log("Malloc FAILED - getConfigUpdates");
-              if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
+      // Reading headers
+      int s = getLine(client, rBuffer, 300);
+
+      if (s & strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {  // if it is an HTTP 200 response
+        int bodySize = 0;
+        do {
+          s = getLine(client, rBuffer, 300);
+          if (strncmp(rBuffer, "Content-Length", 14) == 0) {
+            char* separator = strchr(rBuffer, ':');
+            if (*(separator+1) == ' ') {
+              separator += 2;
+            }
+            else {
+              separator++;
+            }
+            bodySize = atoi(separator);
+          }
+        } while(s > 0);
+        // Content after "\n" , there is body response --------------------
+        int p = 0;
+        bool exec_status = false;
+        memset( rBuffer, 0, 300*sizeof(char));
+        do {
+          // Serial.println("GetPipe");
+          p = getPipe(client, rBuffer, 300);
+          if (p > 0) {
+            size_t l;
+            char* separator = strchr(rBuffer, ':');
+            *separator = 0;
+            char* argument = separator+1;
+            l = strlen(argument);
+            if (strncmp(rBuffer, "server", 6) == 0) { // SERVER TO CONTACT 
+              free(httpServer);  // ?
+              httpServer = (char*)malloc(l*sizeof(char));
+             
+              Serial.print("dimensione server: ");
+              Serial.println(l, DEC);
+              Serial.print("Argomento:#");
+              Serial.print(argument);
+              Serial.println("#");
+              if(httpServer!=NULL && (l > 0) ){
+                strncpy(httpServer, argument,l);
+                httpServer[l] = '\0';
+                Serial.print("Server: ");
+                Serial.println(httpServer);
+                if (logON){
+                  log("cfg Server:");
+                  log(httpServer);
+                }  
+              }else{
+                if (logON) log("Malloc FAILED - getConfigUpdates");
+                if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
+              }
+            }
+            else if(strncmp(rBuffer, "ntpserver", 9) == 0) { // Ntpserver 
+              // char* separator = strchr(rBuffer, ':');
+              // *separator = 0;
+              // char* argument = separator+1;
+              Serial.println(argument);
+              timeServer = getFromString(argument);
+            }
+            else if(strncmp(rBuffer, "script", 6) == 0) { // Check for executing script
+              if (strlen(argument) > 0){
+                char scriptTest[100] ;
+                size_t len = strlen(argument);
+                strncpy(scriptTest, argument, len);
+                scriptTest[len] = '\0';
+                createScript("/media/realroot/script.sh", scriptTest);
+                exec_status = true;
+                if(debugON) Serial.println("Script Creation...");
+              }
+              if(debugON){
+                Serial.print("Script length: ");
+                Serial.println(strlen(argument), DEC);
+                Serial.print("Script: ");
+                Serial.println(argument);
+              }
+            }
+            else if(strncmp(rBuffer, "path", 4) == 0) { // Check for downloading file
+              size_t len = strlen(argument);
+              if (len > 0){
+                char pathTest[300] ;
+                char pathScriptDownload[300] ;
+                strncpy(pathTest, argument, len); // remote peth for file downloading
+                pathTest[len] = '\0';
+                sprintf(pathScriptDownload,download_scriptText,pathTest); 
+                Serial.print("pathTest: ");
+                Serial.println(pathTest);
+                Serial.print("pathScriptDownload: ");
+                Serial.println(pathScriptDownload);
+                createScript(NULL, pathScriptDownload); // creation script for download a file from the path(internet resource) 
+                if(debugON){
+                  Serial.print("execScript for Download....");
+                }
+                execScript(script_path); // executing download of the file
+                delay(1000);
+                // system("cp /media/mmcblk0p1/sketch/sketch.elf /sketch/sketch.elf");
+                // system("chmod a+rx /sketch/sketch.elf");
+              }
+              if(debugON){
+                Serial.print("Path length: ");
+                Serial.println(strlen(argument), DEC);
+                Serial.print("path: ");
+                Serial.println(argument);
+              }
             }
           }
-          else if(strncmp(rBuffer, "ntpserver", 9) == 0) { // Ntpserver 
             // char* separator = strchr(rBuffer, ':');
             // *separator = 0;
             // char* argument = separator+1;
-            Serial.println(argument);
-            timeServer = getFromString(argument);
-          }
-          else if(strncmp(rBuffer, "script", 6) == 0) { // Check for executing script
-            if (strlen(argument) > 0){
-              char scriptTest[100] ;
-              size_t len = strlen(argument);
-              strncpy(scriptTest, argument, len);
-              scriptTest[len] = '\0';
-              createScript("/media/realroot/script.sh", scriptTest);
-              exec_status = true;
-              if(debugON) Serial.println("Script Creation...");
-            }
-            if(debugON){
-              Serial.print("Script length: ");
-              Serial.println(strlen(argument), DEC);
-              Serial.print("Script: ");
-              Serial.println(argument);
-            }
-          }
-          else if(strncmp(rBuffer, "path", 4) == 0) { // Check for downloading file
-            size_t len = strlen(argument);
-            if (len > 0){
-              char pathTest[300] ;
-              char pathScriptDownload[300] ;
-              strncpy(pathTest, argument, len); // remote peth for file downloading
-              pathTest[len] = '\0';
-              sprintf(pathScriptDownload,download_scriptText,pathTest); 
-              Serial.print("pathTest: ");
-              Serial.println(pathTest);
-              Serial.print("pathScriptDownload: ");
-              Serial.println(pathScriptDownload);
-              createScript(NULL, pathScriptDownload); // creation script for download a file from the path(internet resource) 
-              if(debugON){
-                Serial.print("execScript for Download....");
-              }
-              execScript(script_path); // executing download of the file
-              delay(1000);
-              // system("cp /media/mmcblk0p1/sketch/sketch.elf /sketch/sketch.elf");
-              // system("chmod a+rx /sketch/sketch.elf");
-            }
-            if(debugON){
-              Serial.print("Path length: ");
-              Serial.println(strlen(argument), DEC);
-              Serial.print("path: ");
-              Serial.println(argument);
-            }
+        } while(p > 0);
+        if (exec_status){ // check for executing script command
+          execScript("/media/realroot/script.sh");
+          if(debugON){
+            Serial.print("execScript....");
+            Serial.print("/media/realroot/script.sh");
           }
         }
-          // char* separator = strchr(rBuffer, ':');
-          // *separator = 0;
-          // char* argument = separator+1;
-      } while(p > 0);
-      if (exec_status){ // check for executing script command
-        execScript("/media/realroot/script.sh");
-        if(debugON){
-          Serial.print("execScript....");
-          Serial.print("/media/realroot/script.sh");
-        }
+        ret = true;
       }
-      ret = true;
-    }
-    else { // not 200 response
-    	if (debugON) Serial.print("Error in reply: ");
-    	if (debugON) Serial.println(rBuffer);
-    }
-    client.stop();
+      else { // not 200 response
+        if (debugON) Serial.print("Error in reply: ");
+        if (debugON) Serial.println(rBuffer);
+      }
+    } // end data arrived
+    //client.stop();
   }else{ // impossible to contact the server
       client.stop();
+      errors_connection++;
       if(debugON) Serial.println("Connection error");
       if(logON)log("getConfigNew() - connessione fallita");
-      resetEthernet = true;
+      //resetEthernet = true;
   }
+  
+  
+  while (client.connected()) {
+    Serial.println();
+    Serial.println("disconnecting.");
+    client.stop();
+  }
+  
   if(logON){
     log("Still running Config Update");
     if (isConnectedToInternet()) {

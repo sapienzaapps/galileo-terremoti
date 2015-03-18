@@ -1,5 +1,6 @@
 #ifndef COMMONS_H_
 #define COMMONS_H_
+#include <Arduino.h>
 char* itoa(int num, char* str, int base);
 IPAddress ip;
 IPAddress dns;
@@ -15,6 +16,7 @@ static char *script_reset =  "/gscript/reset.sh"; */
 static char *script_path = "media/realroot/prova.sh";
 static char *script_reset =  "media/realroot/reset.sh";
 static char *reboot_scriptText = "#!/bin/bash\nshutdown -r -t sec 00\n";
+// static char *reboot_scriptText = "#!/bin/bash\nreboot\n";
 static char *download_scriptText = "curl -o /media/realroot/sketch.elf  %s";
 unsigned long resetConnetcionMills = 0;
 unsigned long resetConnectionInterval = 3*1000;
@@ -23,7 +25,7 @@ unsigned long resetConnectionInterval = 3*1000;
 // struct for time and axis variations logging
 struct RECORD {
   unsigned long ts;
-  long ms;
+  unsigned long ms;
   long valx;
   long valy;
   long valz;
@@ -295,12 +297,93 @@ char *floatToString(char * outstr, float value, int places, int minwidth=0, bool
 /* ################################################################################################## */
 
 float stringToFloat(char *buf){
+  if(debugON) Serial.print("float da convertire: ");
+  if(debugON) Serial.println(buf);
+  
   int i, temp;
+  //float value;
   float value;
   i = strlen(buf) - 1;
-  value = 0.0;
+  if(debugON) Serial.print("lunghezza stringa: ");
+  if(debugON) Serial.println(i, DEC);
+  value = 0.000000;
   while(i >= 0){
     switch(i){
+           
+        case 8: temp = buf[i] - '0';
+                value += (temp / 1000000.0);
+                if(debugON) Serial.println(value);
+                break;
+        
+        case 7: temp = buf[i] - '0';
+                value += (temp / 100000.0);
+                if(debugON) Serial.println(value);
+                break;    
+        case 6: temp = buf[i] - '0';
+                value += (temp / 10000.0);
+                if(debugON) Serial.println(value);
+                break;
+        
+        case 5: temp = buf[i] - '0';
+                value += (temp / 1000.0);
+                if(debugON) Serial.println(value);
+                break;      
+        case 4: temp = buf[i] - '0';
+                value += (temp / 100.0);
+                if(debugON) Serial.println(value);
+                break;
+        
+        case 3: temp = buf[i] - '0';
+                value += (temp / 10.0);
+                if(debugON) Serial.println(value);
+                break;
+                
+        case 1: temp = buf[i] - '0';
+                value += (temp * 1.0);
+                if(debugON) Serial.println(value);
+                break;
+                
+        case 0: temp = buf[i] - '0';
+                value += (temp * 10.0);
+                if(debugON) Serial.println(value);
+                break;
+    }
+    i--;
+  }
+  if(debugON) Serial.print("#################float convertito: ");
+  if(debugON) Serial.println(value);
+  return value;
+}
+
+/* ################################################################################################## */
+float stringToDouble(char *buf){
+  if(debugON) Serial.print("float da convertire: ");
+  if(debugON) Serial.println(buf);
+  
+  int i;
+  //float value;
+  double value,temp;
+  i = strlen(buf) - 1;
+  if(debugON) Serial.print("lunghezza stringa: ");
+  if(debugON) Serial.println(i, DEC);
+  value = 0.000000;
+  while(i >= 0){
+    switch(i){
+           
+        case 8: temp = buf[i] - '0';
+                value += (temp / 1000000.0);
+                break;
+        
+        case 7: temp = buf[i] - '0';
+                value += (temp / 100000.0);
+                break;    
+        case 6: temp = buf[i] - '0';
+                value += (temp / 10000.0);
+                break;
+        
+        case 5: temp = buf[i] - '0';
+                value += (temp / 1000.0);
+                break;      
         case 4: temp = buf[i] - '0';
                 value += (temp / 100.0);
                 break;
@@ -316,14 +399,15 @@ float stringToFloat(char *buf){
         case 0: temp = buf[i] - '0';
                 value += (temp * 10.0);
                 break;
+        default:
+             break;
     }
     i--;
   }
+  if(debugON) Serial.print("#################float convertito: ");
+  if(debugON) Serial.println(value );
   return value;
 }
-
-/* ################################################################################################## */
-
 
 
 

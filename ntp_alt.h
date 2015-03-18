@@ -85,7 +85,7 @@ void dateGalileo(uint32_t t) {
 // end conversion date from epoch
 
 // send an NTP request to the time server at the given address
-unsigned long sendNTPpacket(IPAddress &address) {
+void sendNTPpacket(IPAddress &address) {
   // set all bytes in the buffer to 0
   memset(packetBuffer, 0, NTP_PACKET_SIZE);
   // Initialize values needed to form NTP request
@@ -117,68 +117,73 @@ bool NTPdataPacket() {
   
 		// wait to see if a reply is available
 		delay(500);
-		if ( UDP_as_NTP.parsePacket() ) {
-			NTPsynced = true;
-			// We've received a packet, read the data from it
-			UDP_as_NTP.read(packetBuffer,NTP_PACKET_SIZE);  // read the packet into the buffer
+    unsigned long responseMill = millis();
+    // WAIT FOR SERVER RESPONCE
+    while(!NTPsynced && (millis() - responseMill < timeoutResponse ) ){
+      if ( UDP_as_NTP.parsePacket() >=  NTP_PACKET_SIZE) {
+        NTPsynced = true;
+        // We've received a packet, read the data from it
+        UDP_as_NTP.read(packetBuffer,NTP_PACKET_SIZE);  // read the packet into the buffer
 
-			//the timestamp starts at byte 40 of the received packet and is four bytes,
-			// or two words, long. First, esxtract the two words:
+        //the timestamp starts at byte 40 of the received packet and is four bytes,
+        // or two words, long. First, esxtract the two words:
 
-			unsigned long highWord = fixword(packetBuffer[40], packetBuffer[41]);
-			unsigned long lowWord = fixword(packetBuffer[42], packetBuffer[43]);
-			// combine the four bytes (two words) into a long integer
-			// this is NTP time (seconds since Jan 1 1900):
-			unsigned long secsSince1900 = highWord << 16 | lowWord;
-			if (debugON) Serial.print("Seconds since Jan 1 1900 = " );
-			if (debugON) Serial.println(secsSince1900);
+        unsigned long highWord = fixword(packetBuffer[40], packetBuffer[41]);
+        unsigned long lowWord = fixword(packetBuffer[42], packetBuffer[43]);
+        // combine the four bytes (two words) into a long integer
+        // this is NTP time (seconds since Jan 1 1900):
+        unsigned long secsSince1900 = highWord << 16 | lowWord;
+        if (debugON) Serial.print("Seconds since Jan 1 1900 = " );
+        if (debugON) Serial.println(secsSince1900);
 
-			// now convert NTP time into everyday time:
-			if (debugON) Serial.print("Unix time = ");
-			// Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
-			const unsigned long seventyYears = 2208988800UL;
-			// subtract seventy years:
-			unsigned long epoch = secsSince1900 - seventyYears + GMT;
-			_unixTimeTS = epoch;
-			_unixTimeUpdate = millis();
-			// print Unix time:
-			if (debugON) Serial.println(epoch);
-			//dateGalileo(epoch);
-			delay(50);
-			strcat(cmd0, cmd2);
-			snprintf(bufSTR,12, "%lu" ,epoch);
-			strcat(cmd0, bufSTR);
+        // now convert NTP time into everyday time:
+        if (debugON) Serial.print("Unix time = ");
+        // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
+        const unsigned long seventyYears = 2208988800UL;
+        // subtract seventy years:
+        unsigned long epoch = secsSince1900 - seventyYears + GMT;
+        _unixTimeTS = (epoch); //* 1000UL;
+        _unixTimeUpdate = millis();
+        // print Unix time:
+        if (debugON) Serial.println(epoch);
+        //dateGalileo(epoch);
+        delay(50);
+        strcat(cmd0, cmd2);
+        snprintf(bufSTR,12, "%lu" ,epoch);
+        strcat(cmd0, bufSTR);
 
-/*
-	 	 	strcat(cmd, cmd1);
-			if(m < 10) strcat(cmd, "0");
-			snprintf(bufSTR,4, "%d" ,m);
-			strcat(cmd, bufSTR );
-			if(d < 10) strcat(cmd, "0");
-			snprintf(bufSTR,4, "%d" ,d);
-			strcat(cmd, bufSTR );
-			if(hh < 10) strcat(cmd, "0");
-			snprintf(bufSTR,4, "%d" ,hh);
-			strcat(cmd, bufSTR );
-			if(mm < 10) strcat(cmd, "0");
-			snprintf(bufSTR,4, "%d" ,mm);
-			strcat(cmd, bufSTR );
-			snprintf(bufSTR,4, "%d" ,yOff);
-			strcat(cmd, bufSTR );
-*/
-			if (debugON) Serial.print("Date and Time Command: ");
-			if (debugON) Serial.println(cmd0);
-			//memset(cmd, 0, 21);
-      return 1;
-		}else{
-			if (debugON) Serial.println("ERROR NTP PACKET NOT RECEIVED");
-			if (logON) log("ERROR NTP PACKET NOT RECEIVED");
-		}
-    }else{
-    //  Internet not connected while try to sync with NTP  
-      resetEthernet = true;
+  /*
+        strcat(cmd, cmd1);
+        if(m < 10) strcat(cmd, "0");
+        snprintf(bufSTR,4, "%d" ,m);
+        strcat(cmd, bufSTR );
+        if(d < 10) strcat(cmd, "0");
+        snprintf(bufSTR,4, "%d" ,d);
+        strcat(cmd, bufSTR );
+        if(hh < 10) strcat(cmd, "0");
+        snprintf(bufSTR,4, "%d" ,hh);
+        strcat(cmd, bufSTR );
+        if(mm < 10) strcat(cmd, "0");
+        snprintf(bufSTR,4, "%d" ,mm);
+        strcat(cmd, bufSTR );
+        snprintf(bufSTR,4, "%d" ,yOff);
+        strcat(cmd, bufSTR );
+  */
+        if (debugON) Serial.print("Date and Time Command: ");
+        if (debugON) Serial.println(cmd0);
+        //memset(cmd, 0, 21);
+        return 1;
+      }else{
+          if (debugON) Serial.println("ERROR NTP PACKET NOT RECEIVED");
+          if (logON) log("ERROR NTP PACKET NOT RECEIVED");
+        }
     }
-      return 0;
+  }else{
+    if (debugON) Serial.println("ERROR INTERNET NOT PRESENT IN: NTPdataPacket() ");
+    //  Internet not connected while try to sync with NTP  
+    //resetEthernet = true;
+  }
+  return 0;
 	//}
 }
 
@@ -252,9 +257,16 @@ unsigned long getUNIXTime() {
   return (_unixTimeTS + (diff/1000));
 }
 
-unsigned long getUNIXTimeMS() {
+unsigned long int getUNIXTimeMS() {
+  
   unsigned long diff = millis() - _unixTimeUpdate;
-  return diff % 1000;
+  // Serial.print("------------Tempo in _unixTimeTS: ");
+  // Serial.println(_unixTimeTS, DEC);
+  // Serial.print("------------Tempo in millisecondi: ");
+  //Serial.println(((_unixTimeTS ) + (diff/1000) + (diff % 1000)) * 1000);
+  // Serial.println((_unixTimeTS ) + (diff/1000));
+  // return diff % 1000;
+  return (((_unixTimeTS ) + (diff/=1000) + (diff % 1000>=0?1:0)));
 }
 
 void debugUNIXTime(unsigned long epoch) {

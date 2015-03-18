@@ -8,8 +8,8 @@
 #include <EEPROM.h>
 #include <SD.h>
 #include <math.h>
-#define GEN1 0 // 1 if gen1 else 0
-#define GEN2 1 // remove if gen1 = 1
+#define GEN1 1 // 1 if gen1 else 0
+#define GEN2 0 // remove if gen1 = 1
 
 #ifdef __IS_GALILEO
 	#include <EthernetUdp.h>
@@ -37,7 +37,8 @@ unsigned long prevMillisCalibration = 0;
 unsigned long TimeEvent = 60*1000;// 60 second per Event
 unsigned long milldelayTimeEvent = 0;
 unsigned long millis24h;
-
+unsigned long lastRstMill = 0;
+int resetnum = 0;
 
 const byte red_Led = 10;
 const byte green_Led = 12;
@@ -47,6 +48,8 @@ const byte yellow_Led = 8;
 bool redLedStatus = false;
 bool greenLedStatus = false;
 bool yellowLedStatus = false;
+bool chekInternet = false;
+byte errors_connection = 0;
 
 
 #include "AcceleroMMA7361.h"
@@ -107,8 +110,8 @@ void checkSensore()
   TDEF td = { pthresx, pthresy, pthresz, nthresx, nthresy, nthresz };
   
   //struct RECORD *db = (struct RECORD*)malloc(sizeof(struct RECORD));
-  db->ts = getUNIXTime();
-  db->ms = getUNIXTimeMS();
+  //db->ts = getUNIXTime();
+  // db->ms = getUNIXTimeMS(); !!!!!!! necessary for mobile app!!!!!!!!!! sendValues()
   db->valx = getAvgX(valx);
   db->valy = getAvgY(valy);
   db->valz = getAvgZ(valz);
@@ -140,6 +143,7 @@ void checkSensore()
   //  or if an "event" is currently running
   //if (db->overThreshold || inEvent != 1) {
   if (db->overThreshold && inEvent != 1) {
+    db->ms = getUNIXTimeMS();
   
     Serial.println(db->overThreshold?"overThreshold":"inEvent");
     if (ledON && !redLedStatus){
@@ -410,7 +414,8 @@ void setup() {
     Serial.print(":");
   } 
   Serial.println(""); */
-  
+  char* latfinta = "45.000321";
+  stringToDouble(latfinta);
   Serial.println("Testttttttt - FINITOOOOO");
   millis24h =  millis();
   milldelayTime = millis24h;
@@ -420,9 +425,11 @@ void setup() {
 void loop() {
 	currentMillis = millis();
 	// debug only, check if the sketch is still running and Internet is CONNECTED
-	if ((testNoInternet) && (currentMillis - previousMillis > checkInternetConnectionInterval) /*|| resetConnection*/) {
-		internetConnected = isConnectedToInternet();
+	if ((testNoInternet) && (currentMillis - previousMillis > checkInternetConnectionInterval) || chekInternet/*|| resetConnection*/) {
+		if(chekInternet) chekInternet = false;
+    internetConnected = isConnectedToInternet();
 		if (!internetConnected) {
+      //internetConnected = isConnectedToInternet();
 			if (ledON && greenLedStatus){
         digitalWrite(green_Led,LOW);
         greenLedStatus = !greenLedStatus;
@@ -435,7 +442,9 @@ void loop() {
         greenLedStatus = !greenLedStatus;
       }
       //doConfigUpdates(); // controllare +++++++++++++++++++++++++++++++++++++++++
-      if (start)getConfigNew(); // CHEK FOR UPDATES
+      resetEthernet = false;
+      // if (start)getConfigNew(); // CHEK FOR UPDATES
+     
 		}
 		if(logON)log("Still running");
 		if (debugON) {
@@ -450,51 +459,105 @@ void loop() {
 	}
 
   // sync with the NTP server
-	unsigned long currentMillisNTP = millis();
-	if ((testNoInternet) &&(currentMillisNTP - previousMillisNTP > NTPInterval) && internetConnected && !resetEthernet) {
+	// unsigned long currentMillisNTP = millis();
+	if ((testNoInternet) &&(currentMillis - previousMillisNTP > NTPInterval) && internetConnected && !resetEthernet) {
 	  NTPdataPacket();
     execSystemTimeUpdate();
-	  previousMillisNTP = currentMillisNTP;
+	  previousMillisNTP = currentMillis;
 	}
   
   // Check for calibration Sensor
-  unsigned long currentMillisCalibration = millis();
-	if ((currentMillisCalibration - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
+  // unsigned long currentMillisCalibration = millis();
+	if ((currentMillis - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
     int cHour = (getUNIXTime() % 86400L) / 3600;
 	  if (debugON) Serial.println("checkCalibrationNeeded---------------------------------------");
 	  checkCalibrationNeeded(accelero, cHour);
     ForceCalibrationNeeded = false;
-    prevMillisCalibration = currentMillisCalibration;
+    prevMillisCalibration = currentMillis;
   }  
   if (inEvent) {
-    unsigned long millisTimeEvent = millis();
-    if (millisTimeEvent - milldelayTimeEvent > nextContact /* TimeEvent */) { // unlock Alert after xxx millisecs
+    // unsigned long millisTimeEvent = millis();
+    if (currentMillis - milldelayTimeEvent > nextContact /* TimeEvent */) { // unlock Alert after xxx millisecs
       inEvent = 0;
     }
   }
-/*   if (resetEthernet) {
+  if (resetEthernet /* || errors_connection > 10 */) {
+    // unsigned long ethRstMill = millis();
+    if (currentMillis - lastRstMill > 120000UL) {
       if(logON) log("networking restart - NOT CONNECTED FINTO!!!");
-      if(debugON) Serial.println("networking restart FINTO!!!");
+      if(debugON) Serial.println("networking restart!!!");
       // Workaround for Galileo (and other boards with Linux)
-      //system("/etc/init.d/networking restart");
-      //delay(1000);
-   } */
+      system("/etc/init.d/networking restart");
+      
+      delay(2000);
+      setupEthernet();
+      delay(1000);
+      lastRstMill = currentMillis;
+      chekInternet = true;
+      resetnum++;
+      if (resetnum > 2){ 
+        if(debugON) Serial.println("SYSTEM restart!!!");
+        digitalWrite(red_Led, HIGH);
+        digitalWrite(green_Led, LOW);
+        delay(500);    
+        digitalWrite(red_Led, LOW);
+        digitalWrite(green_Led, HIGH);
+        delay(500);    
+        digitalWrite(red_Led, HIGH);
+        digitalWrite(green_Led, LOW);
+        delay(500);    
+        digitalWrite(red_Led, LOW);
+        digitalWrite(green_Led, HIGH);
+        delay(1500);    
+        //execScript(script_reset);
+        system("reboot");
+        //system("shutdown -r -t sec 00");
+        for(;;)
+        ;
+      }
+    }
+  } 
 
-  if (millis() - milldelayTime > checkSensoreInterval) {
+  if (currentMillis - milldelayTime > checkSensoreInterval) {
     // check mobile command
 		checkCommandPacket();
     // read sensor values
 		checkSensore();
 
 		//testNTP();
-		milldelayTime = millis();
+		milldelayTime = currentMillis;
   }
-  if ((millis () - millis24h >=  86400000UL ) && !inEvent /* && !inEventSD */){
+  
+  // check if is time to update config
+  if (start && internetConnected){ 
+    if (currentMillis - lastCfgUpdate > 60*60*1000){
+      getConfigNew(); // CHEK FOR UPDATES
+      lastCfgUpdate = currentMillis;
+    }
+  
+  }
+  
+  // reset the device every 24h or after 20 errors
+  if (((currentMillis - millis24h >=  86400000UL  ) && !inEvent /* && !inEventSD */) || (errors_connection > 20)){
     log("Reboot after 24h of activity");
     if (debugON) Serial.println("<---------- Reboot after 24h of activity ----------->");
-    execScript(script_reset);
+      digitalWrite(red_Led, HIGH);
+      digitalWrite(green_Led, LOW);
+      delay(500);    
+      digitalWrite(red_Led, LOW);
+      digitalWrite(green_Led, HIGH);
+      delay(500);    
+      digitalWrite(red_Led, HIGH);
+      digitalWrite(green_Led, LOW);
+      delay(500);    
+      digitalWrite(red_Led, LOW);
+      digitalWrite(green_Led, HIGH);
+      delay(1500); 
+      execScript(script_reset);
+    //system("reboot");
     //delay(500);
-    while(1){;}
+      for(;;)
+        ;
   }
   //delay(1);
 }

@@ -5,9 +5,11 @@
 #include "GalileoLog.h"
 
 #define DEFAULT_HTTP_SERVER "www.sapienzaapps.it"
+#define SUCCESS 1 
 char* path_domain = "/terremoti/galileo";
 //byte mac[] = { 0x00, 0x13, 0x19, 0xFF, 0x14, 0x4F };  // fictitious MAC address
-byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x14, 0x6F };  // fictitious MAC address DANIELE
+//byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x14, 0x6F };  // fictitious MAC address DANIELE
+byte mac[] = { 0x00, 0x13, 0x29, 0xFF, 0x14, 0x6F };  // fictitious MAC address DANIELE
 //byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x15, 0x9F };  // fictitious MAC address Gen2 Panizzi
 //byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x17, 0x9F };  // fictitious MAC address Gen1 Panizzi
 // byte mac[] = { 0x00, 0x13, 0x20, 0xFF, 0x17, 0x9E };  // fictitious MAC address Gen1 BEATRICE
@@ -28,7 +30,7 @@ struct configFile {
 
 typedef enum { Colossus, Panizzi, Home } DeviceLocations_t;
 DeviceLocations_t deviceLocation = Home;
-boolean isDhcpEnabled = false;
+boolean isDhcpEnabled = true;
 
 typedef enum { Basic, Fixed } ThresholdAlghoritm_t;
 ThresholdAlghoritm_t thresholdAlghoritm = Basic;
@@ -47,17 +49,16 @@ bool forceInitEEPROM = false;
 bool internetConnected = false;
 bool start = false;
 
-//long pingIntervalCheck = 30*1000; not USED
 unsigned long checkSensoreInterval = 60;
-unsigned long NTPInterval = 30*60*1000;  // last NTP update time
-unsigned long checkInternetConnectionInterval = 10*30*1000;  // when to check for Internet connection availability
+unsigned long NTPInterval = 60*60*1000;  // last NTP update time
+unsigned long checkInternetConnectionInterval = 6*30*1000;  // when to check for Internet connection availability
 unsigned long timeoutResponse = 5000;
 
 double gForce = 9.81;  // gravity force
 float lat = 41.283799;
 float lon = 13.251675;
 float version = 1.3;
-#ifdef GEN2
+#if GEN2 > 0
   char *model = "galileo2";
 #else
   char *model = "galileo";
