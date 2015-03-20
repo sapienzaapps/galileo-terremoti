@@ -40,11 +40,11 @@ unsigned long millis24h;
 unsigned long lastRstMill = 0;
 int resetnum = 0;
 
-const byte red_Led = 10;
-const byte green_Led = 12;
+// const byte red_Led = 10;
+// const byte green_Led = 12;
 const byte yellow_Led = 8;
-// const byte red_Led = 12;
-// const byte green_Led = 10;
+const byte red_Led = 12;
+const byte green_Led = 10;
 bool redLedStatus = false;
 bool greenLedStatus = false;
 bool yellowLedStatus = false;
@@ -339,11 +339,13 @@ void setup() {
   // Config connection on Ethernet module
   if (debugON) Serial.println("Setting up ethernet connection");
   setupEthernet();
-  byteMacToString(mac); // create string for MAC address
+  delay(1000);
+  //byteMacToString(mac); // create string for MAC address
   if (request_mac_from_server) {
     Serial.println("Requesting deviceID to server... ");
 		getMacAddressFromServer(); // asking for new mac address/deviceid
     HEXtoDecimal(mac_string, strlen(mac_string), mac);
+    byteMacToString(mac);
 	// convertMACFromStringToByte();
 	}
   if(!request_lat_lon) start = true;
@@ -414,8 +416,8 @@ void setup() {
     Serial.print(":");
   } 
   Serial.println(""); */
-  char* latfinta = "45.000321";
-  stringToDouble(latfinta);
+  // char* latfinta = "45.000321";
+  // stringToDouble(latfinta);
   Serial.println("Testttttttt - FINITOOOOO");
   millis24h =  millis();
   milldelayTime = millis24h;
@@ -475,7 +477,7 @@ void loop() {
     ForceCalibrationNeeded = false;
     prevMillisCalibration = currentMillis;
   }  
-  if (inEvent) {
+  if (inEvent) {// unlock inEvent time
     // unsigned long millisTimeEvent = millis();
     if (currentMillis - milldelayTimeEvent > nextContact /* TimeEvent */) { // unlock Alert after xxx millisecs
       inEvent = 0;
@@ -518,7 +520,7 @@ void loop() {
     }
   } 
 
-  if (currentMillis - milldelayTime > checkSensoreInterval) {
+  if (currentMillis - milldelayTime > checkSensoreInterval) { // read sensor values
     // check mobile command
 		checkCommandPacket();
     // read sensor values
@@ -529,10 +531,11 @@ void loop() {
   }
   
   // check if is time to update config
-  if (start && internetConnected){ 
+  if (/* start && */ internetConnected){ 
     if (currentMillis - lastCfgUpdate > 60*60*1000){
       getConfigNew(); // CHEK FOR UPDATES
       lastCfgUpdate = currentMillis;
+      if (debugON) printConfig();
     }
   
   }

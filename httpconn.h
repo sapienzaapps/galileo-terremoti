@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 void *pthread_httpSend(void *ptr);
+void byteMacToString(byte mac_address[]);
 int tempseqid, tempsendingIter;
 //debug
 ssize_t byte_written;
@@ -109,7 +110,7 @@ int prepareFastBuffer(char* buf, struct RECORD *db, struct TDEF *td) {
 	// tsstart, deviceid, lat, lon
    if(debugON) Serial.print("mac testo: ");
    if(debugON) Serial.println(mac_string);
-  return sprintf(buf, "tsstart=%u&deviceid=%s&lat=%.2f&lon=%.2f", db->ms, mac_string, lat,lon );
+  return sprintf(buf, "tsstart=%u&deviceid=%s&lat=%.2f&lon=%.2f", db->ms, mac_string, configGal.lat, configGal.lon );
 }
 
 int prepareFirstBuffer(char* buf, struct RECORD *db, struct TDEF *td) {
@@ -943,7 +944,7 @@ void storeMacAddressToSD(char *validMAC) {
 	fclose(macToFile);
 }
 
-// store the given MAC address to a FILE into the SD card
+/* // store the given MAC address to a FILE into the SD card
 void storeConfigToSD() {
 	FILE *fp = fopen(config_path, "w");
 	if (fp == NULL) {
@@ -951,30 +952,31 @@ void storeConfigToSD() {
 		exit(1);
 	}
 
-	fprintf(fp, "deviceid:%s\nlat:%.2f\nlon:%.2f",mac_string,lat,lon);
+	fprintf(fp, "deviceid:%s\nlat:%.2f\nlon:%.2f",mac_string,configGal.lat,configGal.lon);
 	
 	fclose(fp);
-}
+} */
 
 // ask the server for a valid MAC address
 void getMacAddressFromServer() {
-  Serial.print("getMacAddressFromServer() --------------- START------ ");
-	if (client.connect(httpServer, 80)) {
+  Serial.println("getMacAddressFromServer() --------------- START------ ");
+	if (client.connect(DEFAULT_HTTP_SERVER, 80)) {
 		client.print("GET ");
-		client.print("/terremoti/galileo");
-		client.print("/getMacAddress.php");
+		// client.print(path_domain);
+		// client.print("/getMacAddress.php");
+		client.print("/terremoti/galileo/getMacAddress.php");
 
 		client.println(" HTTP/1.1");
 		client.print("Host: ");
-		client.println(httpServer);
-		client.println("Connection: close");
+		client.println(DEFAULT_HTTP_SERVER);
+		client.println("Connection: keep-alive");
 		client.println("");
     unsigned long responseMill = millis();
 
 		delay(100);
 		char rBuffer[300];
 		//while(!client.available()){;} // wait for data
-    while(!client.available() && !(millis() - responseMill > timeoutResponse ) ){;}
+    while(!client.available() && (millis() - responseMill < timeoutResponse ) ){;}
     if(client.available()){
       int s = getLine(client, rBuffer, 300);
       Serial.print("rBuffer: ");
@@ -1001,7 +1003,8 @@ void getMacAddressFromServer() {
         if (s > 0) {
           Serial.print("MAC address: ");
           Serial.println(rBuffer);
-          strncpy(mac_string, rBuffer, strlen(rBuffer) * sizeof(char)); // copiato mac in stringa
+          memcpy(mac_string, rBuffer, strlen(rBuffer) * sizeof(char)); // copiato mac in stringa
+          mac_string[12] = '\0';
           //storeMacAddressToSD(rBuffer);  // store the MAC address
         }
         else {
@@ -1023,7 +1026,7 @@ void getMacAddressFromServer() {
       if(logON)log("connessione fallita");
   }
   client.stop();
-  Serial.print("getMacAddressFromServer() --------------- END ------ ");
+  Serial.println("getMacAddressFromServer() --------------- END ------ ");
 }
 
 // given a string made of pair of characters in HEX base, convert them in decimal base - OK
@@ -1058,11 +1061,10 @@ void readConfig(){
     char tmp[30];
     char* argument;
     int latlon = 0;
-    while(fgets(buffer,50,fpconf) !=NULL){
+    while(fgets(buffer,50,fpconf) != NULL){
       Serial.println("while READING");
-      if (!strncmp("deviceid",buffer, 8)){
+      if (strncmp("deviceid", buffer, 8) == 0){
         argument = strchr(buffer, ':');
-        //*argument=0;
         argument++;
         int a = snprintf(tmp,15,"%s",argument);
 /*      Serial.print("argument: ");
@@ -1086,22 +1088,23 @@ void readConfig(){
           Serial.println("Finished mac reading\n\n");
         }else{
           Serial.println("config request_mac_from_server please!!!!");
+          //byteMacToString(mac); // create string for MAC address
           request_mac_from_server = true;
         }
       }else if (!strncmp("lat",buffer, 3)){
         
         argument = strchr(buffer, ':');
         argument++;
-        lat = stringToFloat(argument);
+        configGal.lat = stringToFloat(argument);
         Serial.print("latitudine: ");
-        Serial.println(lat);
+        Serial.println(configGal.lat);
         latlon++;
       }else if (!strncmp("lon",buffer, 3)){
         argument = strchr(buffer, ':');
         argument++;
-        lon = stringToFloat(argument);
+        configGal.lon = stringToFloat(argument);
         Serial.print("longitudine: ");
-        Serial.println(lon);
+        Serial.println(configGal.lon);
         latlon++;
       }
     }

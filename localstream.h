@@ -75,7 +75,6 @@ int checkCommandPacket() {
         	if (debugON) Serial.println("Setted");  // close the socket connection with the mobile APP
           //if (debugON) Serial.println("PING");  // start sending packets to the mobile APP
           // Reply
-          
           _pktBuffer[35] = '\0';
           if (debugON) Serial.println("PACCHETTO DATI SET GPS !!!!!!!!");
           Serial.println((char*)_pktBuffer);
@@ -84,21 +83,25 @@ int checkCommandPacket() {
           char latlonBuf[10];
           memcpy(latlonBuf,argument,(size_t) 9); 
           latlonBuf[9] = '\0';
-          lat = stringToFloat(latlonBuf) ;
+          configGal.lat = stringToFloat(latlonBuf) ;
+          
           //argument = strchr(argument,';');
           // argument++;
           argument = (char*)_pktBuffer+26;
           char latlonBuf2[10];
           memcpy(latlonBuf2,argument,(size_t) 9); 
           latlonBuf2[9] = '\0';
-          lon = stringToFloat(latlonBuf2);
+          configGal.lon = stringToFloat(latlonBuf2);
+          
           _pktBuffer[5]= 6;
           _cmdc.beginPacket(_udpTemp, 62001);
           _cmdc.write(_pktBuffer, CONTROLPKTSIZE);// send ack lat/lon received
           _cmdc.endPacket();
           if (_pktBuffer[35] == '\0') Serial.println("FINE PACCHETTO GIUSTO # !!!");
           if (debugON) Serial.println("OK - DATA LAT/LON RECEIVED!!!");
+          storeConfigToSD();
           start = true;
+          memset(_pktBuffer, 0, 36);
           break;
       }
     }else{

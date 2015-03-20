@@ -31,7 +31,7 @@ int prepareConfigBuffer(char* buf) {
 	// deviceid, lat, lon, pthresy, version, model
    if(debugON) Serial.print("mac testo: ");
    if(debugON) Serial.println(mac_string);
-  return sprintf(buf, "deviceid=%s&lat=%.2f&lon=%.2f&version=%.2f&model=%s", mac_string, lat,lon, version, model );
+  return sprintf(buf, "deviceid=%s&lat=%.2f&lon=%.2f&version=%.2f&model=%s", mac_string, configGal.lat,configGal.lon, configGal.version, configGal.model );
 }
 
 /* boolean getConfigUpdates(boolean noupdate) {

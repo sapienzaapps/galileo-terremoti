@@ -1,7 +1,8 @@
 #ifndef COMMONS_H_
 #define COMMONS_H_
 #include <Arduino.h>
-char* itoa(int num, char* str, int base);
+
+//char* itoa(int num, char* str, int base);
 IPAddress ip;
 IPAddress dns;
 IPAddress gateway;
@@ -209,7 +210,47 @@ void resetConnection(int numTry){
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// Yet, another good itoa implementation
+// returns: the length of the number string
+int itoa(int value, char *sp, int radix)
+{
+    char tmp[16];// be careful with the length of the buffer
+    char *tp = tmp;
+    int i;
+    unsigned v;
 
+    int sign = (radix == 10 && value < 0);    
+    if (sign)
+        v = -value;
+    else
+        v = (unsigned)value;
+
+    while (v || tp == tmp)
+    {
+        i = v % radix;
+        v /= radix; // v/=radix uses less CPU clocks than v=v/radix does
+        if (i < 10)
+          *tp++ = i+'0';
+        else
+          *tp++ = i + 'a' - 10;
+    }
+
+    int len = tp - tmp;
+
+    if (sign) 
+    {
+        *sp++ = '-';
+        len++;
+    }
+
+    while (tp > tmp)
+        *sp++ = *--tp;
+
+    return len;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 /* ################################################################################################## */
 
@@ -352,6 +393,9 @@ float stringToFloat(char *buf){
   }
   if(debugON) Serial.print("#################float convertito: ");
   if(debugON) Serial.println(value);
+  char outstr[10];
+  Serial.print("Float to string: ");
+  Serial.println(floatToString(outstr, value, 6));
   return value;
 }
 
@@ -362,7 +406,7 @@ float stringToDouble(char *buf){
   
   int i;
   //float value;
-  double value,temp;
+  float value,temp;
   i = strlen(buf) - 1;
   if(debugON) Serial.print("lunghezza stringa: ");
   if(debugON) Serial.println(i, DEC);
@@ -406,12 +450,26 @@ float stringToDouble(char *buf){
   }
   if(debugON) Serial.print("#################float convertito: ");
   if(debugON) Serial.println(value );
+  char outstr[10];
+  Serial.print("Float to string: ");
+  Serial.println(floatToString(outstr, value, 6));
   return value;
 }
 
 
 
+// store the given MAC address to a FILE into the SD card
+void storeConfigToSD() {
+	FILE *fp = fopen(config_path, "w");
+	if (fp == NULL) {
+		printf("Error opening file!\n");
+		exit(1);
+	}
 
+	fprintf(fp, "deviceid:%s\nlat:%.6f\nlon:%.6f",mac_string,configGal.lat,configGal.lon);
+	
+	fclose(fp);
+}
 
 //avr-objdump -S {compiled *.elf file}
 /* COMMONS_H_ */
