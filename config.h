@@ -52,6 +52,7 @@ bool start = false;
 unsigned long checkSensoreInterval = 60;
 unsigned long NTPInterval = 60*60*1000;  // last NTP update time
 unsigned long checkInternetConnectionInterval = 6*30*1000;  // when to check for Internet connection availability
+unsigned long checkConfigInterval = 15*60*1000;  // when to check for Internet connection availability
 unsigned long timeoutResponse = 5000;
 
 double gForce = 9.81;  // gravity force
@@ -63,14 +64,16 @@ struct configFile{
 #else
   char *model = "galileo";
 #endif
-  float version = 1.4;
+  float version = 1.60;
 } configGal;
 
 void printConfig(){
-  Serial.println("######## Config ########## ");
+  Serial.println("###################### Config ######################### ");
+  Serial.print("UDID: ");
+  Serial.println(mac_string);
   Serial.print("Lat: ");
   Serial.print(configGal.lat);
-  Serial.print("\tLong: ");
+  Serial.print("\tLon: ");
   Serial.println(configGal.lon );
   Serial.print("model: ");
   Serial.println(configGal.model );
@@ -78,7 +81,7 @@ void printConfig(){
   Serial.println(configGal.version );
   Serial.print("errors: ");
   Serial.println(errors_connection);
-  Serial.println("######## Config end ########## ");
+  Serial.println("##################### Config end ####################### ");
    
 }
 /* float lat = 41.283799;

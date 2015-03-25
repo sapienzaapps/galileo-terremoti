@@ -17,6 +17,9 @@
 	#include <signal.h>
 	#include <stdlib.h>  // for ntp_alt.h
 #endif
+//Actual versions: 1.6 gen1   1.7 gen2
+
+
 
 // accelerometer values
 double pthresx = 0;
@@ -339,7 +342,7 @@ void setup() {
   // Config connection on Ethernet module
   if (debugON) Serial.println("Setting up ethernet connection");
   setupEthernet();
-  delay(1000);
+  delay(1500);
   //byteMacToString(mac); // create string for MAC address
   if (request_mac_from_server) {
     Serial.println("Requesting deviceID to server... ");
@@ -532,7 +535,7 @@ void loop() {
   
   // check if is time to update config
   if (/* start && */ internetConnected){ 
-    if (currentMillis - lastCfgUpdate > 60*60*1000){
+    if (currentMillis - lastCfgUpdate > checkConfigInterval){
       getConfigNew(); // CHEK FOR UPDATES
       lastCfgUpdate = currentMillis;
       if (debugON) printConfig();

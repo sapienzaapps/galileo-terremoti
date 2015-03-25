@@ -2,7 +2,7 @@
 #define localstream_h 1
 
 // const int CONTROLPKTSIZE = 16;
-#define CONTROLPKTSIZE 36
+#define CONTROLPKTSIZE 40//36
 byte _pktBuffer[CONTROLPKTSIZE];
 EthernetUDP _cmdc;
 uint32_t _udpDest = (uint32_t)0;
@@ -23,7 +23,7 @@ union ArrayToFloat {
 // check if the mobile APP sent a command to the device
 int checkCommandPacket() {
   if (_cmdc.parsePacket() > 0) {  // if it received a packet
-     memset(_pktBuffer, 0, 36);
+     memset(_pktBuffer, 0, 40);
     _cmdc.read(_pktBuffer, CONTROLPKTSIZE);
     // if its a packet from the mobile APP (contains the packet ID: INGV):
     // if the device must be discovered or has already been discovered
@@ -50,8 +50,16 @@ int checkCommandPacket() {
           if (debugON) Serial.println("DISCOVERY");
           _pktBuffer[5] = 1;
           memcpy(_pktBuffer+6, mac, 6);  // store the MAC address of the device inside the packet to let the APP know
+          char version_[5];
+          floatToString(version_,configGal.version,2);
+          _pktBuffer[35] = version_[0];
+          _pktBuffer[36] = version_[1];
+          _pktBuffer[37] = version_[2];
+          _pktBuffer[38] = version_[3];
+          if (debugON) Serial.print("Version: ");
+          Serial.println(version_);
           _cmdc.beginPacket(_udpTemp, 62001);
-          _cmdc.write(_pktBuffer, CONTROLPKTSIZE);
+          _cmdc.write(_pktBuffer, CONTROLPKTSIZE+4);
           _cmdc.endPacket();
           break;
         case 2: // Ping
