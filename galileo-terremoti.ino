@@ -385,6 +385,7 @@ void setup() {
   if (debugON) Serial.println("Forcing config update...");
   initConfigUpdates();
   if (debugON) Serial.println("EEPROM init");
+  initThrSD(false);
   initEEPROM(forceInitEEPROM);
   if (debugON) Serial.println("UDP Command Socket init");
   commandInterfaceInit(); // open port for mobile app

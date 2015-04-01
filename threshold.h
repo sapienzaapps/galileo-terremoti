@@ -1,8 +1,10 @@
-
 #define CALIBRATIONITER 1000
 #define ORANGEZONE 6
 
 #include "GalileoLog.h"
+
+FILE *thrSDFile; // file for threshold storing
+char *threshold_path = "media/realroot/threshold.txt";
 
 long nextHour = 0;
 
@@ -68,6 +70,35 @@ void initEEPROM(bool forceInitEEPROM) {
     nextHour = (getUNIXTime()  % 86400L) / 3600;
   }
 }
+
+
+
+// Initialize the EEPROM memory
+void initThrSD(bool forceInitEEPROM) {
+  char *headSD = "INGV";
+  thrSDFile = fopen(threshold_path, "r+");
+  if(thrSDFile != NULL){
+    char buffer[20];
+    //fseek(thrSDFile, 0, SEEK_SET);   /* Seek to the beginning of the file */
+    size_t n = fread(buffer, strlen(headSD)+1, 1, thrSDFile); // check for initialized file
+    buffer[strlen(headSD)] = '\0';
+    if(debugON) Serial.print("Inizio file: ");
+    if(debugON) Serial.println(buffer);
+    if(debugON) Serial.print("Dimensione read: ");
+    if(debugON) Serial.println(n);
+    if (!forceInitEEPROM && (strcmp(headSD, buffer) == 0)) {
+      if (debugON) Serial.println("Threshold File already formatted, skipping...");
+    }else {
+      if (debugON) Serial.println("Threshold File not formatted, let's do it");
+      fwrite(headSD, strlen(headSD)+1, 1, thrSDFile);
+      nextHour = (getUNIXTime()  % 86400L) / 3600;
+    }
+    fclose(thrSDFile);
+  }
+}
+
+
+
 
 void setThresholdValues(AcceleroMMA7361 ac, int currentHour) {
 	int cbufx[CALIBRATIONITER];
