@@ -110,7 +110,7 @@ int prepareFastBuffer(char* buf, struct RECORD *db, struct TDEF *td) {
 	// tsstart, deviceid, lat, lon
    if(debugON) Serial.print("mac testo: ");
    if(debugON) Serial.println(mac_string);
-  return sprintf(buf, "tsstart=%u&deviceid=%s&lat=%.2f&lon=%.2f", db->ms, mac_string, configGal.lat, configGal.lon );
+  return sprintf(buf, "tsstart=%u&deviceid=%s&lat=%s&lon=%s", db->ms, mac_string, configGal.lat, configGal.lon );
 }
 
 int prepareFirstBuffer(char* buf, struct RECORD *db, struct TDEF *td) {
@@ -1095,14 +1095,17 @@ void readConfig(){
         
         argument = strchr(buffer, ':');
         argument++;
-        configGal.lat = stringToFloat(argument);
+        // configGal.lat = stringToFloat(argument);
+        // configGal.lat = stringToFloat(argument);
+        strncpy(configGal.lat, argument, (size_t)8 );
         Serial.print("latitudine: ");
         Serial.println(configGal.lat);
         latlon++;
       }else if (!strncmp("lon",buffer, 3)){
         argument = strchr(buffer, ':');
         argument++;
-        configGal.lon = stringToFloat(argument);
+        // configGal.lon = stringToFloat(argument);
+        strncpy(configGal.lon, argument, (size_t)8 );
         Serial.print("longitudine: ");
         Serial.println(configGal.lon);
         latlon++;

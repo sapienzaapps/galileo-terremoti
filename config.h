@@ -57,14 +57,16 @@ unsigned long timeoutResponse = 5000;
 
 double gForce = 9.81;  // gravity force
 struct configFile{
-  float lat = 0.000000;
-  float lon = 0.000000;
+  // float lat = 0.000000;
+  // float lon = 0.000000;
+  char lat[10] = "00.000000";
+  char lon[10] = "00.000000";
   #if GEN2 > 0
   char *model = "galileo2";
 #else
   char *model = "galileo";
 #endif
-  float version = 1.60;
+  float version = 1.70;
 } configGal;
 
 void printConfig(){

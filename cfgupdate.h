@@ -31,7 +31,7 @@ int prepareConfigBuffer(char* buf) {
 	// deviceid, lat, lon, pthresy, version, model
    if(debugON) Serial.print("mac testo: ");
    if(debugON) Serial.println(mac_string);
-  return sprintf(buf, "deviceid=%s&lat=%.2f&lon=%.2f&version=%.2f&model=%s", mac_string, configGal.lat,configGal.lon, configGal.version, configGal.model );
+  return sprintf(buf, "deviceid=%s&lat=%s&lon=%s&version=%.2f&model=%s", mac_string, configGal.lat,configGal.lon, configGal.version, configGal.model );
 }
 
 /* boolean getConfigUpdates(boolean noupdate) {
@@ -305,6 +305,9 @@ boolean getConfigNew() {
           if(debugON){
             Serial.print("execScript....");
             Serial.print("/media/realroot/script.sh");
+          }
+          for(int x = 0; x < 3; x++){
+            resetBlink(0);
           }
         }
         ret = true;

@@ -88,18 +88,33 @@ int checkCommandPacket() {
           Serial.println((char*)_pktBuffer);
           Serial.println("");
           char *argument = (char*)_pktBuffer+16;
-          char latlonBuf[10];
-          memcpy(latlonBuf,argument,(size_t) 9); 
-          latlonBuf[9] = '\0';
-          configGal.lat = stringToFloat(latlonBuf) ;
+         // char latlonBuf[10];
+          // memcpy(latlonBuf,argument,(size_t) 9); 
+          // latlonBuf[9] = '\0';
+          memcpy(configGal.lat,argument,(size_t) (sizeof(configGal.lat)-1)); 
+          configGal.lat[(sizeof(configGal.lat)-1)] = '\0';
+          if(debugON){ 
+            Serial.print("Latitudine ricevuta: ");
+            Serial.println(configGal.lat);
+          }
+          // configGal.lat = stringToFloat(latlonBuf) ;
+          //strncpy(configGal.lat, latlonBuf, (size_t)9 );
           
           //argument = strchr(argument,';');
           // argument++;
           argument = (char*)_pktBuffer+26;
           char latlonBuf2[10];
-          memcpy(latlonBuf2,argument,(size_t) 9); 
-          latlonBuf2[9] = '\0';
-          configGal.lon = stringToFloat(latlonBuf2);
+          // memcpy(latlonBuf2,argument,(size_t) 9); 
+          // latlonBuf2[9] = '\0';
+          memcpy(configGal.lon,argument,(size_t) (sizeof(configGal.lon)-1)); 
+          configGal.lon[(sizeof(configGal.lon)-1)] = '\0';
+          if(debugON){ 
+            Serial.print("Longitudine ricevuta: ");
+            Serial.println(configGal.lon);
+          }
+          
+          // configGal.lon = stringToFloat(latlonBuf2);
+          // strncpy(configGal.lon, latlonBuf2, (size_t)strlen(latlonBuf) );
           
           _pktBuffer[5]= 6;
           _cmdc.beginPacket(_udpTemp, 62001);

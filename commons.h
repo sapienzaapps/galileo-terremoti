@@ -465,8 +465,9 @@ void storeConfigToSD() {
 		printf("Error opening file!\n");
 		exit(1);
 	}
-
-	fprintf(fp, "deviceid:%s\nlat:%.6f\nlon:%.6f",mac_string,configGal.lat,configGal.lon);
+  Serial.print("Store lat: ");
+  Serial.println(configGal.lat);
+	fprintf(fp,"deviceid:%s\nlat:%s\nlon:%s",mac_string,configGal.lat,configGal.lon);
 	
 	fclose(fp);
 }

@@ -547,25 +547,43 @@ void loop() {
   if (((currentMillis - millis24h >=  86400000UL  ) && !inEvent /* && !inEventSD */) || (errors_connection > 20)){
     log("Reboot after 24h of activity");
     if (debugON) Serial.println("<---------- Reboot after 24h of activity ----------->");
-      digitalWrite(red_Led, HIGH);
-      digitalWrite(green_Led, LOW);
-      delay(500);    
-      digitalWrite(red_Led, LOW);
-      digitalWrite(green_Led, HIGH);
-      delay(500);    
-      digitalWrite(red_Led, HIGH);
-      digitalWrite(green_Led, LOW);
-      delay(500);    
-      digitalWrite(red_Led, LOW);
-      digitalWrite(green_Led, HIGH);
-      delay(1500); 
+      resetBlink(1);
       execScript(script_reset);
     //system("reboot");
     //delay(500);
-      for(;;)
-        ;
+    for(;;){
+      resetBlink(1);
+    }
   }
   //delay(1);
 }
 
-
+void resetBlink(byte type){
+  if(type){ // if 1 reset
+    digitalWrite(red_Led, HIGH);
+    digitalWrite(green_Led, LOW);
+    delay(500);    
+    digitalWrite(red_Led, LOW);
+    digitalWrite(green_Led, HIGH);
+    delay(500);    
+    digitalWrite(red_Led, HIGH);
+    digitalWrite(green_Led, LOW);
+    delay(500);    
+    digitalWrite(red_Led, LOW);
+    digitalWrite(green_Led, HIGH);
+    delay(1500); 
+  }else{ // if 0 update
+    digitalWrite(red_Led, HIGH);
+    digitalWrite(green_Led, HIGH);
+    delay(500);    
+    digitalWrite(red_Led, LOW);
+    digitalWrite(green_Led, LOW);
+    delay(500);    
+    digitalWrite(red_Led, HIGH);
+    digitalWrite(green_Led, HIGH);
+    delay(500);    
+    digitalWrite(red_Led, LOW);
+    digitalWrite(green_Led, LOW);
+    delay(1000); 
+  }
+}
