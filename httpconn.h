@@ -315,10 +315,6 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
   }
 }
 
-
-
-
-
 // send the accelerometer values that got over the threshold
 void httpSendAlert1(struct RECORD *db, struct TDEF *td) {
   // New Event ----------------------------------------------------------
@@ -1025,7 +1021,12 @@ void getMacAddressFromServer() {
       if(debugON) Serial.println("Connection error");
       if(logON)log("connessione fallita");
   }
-  client.stop();
+  // client.stop();
+    while (client.connected()) {
+    Serial.println();
+    Serial.println("disconnecting...");
+    client.stop();
+  }
   Serial.println("getMacAddressFromServer() --------------- END ------ ");
 }
 
