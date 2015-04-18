@@ -17,7 +17,7 @@
 	#include <signal.h>
 	#include <stdlib.h>  // for ntp_alt.h
 #endif
-//Actual versions: 1.6 gen1   1.7 gen2
+//Actual versions: 1.7 gen1   1.7 gen2
 
 
 
@@ -385,7 +385,7 @@ void setup() {
   if (debugON) Serial.println("Forcing config update...");
   initConfigUpdates();
   if (debugON) Serial.println("EEPROM init");
-  initThrSD(false);
+  //initThrSD(false);
   initEEPROM(forceInitEEPROM);
   if (debugON) Serial.println("UDP Command Socket init");
   commandInterfaceInit(); // open port for mobile app

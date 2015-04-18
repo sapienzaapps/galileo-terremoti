@@ -63,10 +63,11 @@ struct configFile{
   char lon[10] = "00.000000";
   #if GEN2 > 0
   char *model = "galileo2";
+  float version = 1.71;
 #else
   char *model = "galileo";
-#endif
   float version = 1.70;
+#endif
 } configGal;
 
 void printConfig(){
