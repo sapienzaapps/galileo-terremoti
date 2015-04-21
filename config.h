@@ -19,6 +19,7 @@ char mac_string[18]; // default Daniele
 FILE *macToFile;
 char *macAddressFilePath = "media/realroot/mac_address.txt";
 char* log_path = "media/realroot/log.txt";
+char* logAcc_path = "media/realroot/acc.txt";
 char* config_path = "media/realroot/seismoconfig.txt";
 
 /* struct configFile {
@@ -49,7 +50,7 @@ bool forceInitEEPROM = false;
 bool internetConnected = false;
 bool start = false;
 
-unsigned long checkSensoreInterval = 60;
+unsigned long checkSensoreInterval = 50;
 unsigned long NTPInterval = 60*60*1000;  // last NTP update time
 unsigned long checkInternetConnectionInterval = 6*30*1000;  // when to check for Internet connection availability
 unsigned long checkConfigInterval = 15*60*1000;  // when to check for Internet connection availability

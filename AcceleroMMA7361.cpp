@@ -73,6 +73,9 @@ void AcceleroMMA7361::setOffSets(int xOffSet, int yOffSet, int zOffSet) {
     _offSets[0]= map(xOffSet,0,3300,0,1024);
     _offSets[1]= map(yOffSet,0,3300,0,1024);
     _offSets[2]= map(zOffSet,0,3300,0,1024);
+    // _offSets[0]= map(xOffSet,0,3300,0,4096);
+    // _offSets[1]= map(yOffSet,0,3300,0,4096);
+    // _offSets[2]= map(zOffSet,0,3300,0,4096);
   }
   else {
     _offSets[0]= map(xOffSet,0,5000,0,1024);
@@ -207,7 +210,8 @@ void AcceleroMMA7361::getAccelXYZ(int *_XAxis, int *_YAxis, int *_ZAxis) {
 /// mapMMA7361V: calculates and returns the voltage value derived from the raw data. Used in getXVoltage, getYVoltage, getZVoltage
 int AcceleroMMA7361::_mapMMA7361V(int value) {
   if (_refVoltage == 3.3) {
-    return map(value,0,1024,0,3300);
+    // return map(value,0,1024,0,3300);
+    // return map(value,0,4096,0,3300);
   }
   else {
     return map(value,0,1024,0,5000);

@@ -20,7 +20,7 @@
 //Actual versions: 1.7 gen1   1.7 gen2
 
 
-
+byte zz = 0;
 // accelerometer values
 double pthresx = 0;
 double pthresy = 0;
@@ -39,6 +39,7 @@ unsigned long calibrationInterval = 60*60*1000;
 unsigned long prevMillisCalibration = 0;
 unsigned long TimeEvent = 60*1000;// 60 second per Event
 unsigned long milldelayTimeEvent = 0;
+unsigned long startRecord = 0;
 unsigned long millis24h;
 unsigned long lastRstMill = 0;
 int resetnum = 0;
@@ -109,7 +110,7 @@ void checkSensore()
   valx = accelero.getXAccel();
   valy = accelero.getYAccel();
   valz = accelero.getZAccel();
-      
+  
   TDEF td = { pthresx, pthresy, pthresz, nthresx, nthresy, nthresz };
   
   //struct RECORD *db = (struct RECORD*)malloc(sizeof(struct RECORD));
@@ -204,20 +205,42 @@ void checkSensore()
 }
 
 void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
-  int valx, valy, valz;
+  int _valx, _valy, _valz;
   
-  //valx = accelero.getXAccel();
-  //valy = accelero.getYAccel();
-  //valz = accelero.getZAccel();
+  // _valx = accelero.getXAccel();
+  // _valy = accelero.getYAccel();
+  // _valz = accelero.getZAccel();
+  accelero.getAccelXYZ(&_valx, &_valy, &_valz) ;
+  // delay(1);
 
-  if (debugON /*&& db->overThreshold*/) {
-    Serial.print("Valori Accelerometro:  ");
-    Serial.print(db->valx);
-    Serial.print("   ");
-    Serial.print(db->valy);
-    Serial.print("   ");
-    Serial.println(db->valz);
+  // if (debugON /*&& db->overThreshold*/) {
+    // Serial.print("Valori Accelerometro:  ");
+    // Serial.print(db->valx);
+    // Serial.print("   ");
+    // Serial.print(db->valy);
+    // Serial.print("   ");
+    // Serial.println(db->valz);
+  // }  
+  // if (debugON /*&& db->overThreshold*/) {
+    // Serial.print("Valori Accelerometro:  ");
+    // Serial.print(_valx);
+    // Serial.print("   ");
+    // Serial.print(_valy);
+    // Serial.print("   ");
+    // Serial.println(_valz);
+  // }
+  if(zz == 0 ){ // first time record
+    resetBlink(0);
+    logAccValues( 0,  0,  0, zz);
+    zz = 1;
+  }else if(zz == 1){ // RECORDING 
+    logAccValues( _valx,  _valy,  _valz, zz );
+  }else if(zz == 2 ){ // last time record
+    logAccValues( 0,  0,  0, zz);
+    zz = 3;
+    resetBlink(0);
   }
+
 }
 
 // set up the ethernet connection per location;
@@ -306,6 +329,8 @@ void setupEthernet() {
 }// END SetupEthernet()
 
 void setup() {
+  analogReadResolution(10);        // 3.3V => 4096
+  Serial.print("    Res12bit: ");
   delay(1000);
   Serial.begin(9600);
   delay(500);
@@ -423,8 +448,11 @@ void setup() {
   // char* latfinta = "45.000321";
   // stringToDouble(latfinta);
   Serial.println("Testttttttt - FINITOOOOO");
+  
+  
   millis24h =  millis();
   milldelayTime = millis24h;
+  testNoInternet = false;
 }
 // end SETUP
 
@@ -474,7 +502,7 @@ void loop() {
   
   // Check for calibration Sensor
   // unsigned long currentMillisCalibration = millis();
-	if ((currentMillis - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
+	if (testNoInternet && (currentMillis - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
     int cHour = (getUNIXTime() % 86400L) / 3600;
 	  if (debugON) Serial.println("checkCalibrationNeeded---------------------------------------");
 	  checkCalibrationNeeded(accelero, cHour);
@@ -487,7 +515,7 @@ void loop() {
       inEvent = 0;
     }
   }
-  if (resetEthernet /* || errors_connection > 10 */) {
+  if (resetEthernet && testNoInternet/* || errors_connection > 10 */) {
     // unsigned long ethRstMill = millis();
     if (currentMillis - lastRstMill > 120000UL) {
       if(logON) log("networking restart - NOT CONNECTED FINTO!!!");
@@ -524,18 +552,29 @@ void loop() {
     }
   } 
 
-  if (currentMillis - milldelayTime > checkSensoreInterval) { // read sensor values
+  if (currentMillis - milldelayTime > 500UL /* checkSensoreInterval */ && zz < 3 ) { // read sensor values
     // check mobile command
-		checkCommandPacket();
+		// checkCommandPacket();
     // read sensor values
-		checkSensore();
+		// checkSensore();
+    // record acc data for 1h
+    if (zz == 0){
+      startRecord = currentMillis;
+      Serial.println("#########################");
+      Serial.println("###############STARTING RECORD----------------------------------------");
+    }
+    debug_Axis();
 
-		//testNTP();
 		milldelayTime = currentMillis;
+    if (currentMillis - startRecord >= 3600000UL && zz == 1/* 3600000UL */){ // AFTER TIME RECORD
+      zz = 2;
+      Serial.println("#########################");
+      Serial.println("###############STOPPING RECORD----------------------------------------");
+    }
   }
   
   // check if is time to update config
-  if (/* start && */ internetConnected){ 
+  if (/* start && */ testNoInternet && internetConnected){ 
     if (currentMillis - lastCfgUpdate > checkConfigInterval){
       getConfigNew(); // CHEK FOR UPDATES
       lastCfgUpdate = currentMillis;

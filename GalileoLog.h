@@ -4,6 +4,7 @@
 #include "config.h"
 
 FILE *f;
+FILE *acc;
 static char date_log[30];
 
 
@@ -69,6 +70,28 @@ void logInt(int  text) {
 	closeLog();
 }
 
-
+void logAccValues(long _valx, long _valy, long _valz, byte zz){ // function to log 1h of acceleration force
+  // FILE *acc;
+	// acc = fopen(logAcc_path, "a");
+	// if (acc == NULL) {
+		// printf("Error opening file!\n");
+		// exit(1);
+	// }
+  if(zz == 0){ // FIRST
+    
+    acc = fopen(logAcc_path, "a");
+    if (acc == NULL) {
+      printf("Error opening file!\n");
+      exit(1);
+    }
+    fprintf(acc, "%s > %s\n ", getGalileoDate(), "#####Starting logging for 1h#####" );
+  }else if(zz == 1){// NORMAL
+    fprintf(acc, "%lu , %lu , %lu\n ", _valx, _valy, _valz);
+  }else if(zz == 2){ // LAST
+    fprintf(acc, "%s> %s\n ", getGalileoDate(), "#####Finished logging after 1h#####" );
+    fclose(acc);
+  }
+  // fclose(acc);
+}
 
 #endif
