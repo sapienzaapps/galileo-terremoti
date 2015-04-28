@@ -43,6 +43,8 @@ unsigned long startRecord = 0;
 unsigned long millis24h;
 unsigned long lastRstMill = 0;
 int resetnum = 0;
+int numAlert = 0;
+int reTareNum = 40;
 
 // const byte red_Led = 10;
 // const byte green_Led = 12;
@@ -162,6 +164,7 @@ void checkSensore()
         milldelayTimeEvent = millis(); // timestamp in millis for Event Interval */
         
         httpSendAlert1(db, &td);
+        numAlert++;
         //getConfigNew();// on testing
         
       }else{
@@ -412,7 +415,7 @@ void setup() {
   if (debugON) Serial.println("Forcing config update...");
   initConfigUpdates();
   if (debugON) Serial.println("EEPROM init");
-  initThrSD(false);
+  //initThrSD(false);
   //initEEPROM(forceInitEEPROM);
   if (debugON) Serial.println("UDP Command Socket init");
   commandInterfaceInit(); // open port for mobile app
@@ -508,10 +511,18 @@ void loop() {
     int cHour = (getUNIXTime() % 86400L) / 3600;
 	  if (debugON) Serial.println("checkCalibrationNeeded---------------------------------------");
 	  // checkCalibrationNeeded(accelero, cHour);
-    checkCalibrationNeededSD(accelero, cHour);
+    checkCalibrationNeededNOSD(accelero, cHour);
     ForceCalibrationNeeded = false;
     prevMillisCalibration = currentMillis;
-  }  
+  }
+if(numAlert >= reTareNum){
+  Serial.println(" alert >40 recalibrating......");  
+  accelero.calibrate();
+  forceInitEEPROM = true;
+  int cHour = (getUNIXTime() % 86400L) / 3600;
+  checkCalibrationNeededNOSD(accelero, cHour);
+  numAlert = 0;
+}  
   if (inEvent) {// unlock inEvent time
     // unsigned long millisTimeEvent = millis();
     if (currentMillis - milldelayTimeEvent > nextContact /* TimeEvent */) { // unlock Alert after xxx millisecs

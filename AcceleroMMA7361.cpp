@@ -244,6 +244,7 @@ void AcceleroMMA7361::calibrate() {
   //Serial.println(getOrientation());
   test_voltage();
   delay(1000);
+  setOffSets(0,0,0);
   _sensi = false;
   Serial.print("\nCalibrating MMA7361011");
   double var = 5000;

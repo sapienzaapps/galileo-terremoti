@@ -21,7 +21,7 @@ char *macAddressFilePath = "media/realroot/mac_address.txt";
 char* log_path = "media/realroot/log.txt";
 char* logAcc_path = "media/realroot/acc.txt";
 char* config_path = "media/realroot/seismoconfig.txt";
-
+void showThresholdValues();
 /* struct configFile {
   byte mac[6];
   float lat;
@@ -80,14 +80,40 @@ void printConfig(){
   Serial.print("\tLon: ");
   Serial.println(configGal.lon );
   Serial.print("model: ");
-  Serial.println(configGal.model );
-  Serial.print("version: ");
+  Serial.print(configGal.model );
+  Serial.print("\tversion: ");
   Serial.println(configGal.version );
   Serial.print("errors: ");
   Serial.println(errors_connection);
+  showThresholdValues();
   Serial.println("##################### Config end ####################### ");
    
 }
+
+
+void showThresholdValues(){
+  
+  Serial.println("Calibration on SD ended - with values:");
+  Serial.println("---------------------------------------------");
+  Serial.print("pthresx: ");
+  Serial.print(pthresx);
+  Serial.print(" pthresy: ");
+  Serial.print(pthresy);
+  Serial.print(" pthresz: ");
+  Serial.println(pthresz);
+  Serial.print("nthresx: ");
+  Serial.print(nthresx);
+  Serial.print(" nthresy: ");
+  Serial.print(nthresy);
+  Serial.print(" nthresz: ");
+  Serial.println(nthresz);
+  Serial.println("---------------------------------------------");
+  
+}
+
+
+
+
 /* float lat = 41.283799;
 float lon = 13.251675;
 // float version = 1.3;
