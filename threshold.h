@@ -47,6 +47,29 @@ double readDouble(int address) {
   return _value;
 }
 
+
+// Read a Double from SD CARD
+double readDoubleSD(int offset, FILE *facc, size_t sizeacc) {
+  double val;
+  int i = 0;
+  if(fseek(facc, offset, SEEK_SET) == 0){
+  fread(&val, sizeacc, 1, facc); 
+  double _value = 0;
+  //memcpy(&_value, val, sizeacc);
+  return val;
+  }
+  return -1;
+}
+
+// Write a Double to SD CARD
+void writeDoubleSD(int offset, double value, FILE *facc, size_t sizeacc ) {
+  double val;
+  int i = 0;
+  //memcpy(val, &value, sizeacc);
+  fseek(facc, offset, SEEK_SET);
+  fwrite(&value, sizeacc, 1, facc);
+}
+
 // Initialize the EEPROM memory
 void initEEPROM(bool forceInitEEPROM) {
   int c1 = EEPROM.read(0);
@@ -71,34 +94,39 @@ void initEEPROM(bool forceInitEEPROM) {
   }
 }
 
-
-
-// Initialize the EEPROM memory
+// Initialize the SD THRESHOLD FILE
 void initThrSD(bool forceInitEEPROM) {
-  char *headSD = "INGV";
+  char headSD[4];
+  headSD[0] = 'I';
+  headSD[1] = 'N';
+  headSD[2] = 'G';
+  headSD[3] = 'V';
   thrSDFile = fopen(threshold_path, "r+");
   if(thrSDFile != NULL){
-    char buffer[20];
-    //fseek(thrSDFile, 0, SEEK_SET);   /* Seek to the beginning of the file */
-    size_t n = fread(buffer, strlen(headSD)+1, 1, thrSDFile); // check for initialized file
-    buffer[strlen(headSD)] = '\0';
+    char buffer[4] = {'0'};
+    //memset(buffer, 0, 4);
+    fseek(thrSDFile, 0, SEEK_SET);   /* Seek to the beginning of the file */
+    size_t n = fread(buffer, sizeof(char), 4, thrSDFile); // check for initialized file
+    //buffer[4] = '\0';
     if(debugON) Serial.print("Inizio file: ");
-    if(debugON) Serial.println(buffer);
+    if(debugON) Serial.println((char*)buffer);
     if(debugON) Serial.print("Dimensione read: ");
     if(debugON) Serial.println(n);
-    if (!forceInitEEPROM && (strcmp(headSD, buffer) == 0)) {
+    if ((!forceInitEEPROM) && (memcmp(headSD, buffer, 4) == 0)) {
       if (debugON) Serial.println("Threshold File already formatted, skipping...");
     }else {
       if (debugON) Serial.println("Threshold File not formatted, let's do it");
-      fwrite(headSD, strlen(headSD)+1, 1, thrSDFile);
+      fseek(thrSDFile, 0, SEEK_SET);   /* Seek to the beginning of the file */
+      fwrite(headSD, sizeof(char), 4, thrSDFile);
+      fseek(thrSDFile, 4, SEEK_SET);
+      char a[48*24] ={'0'};
+      fwrite(a, sizeof(char), 48*24, thrSDFile);
+      
       nextHour = (getUNIXTime()  % 86400L) / 3600;
     }
     fclose(thrSDFile);
-  }
+  }else{if(debugON) Serial.print("FILE NULL!!!!!");}
 }
-
-
-
 
 void setThresholdValues(AcceleroMMA7361 ac, int currentHour) {
 	int cbufx[CALIBRATIONITER];
@@ -136,6 +164,163 @@ void setThresholdValuesBasic(AcceleroMMA7361 ac, int currentHour) {
 	pthresy = 10;
 	pthresz = 100;
 }
+
+void checkCalibrationNeededSD(AcceleroMMA7361 ac, int currentHour) {
+  if (debugON){ 
+      Serial.println("Calibration on SD START *-*-*-*-*-*-*-*-*");
+  }
+  // Utility (Galileo):
+  // sizeof(unsigned long) = 4
+  // sizeof(unsigned int) = 4
+  // sizeof(float) = 4
+  // sizeof(double) = 8
+  
+  // I primi 4 bytes sono popolati con "INGV". Se la scritta non e' presente
+  // allora la EEPROM non e' inizializzata
+  
+  // Mappa memoria (offset + 4):
+  // [posizione, lunghezza]
+  // [i*48, 48] : dati sull'ora "i"
+  // --> 8 byte (double) con il valore della soglia positiva per ogni asse [X-Y-Z]
+  // --> 8 byte (double) con il valore della soglia negativa per ogni asse [X-Y-Z]
+  thrSDFile = fopen(threshold_path, "w+");
+  double temp;
+  if(thrSDFile != NULL){
+    
+    temp = (double) readDoubleSD(4 + currentHour*48, thrSDFile, sizeof(double)); // ??? cosa deve leggere ???
+    Serial.print("temp #-#-#-#-#-#-#-#-#-#: ");
+    Serial.println(temp);
+  
+    // double temp = readDouble(4 + currentHour*48); // ??? cosa deve leggere ???
+    
+    // do calibration every random amount of hours? or if it's the first time ever
+    if ((nextHour == currentHour) || (temp <= 0) ) {
+      if(nextHour == currentHour)Serial.println("nextHour = currentHour on SD #-#-#-#-#-#-#-#-#-#");
+      //setThresholdValuesBasic(ac, currentHour);
+      if(!yellowLedStatus){
+        digitalWrite(yellow_Led,!yellowLedStatus);
+        yellowLedStatus = !yellowLedStatus;
+      }
+      if (debugON){ 
+        Serial.println("WRITE THRESHOLD on SD #-#-#-#-#-#-#-#-#-#");
+      }
+      setThresholdValues(ac, currentHour);
+      int pos = 4 + currentHour*48;
+      writeDoubleSD(pos, pthresx, thrSDFile, sizeof(double));
+      pos += 8;
+      writeDoubleSD(pos, pthresy, thrSDFile, sizeof(double));
+      pos += 8;
+      writeDoubleSD(pos, pthresz, thrSDFile, sizeof(double));
+      pos += 8;
+      
+      writeDoubleSD(pos, nthresx, thrSDFile, sizeof(double));
+      pos += 8;
+      writeDoubleSD(pos, nthresy, thrSDFile, sizeof(double));
+      pos += 8;
+      writeDoubleSD(pos, nthresz, thrSDFile, sizeof(double));
+      fclose(thrSDFile);
+      if (logON) log("Calibration ended");
+      if (debugON){ 
+        Serial.println("Calibration on SD ended - with values:");
+        Serial.println("---------------------------------------");
+        Serial.print("pthresx: ");
+        Serial.print(pthresx);
+        Serial.print(" pthresy: ");
+        Serial.print(pthresy);
+        Serial.print(" pthresz: ");
+        Serial.println(pthresz);
+        Serial.print("nthresx: ");
+        Serial.print(nthresx);
+        Serial.print(" nthresy: ");
+        Serial.print(nthresy);
+        Serial.print(" nthresz: ");
+        Serial.println(nthresz);
+        Serial.println("---------------------------------------");
+      }
+      //nextHour = (random() % 24);
+      nextHour = ((currentHour + 1) % 24);
+      if (debugON) Serial.print("Next calibration scheduled for ");
+      if (debugON) Serial.println(nextHour);
+    }
+    else {
+      if (debugON) Serial.println("Loading values from SD CARD for new hour");
+      int pos = 4 + currentHour*48;
+      pthresx = readDoubleSD(pos, thrSDFile, sizeof(double));
+      if (debugON) Serial.print("pthresx: ");
+      if (debugON) Serial.print(pthresx);
+      
+      pos += 8;
+      pthresy = readDoubleSD(pos, thrSDFile, sizeof(double));
+      if (debugON) Serial.print(" pthresy: ");
+      if (debugON) Serial.print(pthresy);
+      
+      pos += 8;
+      pthresz = readDoubleSD(pos, thrSDFile, sizeof(double));
+      if (debugON) Serial.print(" pthresz: ");
+      if (debugON) Serial.println(pthresz);
+      
+      pos += 8;
+      nthresx = readDoubleSD(pos, thrSDFile, sizeof(double));
+      if (debugON) Serial.print("nthresx: ");
+      if (debugON) Serial.print(nthresx);
+      
+      pos += 8;
+      nthresy = readDoubleSD(pos, thrSDFile, sizeof(double));
+      if (debugON) Serial.print(" nthresy: ");
+      if (debugON) Serial.print(nthresy);
+      
+      pos += 8;
+      nthresz = readDoubleSD(pos, thrSDFile, sizeof(double));
+      fclose(thrSDFile);
+      if (debugON) Serial.print(" nthresz: ");
+      if (debugON) Serial.println(nthresz);
+    }
+    if(yellowLedStatus){
+      digitalWrite(yellow_Led,!yellowLedStatus);
+      yellowLedStatus = !yellowLedStatus;
+    }
+    }else{Serial.println("NULL -----------------SD THRESHOLD!!!!!!!");
+    
+    }
+}
+
+
+// void setThresholdValues(AcceleroMMA7361 ac, int currentHour) {
+	// int cbufx[CALIBRATIONITER];
+	// int cbufy[CALIBRATIONITER];
+	// int cbufz[CALIBRATIONITER];
+
+	// if (debugON) Serial.print("Begin calibration for hour: ");
+	// if (debugON) Serial.println(currentHour);
+
+	// int i=0;
+	// for (i=0; i < CALIBRATIONITER; i++) {
+		// cbufx[i] = ac.getXAccel();
+		// cbufy[i] = ac.getYAccel();
+		// cbufz[i] = ac.getZAccel();
+	// }
+
+	// float avgx = absavg(cbufx, CALIBRATIONITER);
+	// float avgy = absavg(cbufy, CALIBRATIONITER);
+	// float avgz = absavg(cbufz, CALIBRATIONITER);
+	// double sdevx = stddev(cbufx, CALIBRATIONITER, avgx);
+	// double sdevy = stddev(cbufy, CALIBRATIONITER, avgy);
+	// double sdevz = stddev(cbufz, CALIBRATIONITER, avgz);
+
+	// pthresx = avgx + (sdevx + ORANGEZONE);
+	// pthresy = avgy + (sdevy + ORANGEZONE);
+	// pthresz = avgz + (sdevz + ORANGEZONE);
+
+	// nthresx = avgx - (sdevx + ORANGEZONE);
+	// nthresy = avgy - (sdevy + ORANGEZONE);
+	// nthresz = avgz - (sdevz + ORANGEZONE);
+// }
+
+// void setThresholdValuesBasic(AcceleroMMA7361 ac, int currentHour) {
+	// pthresx = 10;
+	// pthresy = 10;
+	// pthresz = 100;
+// }
 
 void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
   // Utility (Galileo):

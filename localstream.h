@@ -2,7 +2,7 @@
 #define localstream_h 1
 
 // const int CONTROLPKTSIZE = 16;
-#define CONTROLPKTSIZE 40//36
+#define CONTROLPKTSIZE 47//36
 byte _pktBuffer[CONTROLPKTSIZE];
 EthernetUDP _cmdc;
 uint32_t _udpDest = (uint32_t)0;
@@ -23,7 +23,7 @@ union ArrayToFloat {
 // check if the mobile APP sent a command to the device
 int checkCommandPacket() {
   if (_cmdc.parsePacket() > 0) {  // if it received a packet
-     memset(_pktBuffer, 0, 40);
+     memset(_pktBuffer, 0, 47);
     _cmdc.read(_pktBuffer, CONTROLPKTSIZE);
     // if its a packet from the mobile APP (contains the packet ID: INGV):
     // if the device must be discovered or has already been discovered
@@ -56,9 +56,18 @@ int checkCommandPacket() {
           _pktBuffer[36] = version_[1];
           _pktBuffer[37] = version_[2];
           _pktBuffer[38] = version_[3];
+          _pktBuffer[39] = configGal.model[3];
+          _pktBuffer[40] = configGal.model[3];
+          _pktBuffer[41] = configGal.model[3];
+          _pktBuffer[42] = configGal.model[3];
+          _pktBuffer[43] = configGal.model[3];
+          _pktBuffer[44] = configGal.model[3];
+          _pktBuffer[45] = configGal.model[3];
+          _pktBuffer[46] = '\0';
           if (debugON) Serial.print("Version: ");
           Serial.println(version_);
           _cmdc.beginPacket(_udpTemp, 62001);
+          // _cmdc.write(_pktBuffer, CONTROLPKTSIZE+4);
           _cmdc.write(_pktBuffer, CONTROLPKTSIZE+4);
           _cmdc.endPacket();
           break;
@@ -83,7 +92,8 @@ int checkCommandPacket() {
         	if (debugON) Serial.println("Setted");  // close the socket connection with the mobile APP
           //if (debugON) Serial.println("PING");  // start sending packets to the mobile APP
           // Reply
-          _pktBuffer[35] = '\0';
+          // _pktBuffer[35] = '\0';
+          _pktBuffer[46] = '\0';
           if (debugON) Serial.println("PACCHETTO DATI SET GPS !!!!!!!!");
           Serial.println((char*)_pktBuffer);
           Serial.println("");
@@ -103,7 +113,7 @@ int checkCommandPacket() {
           //argument = strchr(argument,';');
           // argument++;
           argument = (char*)_pktBuffer+26;
-          char latlonBuf2[10];
+          // char latlonBuf2[10];
           // memcpy(latlonBuf2,argument,(size_t) 9); 
           // latlonBuf2[9] = '\0';
           memcpy(configGal.lon,argument,(size_t) (sizeof(configGal.lon)-1)); 
@@ -120,11 +130,11 @@ int checkCommandPacket() {
           _cmdc.beginPacket(_udpTemp, 62001);
           _cmdc.write(_pktBuffer, CONTROLPKTSIZE);// send ack lat/lon received
           _cmdc.endPacket();
-          if (_pktBuffer[35] == '\0') Serial.println("FINE PACCHETTO GIUSTO # !!!");
+          if (_pktBuffer[46] == '\0') Serial.println("FINE PACCHETTO GIUSTO # !!!");
           if (debugON) Serial.println("OK - DATA LAT/LON RECEIVED!!!");
           storeConfigToSD();
           start = true;
-          memset(_pktBuffer, 0, 36);
+          memset(_pktBuffer, 0, 47);
           break;
       }
     }else{

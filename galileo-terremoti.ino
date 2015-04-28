@@ -53,6 +53,7 @@ bool redLedStatus = false;
 bool greenLedStatus = false;
 bool yellowLedStatus = false;
 bool chekInternet = false;
+bool recordData = false;
 byte errors_connection = 0;
 
 
@@ -205,42 +206,43 @@ void checkSensore()
 }
 
 void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
-  int _valx, _valy, _valz;
-  
-  // _valx = accelero.getXAccel();
-  // _valy = accelero.getYAccel();
-  // _valz = accelero.getZAccel();
-  accelero.getAccelXYZ(&_valx, &_valy, &_valz) ;
-  // delay(1);
+  if(recordData){// if recording data -> get accelero data
+    int _valx, _valy, _valz;
+    accelero.getAccelXYZ(&_valx, &_valy, &_valz) ;
+    if(zz == 0 ){ // first time record
+      resetBlink(0);
+      logAccValues( 0,  0,  0, zz);
+      zz = 1;
+    }else if(zz == 1){ // RECORDING 
+      logAccValues( _valx,  _valy,  _valz, zz );
+    }else if(zz == 2 ){ // last time record
+      logAccValues( 0,  0,  0, zz);
+      zz = 3;
+      resetBlink(0);
+    }
+  }else{
+    // _valx = accelero.getXAccel();
+    // _valy = accelero.getYAccel();
+    // _valz = accelero.getZAccel();
+    // delay(1);
 
-  // if (debugON /*&& db->overThreshold*/) {
-    // Serial.print("Valori Accelerometro:  ");
-    // Serial.print(db->valx);
-    // Serial.print("   ");
-    // Serial.print(db->valy);
-    // Serial.print("   ");
-    // Serial.println(db->valz);
-  // }  
-  // if (debugON /*&& db->overThreshold*/) {
-    // Serial.print("Valori Accelerometro:  ");
-    // Serial.print(_valx);
-    // Serial.print("   ");
-    // Serial.print(_valy);
-    // Serial.print("   ");
-    // Serial.println(_valz);
-  // }
-  if(zz == 0 ){ // first time record
-    resetBlink(0);
-    logAccValues( 0,  0,  0, zz);
-    zz = 1;
-  }else if(zz == 1){ // RECORDING 
-    logAccValues( _valx,  _valy,  _valz, zz );
-  }else if(zz == 2 ){ // last time record
-    logAccValues( 0,  0,  0, zz);
-    zz = 3;
-    resetBlink(0);
+    if (debugON /*&& db->overThreshold*/) {
+      Serial.print("Valori Accelerometro:  ");
+      Serial.print(db->valx);
+      Serial.print("   ");
+      Serial.print(db->valy);
+      Serial.print("   ");
+      Serial.println(db->valz);
+    }  
+    // if (debugON /*&& db->overThreshold*/) {
+      // Serial.print("Valori Accelerometro:  ");
+      // Serial.print(_valx);
+      // Serial.print("   ");
+      // Serial.print(_valy);
+      // Serial.print("   ");
+      // Serial.println(_valz);
+    // }
   }
-
 }
 
 // set up the ethernet connection per location;
@@ -410,8 +412,8 @@ void setup() {
   if (debugON) Serial.println("Forcing config update...");
   initConfigUpdates();
   if (debugON) Serial.println("EEPROM init");
-  //initThrSD(false);
-  initEEPROM(forceInitEEPROM);
+  initThrSD(false);
+  //initEEPROM(forceInitEEPROM);
   if (debugON) Serial.println("UDP Command Socket init");
   commandInterfaceInit(); // open port for mobile app
   
@@ -452,7 +454,7 @@ void setup() {
   
   millis24h =  millis();
   milldelayTime = millis24h;
-  testNoInternet = false;
+  testNoInternet = true; // true = NOT IN TEST -- false = IN TEST
 }
 // end SETUP
 
@@ -505,7 +507,8 @@ void loop() {
 	if (testNoInternet && (currentMillis - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
     int cHour = (getUNIXTime() % 86400L) / 3600;
 	  if (debugON) Serial.println("checkCalibrationNeeded---------------------------------------");
-	  checkCalibrationNeeded(accelero, cHour);
+	  // checkCalibrationNeeded(accelero, cHour);
+    checkCalibrationNeededSD(accelero, cHour);
     ForceCalibrationNeeded = false;
     prevMillisCalibration = currentMillis;
   }  
@@ -552,25 +555,28 @@ void loop() {
     }
   } 
 
-  if (currentMillis - milldelayTime > 500UL /* checkSensoreInterval */ && zz < 3 ) { // read sensor values
+  if (currentMillis - milldelayTime > 50UL /* checkSensoreInterval */ && zz < 3 ) { // read sensor values
+    if(!recordData){
     // check mobile command
-		// checkCommandPacket();
+      checkCommandPacket();
     // read sensor values
-		// checkSensore();
-    // record acc data for 1h
-    if (zz == 0){
-      startRecord = currentMillis;
-      Serial.println("#########################");
-      Serial.println("###############STARTING RECORD----------------------------------------");
-    }
-    debug_Axis();
+      checkSensore();
+    }else{
+      // record acc data for 1h
+      if (zz == 0){
+        startRecord = currentMillis;
+        Serial.println("#########################");
+        Serial.println("###############STARTING RECORD----------------------------------------");
+      }
+      debug_Axis();
 
-		milldelayTime = currentMillis;
-    if (currentMillis - startRecord >= 3600000UL && zz == 1/* 3600000UL */){ // AFTER TIME RECORD
-      zz = 2;
-      Serial.println("#########################");
-      Serial.println("###############STOPPING RECORD----------------------------------------");
+      if (currentMillis - startRecord >= 3600000UL && zz == 1/* 3600000UL */){ // AFTER TIME RECORD
+        zz = 2;
+        Serial.println("#########################");
+        Serial.println("###############STOPPING RECORD----------------------------------------");
+      }
     }
+		milldelayTime = currentMillis;
   }
   
   // check if is time to update config
@@ -584,7 +590,7 @@ void loop() {
   }
   
   // reset the device every 24h or after 20 errors
-  if (((currentMillis - millis24h >=  86400000UL  ) && !inEvent /* && !inEventSD */) || (errors_connection > 20)){
+  if (((currentMillis - millis24h >=  86400000UL * 2  ) && !inEvent /* && !inEventSD */) || (errors_connection > 20)){
     log("Reboot after 24h of activity");
     if (debugON) Serial.println("<---------- Reboot after 24h of activity ----------->");
       resetBlink(1);
