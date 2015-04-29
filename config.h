@@ -66,7 +66,7 @@ struct configFile{
   char *model = "galileo2";
   float version = 1.71;
 #else
-  char *model = "galileo";
+  char *model = "galileo1";
   float version = 1.70;
 #endif
 } configGal;
@@ -84,7 +84,9 @@ void printConfig(){
   Serial.print("\tversion: ");
   Serial.println(configGal.version );
   Serial.print("errors: ");
-  Serial.println(errors_connection);
+  Serial.print(errors_connection);
+  Serial.print("\tIp address: ");
+  Serial.println(Ethernet.localIP());
   showThresholdValues();
   Serial.println("##################### Config end ####################### ");
    

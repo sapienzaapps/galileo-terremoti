@@ -2,7 +2,7 @@
 #define localstream_h 1
 
 // const int CONTROLPKTSIZE = 16;
-#define CONTROLPKTSIZE 47//36
+#define CONTROLPKTSIZE 48//36
 byte _pktBuffer[CONTROLPKTSIZE];
 EthernetUDP _cmdc;
 uint32_t _udpDest = (uint32_t)0;
@@ -23,7 +23,7 @@ union ArrayToFloat {
 // check if the mobile APP sent a command to the device
 int checkCommandPacket() {
   if (_cmdc.parsePacket() > 0) {  // if it received a packet
-     memset(_pktBuffer, 0, 47);
+     memset(_pktBuffer, 0, 48);
     _cmdc.read(_pktBuffer, CONTROLPKTSIZE);
     // if its a packet from the mobile APP (contains the packet ID: INGV):
     // if the device must be discovered or has already been discovered
@@ -56,14 +56,19 @@ int checkCommandPacket() {
           _pktBuffer[36] = version_[1];
           _pktBuffer[37] = version_[2];
           _pktBuffer[38] = version_[3];
-          _pktBuffer[39] = configGal.model[3];
-          _pktBuffer[40] = configGal.model[3];
-          _pktBuffer[41] = configGal.model[3];
+          _pktBuffer[39] = configGal.model[0];
+          _pktBuffer[40] = configGal.model[1];
+          _pktBuffer[41] = configGal.model[2];
           _pktBuffer[42] = configGal.model[3];
-          _pktBuffer[43] = configGal.model[3];
-          _pktBuffer[44] = configGal.model[3];
-          _pktBuffer[45] = configGal.model[3];
-          _pktBuffer[46] = '\0';
+          _pktBuffer[43] = configGal.model[4];
+          _pktBuffer[44] = configGal.model[5];
+          _pktBuffer[45] = configGal.model[6];
+          _pktBuffer[46] = configGal.model[7];
+          _pktBuffer[47] = '\0';
+          // byte *provaTest;
+          // provaTest = _pktBuffer + 38;
+          // Serial.print("test versione: ");
+          // Serial.println(provaTest);
           if (debugON) Serial.print("Version: ");
           Serial.println(version_);
           _cmdc.beginPacket(_udpTemp, 62001);
@@ -134,7 +139,7 @@ int checkCommandPacket() {
           if (debugON) Serial.println("OK - DATA LAT/LON RECEIVED!!!");
           storeConfigToSD();
           start = true;
-          memset(_pktBuffer, 0, 47);
+          memset(_pktBuffer, 0, 48);
           break;
       }
     }else{

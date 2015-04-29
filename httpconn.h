@@ -113,6 +113,13 @@ int prepareFastBuffer(char* buf, struct RECORD *db, struct TDEF *td) {
   return sprintf(buf, "tsstart=%u&deviceid=%s&lat=%s&lon=%s", db->ms, mac_string, configGal.lat, configGal.lon );
 }
 
+int prepareMacBuffer(char* buf) {
+	// tsstart, deviceid, lat, lon
+   if(debugON) Serial.print("mac testo: ");
+   if(debugON) Serial.println(mac_string);
+  return sprintf(buf, "deviceid=%s", "00000000c1a0" );
+}
+
 int prepareFirstBuffer(char* buf, struct RECORD *db, struct TDEF *td) {
 	// ts, ms, pthresx, pthresy, pthresz, nthresx, nthresy, nthresz, deltax, deltay, deltaz
   return sprintf(buf, "%ld;%ld;%f;%f;%f;%f;%f;%f;%ld;%ld;%ld",
@@ -957,20 +964,40 @@ void storeConfigToSD() {
 void getMacAddressFromServer() {
   Serial.println("getMacAddressFromServer() --------------- START------ ");
 	if (client.connect(DEFAULT_HTTP_SERVER, 80)) {
-		client.print("GET ");
+		char rBuffer[300];
+    int rsize = prepareMacBuffer(rBuffer);
 		// client.print(path_domain);
 		// client.print("/getMacAddress.php");
-		client.print("/terremoti/galileo/getMacAddress.php");
+		// client.print("/terremoti/galileo/getMacAddress.php");
+		// client.print("POST ");
+    
+/* 		client.print("GET ");
+		client.print("/terremoti/galileo/alive.php");
+		client.print("?deviceid=");
+		client.print("00000000c1a0");
 
 		client.println(" HTTP/1.1");
 		client.print("Host: ");
 		client.println(DEFAULT_HTTP_SERVER);
 		client.println("Connection: keep-alive");
-		client.println("");
+		client.println(""); */
+    
+    client.print("POST ");
+    client.print(path_domain);
+    client.print("/alive.php");
+    client.println(" HTTP/1.1");
+    client.print("Host: ");
+    client.println(httpServer);
+    client.println("Content-Type: application/x-www-form-urlencoded");
+    client.print("Content-Length: ");
+    client.println(rsize);
+    client.println("Connection: close"); // ???
+    client.println("");
+    client.println(rBuffer);
     unsigned long responseMill = millis();
 
 		delay(100);
-		char rBuffer[300];
+    memset( rBuffer, 0, 300*sizeof(char));
 		//while(!client.available()){;} // wait for data
     while(!client.available() && (millis() - responseMill < timeoutResponse ) ){;}
     if(client.available()){
