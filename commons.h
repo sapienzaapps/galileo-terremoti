@@ -47,60 +47,60 @@ struct RECORD *rec = &recddl;
 
 //printing a record state
 void printRecord(struct RECORD *db) {
-	if (debugON) {
-		Serial.print(db->valx);
-		Serial.print(":");
-		Serial.print(db->valy);
-		Serial.print(":");
-		Serial.print(db->valz);
-	}
+  if (debugON) {
+    Serial.print(db->valx);
+    Serial.print(":");
+    Serial.print(db->valy);
+    Serial.print(":");
+    Serial.print(db->valz);
+  }
 }
 
 void forceConfigUpdate();
 // check if Internet Connection is available
 bool isConnectedToInternet() {
-	int ping = system("bin/busybox ping -w 2 8.8.8.8");
+  int ping = system("bin/busybox ping -w 2 8.8.8.8");
 
-	if ((deviceLocation == 0) || (!testNoInternet)) {
-		return true;
-	}
+  if ((deviceLocation == 0) || (!testNoInternet)) {
+    return true;
+  }
 
-	int pingWifexited = WIFEXITED(ping);
-	if (pingWifexited) {
-		if (WEXITSTATUS(ping) == 0) {
-			internetConnected = true;
-			return true;
-		}
+  int pingWifexited = WIFEXITED(ping);
+  if (pingWifexited) {
+    if (WEXITSTATUS(ping) == 0) {
+      internetConnected = true;
+      return true;
+    }
 
-		if (debugON) {
-			Serial.print("Ping WEXITSTATUS STATUS: ");
-			Serial.println(WEXITSTATUS(ping));
-		}
-	}
-	else {
-		if (debugON) {
-			Serial.print("Ping Wifexited STATUS: ");
-			Serial.println(pingWifexited);
-		}
-		internetConnected = false;
-		return false;
-	}
+    if (debugON) {
+      Serial.print("Ping WEXITSTATUS STATUS: ");
+      Serial.println(WEXITSTATUS(ping));
+    }
+  }
+  else {
+    if (debugON) {
+      Serial.print("Ping Wifexited STATUS: ");
+      Serial.println(pingWifexited);
+    }
+    internetConnected = false;
+    return false;
+  }
 
-	internetConnected = false;
-	return false;
+  internetConnected = false;
+  return false;
 }
 
 
 // check if a file exists
 int doesFileExist(const char *filename) {
-	if( access( filename, F_OK ) != -1 ) {
-	  // file exists
-		return 1;
-	}
-	else {
-	  // file doesn't exist
-		return 0;
-	}
+  if( access( filename, F_OK ) != -1 ) {
+    // file exists
+    return 1;
+  }
+  else {
+    // file doesn't exist
+    return 0;
+  }
 }
 
 
@@ -111,11 +111,11 @@ void createScript(char *path, char *text) {
   }else {
     script = fopen(path, "w");
   }
-	if (script  == NULL) {
+  if (script  == NULL) {
     if (debugON) Serial.println("F_Error opening script!\n");
-	  //exit(1);
+    //exit(1);
     return;
-	}else{
+  }else{
     if (debugON) Serial.println(text);
     //fprintf(script, "%s> ", getGalileoDate());
     fprintf(script, "%s\n", text);
@@ -460,16 +460,16 @@ float stringToDouble(char *buf){
 
 // store the given MAC address to a FILE into the SD card
 void storeConfigToSD() {
-	FILE *fp = fopen(config_path, "w");
-	if (fp == NULL) {
-		printf("Error opening file!\n");
-		exit(1);
-	}
+  FILE *fp = fopen(config_path, "w");
+  if (fp == NULL) {
+    printf("Error opening file!\n");
+    exit(1);
+  }
   Serial.print("Store lat: ");
   Serial.println(configGal.lat);
-	fprintf(fp,"deviceid:%s\nlat:%s\nlon:%s",mac_string,configGal.lat,configGal.lon);
-	
-	fclose(fp);
+  fprintf(fp,"deviceid:%s\nlat:%s\nlon:%s",mac_string,configGal.lat,configGal.lon);
+  
+  fclose(fp);
 }
 
 //avr-objdump -S {compiled *.elf file}

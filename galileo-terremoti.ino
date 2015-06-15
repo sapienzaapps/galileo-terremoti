@@ -1,6 +1,6 @@
 #if ARDUINO < 153
 #else
-	#define __IS_GALILEO
+  #define __IS_GALILEO
 #endif
 
 #include <Ethernet.h>
@@ -12,10 +12,10 @@
 #define GEN2 0 // remove if gen1 = 1
 
 #ifdef __IS_GALILEO
-	#include <EthernetUdp.h>
-	#include <sys/sysinfo.h>
-	#include <signal.h>
-	#include <stdlib.h>  // for ntp_alt.h
+  #include <EthernetUdp.h>
+  #include <sys/sysinfo.h>
+  #include <signal.h>
+  #include <stdlib.h>  // for ntp_alt.h
 #endif
 //Actual versions: 1.7 gen1   1.7 gen2
 
@@ -71,21 +71,21 @@ byte errors_connection = 0;
 
 //definition freeRam method
 #ifdef __IS_GALILEO
-	unsigned long freeRam() {
-		struct sysinfo s;
-		sysinfo(&s);
-		return s.freeram;
-	}
+  unsigned long freeRam() {
+    struct sysinfo s;
+    sysinfo(&s);
+    return s.freeram;
+  }
 
-	// static temp struct
-	static struct RECORD ddl = {0, 0, 0, 0, 0, false};
-	struct RECORD *db = &ddl;
-	unsigned long currentMillis, milldelayTime;
+  // static temp struct
+  static struct RECORD ddl = {0, 0, 0, 0, 0, false};
+  struct RECORD *db = &ddl;
+  unsigned long currentMillis, milldelayTime;
 #else
 #if (ARDUINO >= 100)
-	#include <Arduino.h>
+  #include <Arduino.h>
 #else
-	#include <WProgram.h>
+  #include <WProgram.h>
 #endif
 #endif
 
@@ -127,22 +127,22 @@ void checkSensore()
 
 
   switch(thresholdAlghoritm) {
-  	case Basic:
-  		db->overThreshold = isOverThresholdBasic(db, &td);
-  		break;
+    case Basic:
+      db->overThreshold = isOverThresholdBasic(db, &td);
+      break;
 
-  	case Fixed:
-  		db->overThreshold = isOverThresholdFixed(db, &td);
-  		break;
+    case Fixed:
+      db->overThreshold = isOverThresholdFixed(db, &td);
+      break;
 
-  	default:  // Basic
-  		db->overThreshold = isOverThresholdBasic(db, &td);
+    default:  // Basic
+      db->overThreshold = isOverThresholdBasic(db, &td);
   }
 
   //debug_Axis(); // Debug Only
    
   //if (internetConnected || !testNoInternet ) {
-  	sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
+    sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
     //delay(1);
   //}
   
@@ -252,36 +252,36 @@ void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
 // use the linux underneath the device to force manual DNS and so on
 void setupEthernet() {
   switch (deviceLocation) {
-	  case Colossus:  // Sapienza Colossus
-	    ip = IPAddress(10, 10, 1, 101);
-	    dns = IPAddress(151, 100, 17, 18);
-	    gateway = IPAddress(10, 10, 1, 1);
-	    subnet = IPAddress(255, 255, 255, 0);
+    case Colossus:  // Sapienza Colossus
+      ip = IPAddress(10, 10, 1, 101);
+      dns = IPAddress(151, 100, 17, 18);
+      gateway = IPAddress(10, 10, 1, 1);
+      subnet = IPAddress(255, 255, 255, 0);
       Ethernet.begin(mac, ip, dns, gateway); //vedere
-	    timeServer = IPAddress(10, 10, 1, 1);
+      timeServer = IPAddress(10, 10, 1, 1);
       system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-	    system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
-	    system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
-	    break;
-
-	  case Panizzi:  // Panizzi's room
-	    ip = IPAddress(151, 100, 17, 143);
-	    dns = IPAddress(151, 100, 17, 18);
-	    gateway = IPAddress(151, 100, 17, 1);
-	    subnet = IPAddress(255, 255 ,255 ,0);
-      Ethernet.begin(mac, ip, dns, gateway);
-	    timeServer = IPAddress(37, 247, 49, 133);
-      system("ifconfig eth0 151.100.17.143 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-	    system("route add default gw 151.100.17.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
-	    system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
+      system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
+      system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
       break;
 
-	  case Home:  // Home
-	    /* timeServer = IPAddress(132, 163, 4, 101); */
-	    timeServer = IPAddress(178, 33, 50, 131);
-	    if (isDhcpEnabled) {
-	      boolean isDhcpWorking = false;
-	      while (!isDhcpWorking) { // WARNING: add DHCP timeout
+    case Panizzi:  // Panizzi's room
+      ip = IPAddress(151, 100, 17, 143);
+      dns = IPAddress(151, 100, 17, 18);
+      gateway = IPAddress(151, 100, 17, 1);
+      subnet = IPAddress(255, 255 ,255 ,0);
+      Ethernet.begin(mac, ip, dns, gateway);
+      timeServer = IPAddress(37, 247, 49, 133);
+      system("ifconfig eth0 151.100.17.143 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+      system("route add default gw 151.100.17.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
+      system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
+      break;
+
+    case Home:  // Home
+      /* timeServer = IPAddress(132, 163, 4, 101); */
+      timeServer = IPAddress(178, 33, 50, 131);
+      if (isDhcpEnabled) {
+        boolean isDhcpWorking = false;
+        while (!isDhcpWorking) { // WARNING: add DHCP timeout
           /* Trying to get an IP address */
           if (Ethernet.begin(mac) == 0) {  // Error retrieving DHCP IP 
             if (debugON) Serial.println("Error while attempting to get an IP, retrying in 5 seconds...");
@@ -293,42 +293,42 @@ void setupEthernet() {
           }
         }
          break;
-	    }
-	    else { // Home Static Configuration 
+      }
+      else { // Home Static Configuration 
         if (debugON) Serial.println("Static Configuration");
         if (logON) log("Static Configuration\n");
-	      //add your static IP here
+        //add your static IP here
         if (GEN1) ip = IPAddress(192, 168, 1, 177);// gen1
         else ip = IPAddress(192, 168, 1, 178); // gen2
-  	    //dns = IPAddress(192,168,1,1);
-  	    dns = IPAddress(192,168,1,254);
-  	    //gateway = IPAddress(192,168,1,1);
-  	    gateway = IPAddress(192,168,1,254);
+        //dns = IPAddress(192,168,1,1);
+        dns = IPAddress(192,168,1,254);
+        //gateway = IPAddress(192,168,1,1);
+        gateway = IPAddress(192,168,1,254);
         subnet = IPAddress(255, 255 ,255 ,0);
-        // ARDUINO START CONNECTION		
-	      Ethernet.begin(mac, ip, dns, gateway, subnet); // Static address configuration 
+        // ARDUINO START CONNECTION    
+        Ethernet.begin(mac, ip, dns, gateway, subnet); // Static address configuration 
         //LINUX SYSTEM START CONNECTION
         if (GEN1) system("ifconfig eth0 192.168.1.177 netmask 255.255.255.0 up");  // set IP and SubnetMask for the Ethernet
         else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up");  // set IP and SubnetMask for the Ethernet
         //else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-	      //system("route add default gw 192.168.1.254 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gateway for the Ethernet
-	      system("route add default gw 192.168.1.254 eth0");  // change the Gateway for the Ethernet
-	      system("echo 'nameserver 8.8.8.8' > /etc/resolv.conf");  // add the GOOGLE DNS
-				//system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
-	      //system("ifconfig > /dev/ttyGS0");  // debug
+        //system("route add default gw 192.168.1.254 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gateway for the Ethernet
+        system("route add default gw 192.168.1.254 eth0");  // change the Gateway for the Ethernet
+        system("echo 'nameserver 8.8.8.8' > /etc/resolv.conf");  // add the GOOGLE DNS
+        //system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
+        //system("ifconfig > /dev/ttyGS0");  // debug
         if (debugON) {
           Serial.print("Static IP: ");
           Serial.println(Ethernet.localIP());
         }
         break;
       }// END - Home Static Configuration 
-	    break;
+      break;
 
-	  default:  // like case 0, Sapienza Colossus
-	    Ethernet.begin(mac, ip, dns, gateway);
-	    system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-	    system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
-	    system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
+    default:  // like case 0, Sapienza Colossus
+      Ethernet.begin(mac, ip, dns, gateway);
+      system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+      system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
+      system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
       system("ifconfig > /dev/ttyGS0");  // debug
   }// END switch device location
 }// END SetupEthernet()
@@ -340,7 +340,7 @@ void setup() {
   Serial.begin(9600);
   delay(500);
   Serial.println("Starting.........");
-	#ifdef __IS_GALILEO
+  #ifdef __IS_GALILEO
     // Fixing Arduino Galileo bug
     //signal(SIGPIPE, SIG_IGN); Removed - caused not restarting sketch
     // Workaround for Galileo (and other boards with Linux)
@@ -376,11 +376,11 @@ void setup() {
   //byteMacToString(mac); // create string for MAC address
   if (request_mac_from_server) {
     Serial.println("Requesting deviceID to server... ");
-		getMacAddressFromServer(); // asking for new mac address/deviceid
+    getMacAddressFromServer(); // asking for new mac address/deviceid
     HEXtoDecimal(mac_string, strlen(mac_string), mac);
     byteMacToString(mac);
-	// convertMACFromStringToByte();
-	}
+  // convertMACFromStringToByte();
+  }
   if(!request_lat_lon) start = true;
 
   internetConnected = isConnectedToInternet();
@@ -390,25 +390,25 @@ void setup() {
   delay(500);  
   
   if (ledON) {
-  	pinMode(green_Led, OUTPUT);
-		digitalWrite(green_Led,HIGH);
+    pinMode(green_Led, OUTPUT);
+    digitalWrite(green_Led,HIGH);
     delay(500);
-		digitalWrite(green_Led,LOW);    
-		if (internetConnected){
+    digitalWrite(green_Led,LOW);    
+    if (internetConnected){
       digitalWrite(green_Led,HIGH);
       greenLedStatus = true;
     }else greenLedStatus = false;
     
-		digitalWrite(red_Led,HIGH);
+    digitalWrite(red_Led,HIGH);
     delay(500);
     digitalWrite(red_Led,LOW);
-		pinMode(red_Led, OUTPUT);
-		digitalWrite(red_Led,LOW);
+    pinMode(red_Led, OUTPUT);
+    digitalWrite(red_Led,LOW);
     redLedStatus = false;
-   	pinMode(yellow_Led, OUTPUT);
-		digitalWrite(yellow_Led,HIGH);  
+     pinMode(yellow_Led, OUTPUT);
+    digitalWrite(yellow_Led,HIGH);  
     delay(500);
-		digitalWrite(yellow_Led,LOW);  
+    digitalWrite(yellow_Led,LOW);  
   }
 
   //system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
@@ -462,20 +462,20 @@ void setup() {
 // end SETUP
 
 void loop() {
-	currentMillis = millis();
-	// debug only, check if the sketch is still running and Internet is CONNECTED
-	if ((testNoInternet) && (currentMillis - previousMillis > checkInternetConnectionInterval) || chekInternet/*|| resetConnection*/) {
-		if(chekInternet) chekInternet = false;
+  currentMillis = millis();
+  // debug only, check if the sketch is still running and Internet is CONNECTED
+  if ((testNoInternet) && (currentMillis - previousMillis > checkInternetConnectionInterval) || chekInternet/*|| resetConnection*/) {
+    if(chekInternet) chekInternet = false;
     internetConnected = isConnectedToInternet();
-		if (!internetConnected) {
+    if (!internetConnected) {
       //internetConnected = isConnectedToInternet();
-			if (ledON && greenLedStatus){
+      if (ledON && greenLedStatus){
         digitalWrite(green_Led,LOW);
         greenLedStatus = !greenLedStatus;
       }
       resetEthernet = true;
-		}
-		else { // IF INTERNET IS PRESENT 
+    }
+    else { // IF INTERNET IS PRESENT 
       if (ledON && !greenLedStatus){
         digitalWrite(green_Led,HIGH);
         greenLedStatus = !greenLedStatus;
@@ -484,33 +484,33 @@ void loop() {
       resetEthernet = false;
       // if (start)getConfigNew(); // CHEK FOR UPDATES
      
-		}
-		if(logON)log("Still running");
-		if (debugON) {
-			Serial.print("Loop - Still running: ");
+    }
+    if(logON)log("Still running");
+    if (debugON) {
+      Serial.print("Loop - Still running: ");
       Serial.println(getGalileoDate());
-			Serial.print("CHECK INTERNET INTERVAL: ");
-			Serial.println(checkInternetConnectionInterval);
-			Serial.print("STATUS CONNECTION: ");
-			Serial.println(internetConnected?"CONNECTED":"NOT CONNECTED");
-		}
-		previousMillis = currentMillis;
-	}
+      Serial.print("CHECK INTERNET INTERVAL: ");
+      Serial.println(checkInternetConnectionInterval);
+      Serial.print("STATUS CONNECTION: ");
+      Serial.println(internetConnected?"CONNECTED":"NOT CONNECTED");
+    }
+    previousMillis = currentMillis;
+  }
 
   // sync with the NTP server
-	// unsigned long currentMillisNTP = millis();
-	if ((testNoInternet) &&(currentMillis - previousMillisNTP > NTPInterval) && internetConnected && !resetEthernet) {
-	  NTPdataPacket();
+  // unsigned long currentMillisNTP = millis();
+  if ((testNoInternet) &&(currentMillis - previousMillisNTP > NTPInterval) && internetConnected && !resetEthernet) {
+    NTPdataPacket();
     execSystemTimeUpdate();
-	  previousMillisNTP = currentMillis;
-	}
+    previousMillisNTP = currentMillis;
+  }
   
   // Check for calibration Sensor
   // unsigned long currentMillisCalibration = millis();
-	if (testNoInternet && (currentMillis - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
+  if (testNoInternet && (currentMillis - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
     int cHour = (getUNIXTime() % 86400L) / 3600;
-	  if (debugON) Serial.println("checkCalibrationNeeded---------------------------------------");
-	  // checkCalibrationNeeded(accelero, cHour);
+    if (debugON) Serial.println("checkCalibrationNeeded---------------------------------------");
+    // checkCalibrationNeeded(accelero, cHour);
     checkCalibrationNeededNOSD(accelero, cHour);
     ForceCalibrationNeeded = false;
     prevMillisCalibration = currentMillis;
@@ -587,7 +587,7 @@ if(numAlert >= reTareNum){
         Serial.println("###############STOPPING RECORD----------------------------------------");
       }
     }
-		milldelayTime = currentMillis;
+    milldelayTime = currentMillis;
   }
   
   // check if is time to update config

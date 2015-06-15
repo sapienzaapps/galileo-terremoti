@@ -77,7 +77,7 @@ int checkCommandPacket() {
           _cmdc.endPacket();
           break;
         case 2: // Ping
-        	if (debugON) Serial.println("PING");  // start sending packets to the mobile APP
+          if (debugON) Serial.println("PING");  // start sending packets to the mobile APP
           // Reply
           _pktBuffer[5] = 3;
           _cmdc.beginPacket(_udpTemp, 62001);
@@ -86,15 +86,15 @@ int checkCommandPacket() {
           if (debugON) Serial.println("PONG");
           break;
         case 4: // Start
-        	if (debugON) Serial.println("START");  // start the socket connection with the mobile APP
+          if (debugON) Serial.println("START");  // start the socket connection with the mobile APP
           _udpDest = IPinteger;
           break;
         case 5: // Stop
-        	if (debugON) Serial.println("STOP");  // close the socket connection with the mobile APP
+          if (debugON) Serial.println("STOP");  // close the socket connection with the mobile APP
           _udpDest = (uint32_t)0;
           break;        
         case 6: // Setted
-        	if (debugON) Serial.println("Setted");  // close the socket connection with the mobile APP
+          if (debugON) Serial.println("Setted");  // close the socket connection with the mobile APP
           //if (debugON) Serial.println("PING");  // start sending packets to the mobile APP
           // Reply
           // _pktBuffer[35] = '\0';

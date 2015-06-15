@@ -118,7 +118,7 @@ void initEEPROM(bool forceInitEEPROM) {
     if (debugON) Serial.println("EEPROM already formatted, skipping...");
   }
   else {
-  	if (debugON) Serial.println("EEPROM not formatted, let's do it");
+    if (debugON) Serial.println("EEPROM not formatted, let's do it");
     int i=0;
     for (i=4; i < (48*24); i++) { //controllare grandezza eeprom
       EEPROM.write(i, 0);
@@ -175,40 +175,40 @@ void initThrSD(bool forceInitEEPROM) {
 }
 
 void setThresholdValues(AcceleroMMA7361 ac, int currentHour) {
-	int cbufx[CALIBRATIONITER];
-	int cbufy[CALIBRATIONITER];
-	int cbufz[CALIBRATIONITER];
+  int cbufx[CALIBRATIONITER];
+  int cbufy[CALIBRATIONITER];
+  int cbufz[CALIBRATIONITER];
 
-	if (debugON) Serial.print("Begin calibration for hour: ");
-	if (debugON) Serial.println(currentHour);
+  if (debugON) Serial.print("Begin calibration for hour: ");
+  if (debugON) Serial.println(currentHour);
 
-	int i=0;
-	for (i=0; i < CALIBRATIONITER; i++) {
-		cbufx[i] = ac.getXAccel();
-		cbufy[i] = ac.getYAccel();
-		cbufz[i] = ac.getZAccel();
-	}
+  int i=0;
+  for (i=0; i < CALIBRATIONITER; i++) {
+    cbufx[i] = ac.getXAccel();
+    cbufy[i] = ac.getYAccel();
+    cbufz[i] = ac.getZAccel();
+  }
 
-	float avgx = absavg(cbufx, CALIBRATIONITER);
-	float avgy = absavg(cbufy, CALIBRATIONITER);
-	float avgz = absavg(cbufz, CALIBRATIONITER);
-	double sdevx = stddev(cbufx, CALIBRATIONITER, avgx);
-	double sdevy = stddev(cbufy, CALIBRATIONITER, avgy);
-	double sdevz = stddev(cbufz, CALIBRATIONITER, avgz);
+  float avgx = absavg(cbufx, CALIBRATIONITER);
+  float avgy = absavg(cbufy, CALIBRATIONITER);
+  float avgz = absavg(cbufz, CALIBRATIONITER);
+  double sdevx = stddev(cbufx, CALIBRATIONITER, avgx);
+  double sdevy = stddev(cbufy, CALIBRATIONITER, avgy);
+  double sdevz = stddev(cbufz, CALIBRATIONITER, avgz);
 
-	pthresx = avgx + (sdevx + ORANGEZONE);
-	pthresy = avgy + (sdevy + ORANGEZONE);
-	pthresz = avgz + (sdevz + ORANGEZONE);
+  pthresx = avgx + (sdevx + ORANGEZONE);
+  pthresy = avgy + (sdevy + ORANGEZONE);
+  pthresz = avgz + (sdevz + ORANGEZONE);
 
-	nthresx = avgx - (sdevx + ORANGEZONE);
-	nthresy = avgy - (sdevy + ORANGEZONE);
-	nthresz = avgz - (sdevz + ORANGEZONE);
+  nthresx = avgx - (sdevx + ORANGEZONE);
+  nthresy = avgy - (sdevy + ORANGEZONE);
+  nthresz = avgz - (sdevz + ORANGEZONE);
 }
 
 void setThresholdValuesBasic(AcceleroMMA7361 ac, int currentHour) {
-	pthresx = 10;
-	pthresy = 10;
-	pthresz = 100;
+  pthresx = 10;
+  pthresy = 10;
+  pthresz = 100;
 }
 void checkCalibrationNeededNOSD(AcceleroMMA7361 ac, int currentHour) {
    
@@ -339,40 +339,40 @@ void checkCalibrationNeededSD(AcceleroMMA7361 ac, int currentHour) {
 
 
 // void setThresholdValues(AcceleroMMA7361 ac, int currentHour) {
-	// int cbufx[CALIBRATIONITER];
-	// int cbufy[CALIBRATIONITER];
-	// int cbufz[CALIBRATIONITER];
+  // int cbufx[CALIBRATIONITER];
+  // int cbufy[CALIBRATIONITER];
+  // int cbufz[CALIBRATIONITER];
 
-	// if (debugON) Serial.print("Begin calibration for hour: ");
-	// if (debugON) Serial.println(currentHour);
+  // if (debugON) Serial.print("Begin calibration for hour: ");
+  // if (debugON) Serial.println(currentHour);
 
-	// int i=0;
-	// for (i=0; i < CALIBRATIONITER; i++) {
-		// cbufx[i] = ac.getXAccel();
-		// cbufy[i] = ac.getYAccel();
-		// cbufz[i] = ac.getZAccel();
-	// }
+  // int i=0;
+  // for (i=0; i < CALIBRATIONITER; i++) {
+    // cbufx[i] = ac.getXAccel();
+    // cbufy[i] = ac.getYAccel();
+    // cbufz[i] = ac.getZAccel();
+  // }
 
-	// float avgx = absavg(cbufx, CALIBRATIONITER);
-	// float avgy = absavg(cbufy, CALIBRATIONITER);
-	// float avgz = absavg(cbufz, CALIBRATIONITER);
-	// double sdevx = stddev(cbufx, CALIBRATIONITER, avgx);
-	// double sdevy = stddev(cbufy, CALIBRATIONITER, avgy);
-	// double sdevz = stddev(cbufz, CALIBRATIONITER, avgz);
+  // float avgx = absavg(cbufx, CALIBRATIONITER);
+  // float avgy = absavg(cbufy, CALIBRATIONITER);
+  // float avgz = absavg(cbufz, CALIBRATIONITER);
+  // double sdevx = stddev(cbufx, CALIBRATIONITER, avgx);
+  // double sdevy = stddev(cbufy, CALIBRATIONITER, avgy);
+  // double sdevz = stddev(cbufz, CALIBRATIONITER, avgz);
 
-	// pthresx = avgx + (sdevx + ORANGEZONE);
-	// pthresy = avgy + (sdevy + ORANGEZONE);
-	// pthresz = avgz + (sdevz + ORANGEZONE);
+  // pthresx = avgx + (sdevx + ORANGEZONE);
+  // pthresy = avgy + (sdevy + ORANGEZONE);
+  // pthresz = avgz + (sdevz + ORANGEZONE);
 
-	// nthresx = avgx - (sdevx + ORANGEZONE);
-	// nthresy = avgy - (sdevy + ORANGEZONE);
-	// nthresz = avgz - (sdevz + ORANGEZONE);
+  // nthresx = avgx - (sdevx + ORANGEZONE);
+  // nthresy = avgy - (sdevy + ORANGEZONE);
+  // nthresz = avgz - (sdevz + ORANGEZONE);
 // }
 
 // void setThresholdValuesBasic(AcceleroMMA7361 ac, int currentHour) {
-	// pthresx = 10;
-	// pthresy = 10;
-	// pthresz = 100;
+  // pthresx = 10;
+  // pthresy = 10;
+  // pthresz = 100;
 // }
 
 void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
@@ -395,7 +395,7 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
   
   // do calibration every random amount of hours? or if it's the first time ever
   if (nextHour == currentHour || temp == 0) {
-  	//setThresholdValuesBasic(ac, currentHour);
+    //setThresholdValuesBasic(ac, currentHour);
     if(!yellowLedStatus){
       digitalWrite(yellow_Led,!yellowLedStatus);
       yellowLedStatus = !yellowLedStatus;
@@ -440,7 +440,7 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
     if (debugON) Serial.println(nextHour);
   }
   else {
-  	if (debugON) Serial.println("Loading values from EEPROM for new hour");
+    if (debugON) Serial.println("Loading values from EEPROM for new hour");
     int pos = 4 + currentHour*48;
     pthresx = readDouble(pos);
     if (debugON) Serial.print("pthresx: ");

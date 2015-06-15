@@ -28,7 +28,7 @@ IPAddress getFromString(char* ipAddr) {
 
 // prepare buffer for config update request
 int prepareConfigBuffer(char* buf) {
-	// deviceid, lat, lon, pthresy, version, model
+  // deviceid, lat, lon, pthresy, version, model
    if(debugON) Serial.print("mac testo: ");
    if(debugON) Serial.println(mac_string);
   return sprintf(buf, "deviceid=%s&lat=%s&lon=%s&version=%.2f&model=%s", mac_string, configGal.lat,configGal.lon, configGal.version, configGal.model );
@@ -37,8 +37,8 @@ int prepareConfigBuffer(char* buf) {
 /* boolean getConfigUpdates(boolean noupdate) {
   boolean ret = false;
   if (client.connect(httpServer, 80)) {
-  	if (debugON) Serial.print("Requesting CONFIG to: ");
-  	if (debugON) Serial.println(httpServer);
+    if (debugON) Serial.print("Requesting CONFIG to: ");
+    if (debugON) Serial.println(httpServer);
     
     client.print("GET ");
     client.print(path_domain);
@@ -101,8 +101,8 @@ int prepareConfigBuffer(char* buf) {
       ret = true;
     }
     else {
-    	if (debugON) Serial.print("Error in reply: ");
-    	if (debugON) Serial.println(rBuffer);
+      if (debugON) Serial.print("Error in reply: ");
+      if (debugON) Serial.println(rBuffer);
     }
     client.stop();
   }else{
@@ -116,30 +116,30 @@ int prepareConfigBuffer(char* buf) {
 } */
 
 /* void doConfigUpdates() {
-	//unsigned long currentMillisConfig = millis();
-	//if (currentMillisConfig - previousMillisConfig > intervalConfig) {
-		//previousMillisConfig = currentMillisConfig;
-		log("Still running Config Update");
-		//if (isConnectedToInternet()) {
+  //unsigned long currentMillisConfig = millis();
+  //if (currentMillisConfig - previousMillisConfig > intervalConfig) {
+    //previousMillisConfig = currentMillisConfig;
+    log("Still running Config Update");
+    //if (isConnectedToInternet()) {
     log("isConnectedToInternet");
-		//}
-		log("lastCfgUpdate");
-		logLong(lastCfgUpdate);
-		log("cfgUpdateInterval");
-		logLong(cfgUpdateInterval);
-		log("getUNIXTime()");
-		logLong(getUNIXTime());
-	//}
+    //}
+    log("lastCfgUpdate");
+    logLong(lastCfgUpdate);
+    log("cfgUpdateInterval");
+    logLong(cfgUpdateInterval);
+    log("getUNIXTime()");
+    logLong(getUNIXTime());
+  //}
 
   //if (lastCfgUpdate+cfgUpdateInterval < getUNIXTime() && isConnectedToInternet()) {
     // Get Updates
     if (getConfigNew(false)) {
-    	if (debugON) Serial.println("Configuration update succeded");
-    	if (logON) log("Configuration update succeded");
+      if (debugON) Serial.println("Configuration update succeded");
+      if (logON) log("Configuration update succeded");
     }
     else {
-    	if (debugON) Serial.println("Configuration update failed");
-    	if (logON) log("Configuration update failed");
+      if (debugON) Serial.println("Configuration update failed");
+      if (logON) log("Configuration update failed");
     }
  // }
 }
@@ -159,8 +159,8 @@ boolean getConfigNew() {
   //milldelayTimeEvent = millis(); // timestamp in millis for Event Interval
   boolean ret = false;
   if (client.connect(httpServer, 80)) {
-  	if (debugON) Serial.print("Requesting CONFIG to: ");
-  	if (debugON) Serial.println(httpServer);
+    if (debugON) Serial.print("Requesting CONFIG to: ");
+    if (debugON) Serial.println(httpServer);
     char rBuffer[300];
     int rsize = prepareConfigBuffer(rBuffer);  // prepare the info for the new entry to be send to DB
     // sendig request to server
@@ -355,7 +355,7 @@ boolean getConfigNew() {
   //boolean ret = getConfigUpdates(noupdate);
   boolean ret = getConfigNew();
   while(!ret) { 
-  	if (debugON) Serial.println("Configuration update failed, retrying in 3 seconds...");
+    if (debugON) Serial.println("Configuration update failed, retrying in 3 seconds...");
     delay(3000);
     //ret = getConfigUpdates(noupdate);
     ret = getConfigNew();

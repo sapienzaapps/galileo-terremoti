@@ -45,42 +45,42 @@ EthernetUDP UDP_as_NTP;
 void dateGalileo(uint32_t t) {
   t -= SECONDS_FROM_1970_TO_2000;  // bring to 2000 timestamp from 1970
 
-	ss = t % 60;
-	t /= 60;
-	mm = t % 60;
-	t /= 60;
-	hh = t % 24;
-	uint16_t days = t / 24;
-	uint8_t leap;
-	for (yOff = 0; ; ++yOff) {
-			leap = yOff % 4 == 0;
-			if (days < 365 + leap)
-					break;
-			days -= 365 + leap;
-	}
-	for (m = 1; ; ++m) {
-			uint8_t daysPerMonth = pgm_read_byte(daysInMonth + m - 1);
-			if (leap && m == 2)
-					++daysPerMonth;
-			if (days < daysPerMonth)
-					break;
-			days -= daysPerMonth;
-	}
-	d = days + 1;
+  ss = t % 60;
+  t /= 60;
+  mm = t % 60;
+  t /= 60;
+  hh = t % 24;
+  uint16_t days = t / 24;
+  uint8_t leap;
+  for (yOff = 0; ; ++yOff) {
+      leap = yOff % 4 == 0;
+      if (days < 365 + leap)
+          break;
+      days -= 365 + leap;
+  }
+  for (m = 1; ; ++m) {
+      uint8_t daysPerMonth = pgm_read_byte(daysInMonth + m - 1);
+      if (leap && m == 2)
+          ++daysPerMonth;
+      if (days < daysPerMonth)
+          break;
+      days -= daysPerMonth;
+  }
+  d = days + 1;
   // Displaying Current Date and Time
 
-	if (debugON) {
-		Serial.print(hh);
-		Serial.print(":");
-		Serial.print(mm);
-		Serial.print(":");
-		Serial.println(ss);
-		Serial.print(d);
-		Serial.print("/");
-		Serial.print(m);
-		Serial.print("/");
-		Serial.println(2000+yOff);
-	}
+  if (debugON) {
+    Serial.print(hh);
+    Serial.print(":");
+    Serial.print(mm);
+    Serial.print(":");
+    Serial.println(ss);
+    Serial.print(d);
+    Serial.print("/");
+    Serial.print(m);
+    Serial.print("/");
+    Serial.println(2000+yOff);
+  }
 }
 // end conversion date from epoch
 
@@ -108,15 +108,15 @@ void sendNTPpacket(IPAddress &address) {
 }
 
 bool NTPdataPacket() {
-	bool NTPsynced = false;
+  bool NTPsynced = false;
   memset(cmd0, 0, 30);
   memset(bufSTR, 0, 13);
-	// while (!NTPsynced) {
+  // while (!NTPsynced) {
   if(internetConnected){
-		sendNTPpacket(timeServer); // send an NTP packet to a time server
+    sendNTPpacket(timeServer); // send an NTP packet to a time server
   
-		// wait to see if a reply is available
-		delay(500);
+    // wait to see if a reply is available
+    delay(500);
     unsigned long responseMill = millis();
     // WAIT FOR SERVER RESPONCE
     while(!NTPsynced && (millis() - responseMill < timeoutResponse ) ){
@@ -184,7 +184,7 @@ bool NTPdataPacket() {
     //resetEthernet = true;
   }
   return 0;
-	//}
+  //}
 }
 
 // Set date and time to NTP's retrieved one
@@ -209,47 +209,47 @@ void execSystemTimeUpdate(){
 
 // Connect to NTP server and set System Clock
 void initNTP() {
-	UDP_as_NTP.begin(localPort);
-	delay(1000);
-	if(NTPdataPacket()){
+  UDP_as_NTP.begin(localPort);
+  delay(1000);
+  if(NTPdataPacket()){
     execSystemTimeUpdate();
 /*     // setting system clock
     char buf[64];
-	  FILE *ptr;
-	  if (debugON){ 
+    FILE *ptr;
+    if (debugON){ 
       Serial.print("COMANDO: ");
       Serial.println(cmd0);
     }
-	  if ((ptr = popen((char *)cmd0, "r")) != NULL) {
-	    while (fgets(buf, 64, ptr) != NULL) {
-	    	if (debugON) Serial.print(buf);
-	    }
+    if ((ptr = popen((char *)cmd0, "r")) != NULL) {
+      while (fgets(buf, 64, ptr) != NULL) {
+        if (debugON) Serial.print(buf);
+      }
       (void) pclose(ptr);
-	  }else{
+    }else{
       if (debugON){ 
         Serial.println("error popen NTP init ");
       }
     } */
-	  //_unixTimeUpdate = millis();
+    //_unixTimeUpdate = millis();
   }else{
-	  if (debugON) Serial.println("Errore NTPdataPacket() ");
+    if (debugON) Serial.println("Errore NTPdataPacket() ");
     
   }
 }
 
 // for debug purpose only
 void testNTP() {
-	char *cmdP = "/bin/date +%F%t%T";
-	  char buf[64];
-	  FILE *ptr;
+  char *cmdP = "/bin/date +%F%t%T";
+    char buf[64];
+    FILE *ptr;
 
-	  if ((ptr = popen(cmdP, "r")) != NULL) {
-	    while (fgets(buf, 64, ptr) != NULL) {
-	    	if (debugON) Serial.print(buf);
-	    }
-	  }
-	  (void) pclose(ptr);
-	  delay(1000);
+    if ((ptr = popen(cmdP, "r")) != NULL) {
+      while (fgets(buf, 64, ptr) != NULL) {
+        if (debugON) Serial.print(buf);
+      }
+    }
+    (void) pclose(ptr);
+    delay(1000);
 }
 
 unsigned long getUNIXTime() {
@@ -270,24 +270,24 @@ unsigned long int getUNIXTimeMS() {
 }
 
 void debugUNIXTime(unsigned long epoch) {
-	if (debugON) {
-		// print the hour, minute and second:
-		//Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
-		Serial.print((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
-		Serial.print(':');
-		if ( ((epoch % 3600) / 60) < 10 ) {
-			// In the first 10 minutes of each hour, we'll want a leading '0'
-			Serial.print('0');
-		}
-		Serial.print((epoch  % 3600) / 60); // print the minute (3600 equals secs per minute)
-		Serial.print(':');
-		if ( (epoch % 60) < 10 ) {
-			// In the first 10 seconds of each minute, we'll want a leading '0'
-			Serial.print('0');
-		}
-		Serial.print(epoch %60); // print the second
-		Serial.println(" UTC");
-	}
+  if (debugON) {
+    // print the hour, minute and second:
+    //Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
+    Serial.print((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
+    Serial.print(':');
+    if ( ((epoch % 3600) / 60) < 10 ) {
+      // In the first 10 minutes of each hour, we'll want a leading '0'
+      Serial.print('0');
+    }
+    Serial.print((epoch  % 3600) / 60); // print the minute (3600 equals secs per minute)
+    Serial.print(':');
+    if ( (epoch % 60) < 10 ) {
+      // In the first 10 seconds of each minute, we'll want a leading '0'
+      Serial.print('0');
+    }
+    Serial.print(epoch %60); // print the second
+    Serial.println(" UTC");
+  }
 }
 
 #endif
