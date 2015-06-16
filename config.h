@@ -62,7 +62,7 @@ struct configFile{
   // float lon = 0.000000;
   char lat[10] = "00.000000";
   char lon[10] = "00.000000";
-  #if GEN2 > 0
+#if GEN2 > 0
   char *model = "galileo2";
   float version = 1.71;
 #else
@@ -113,17 +113,4 @@ void showThresholdValues(){
   
 }
 
-
-
-
-/* float lat = 41.283799;
-float lon = 13.251675;
-// float version = 1.3;
-float version = 1.4;
-#if GEN2 > 0
-  char *model = "galileo2";
-#else
-  char *model = "galileo";
-#endif
-*/
 #endif 
