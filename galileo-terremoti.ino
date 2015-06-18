@@ -1,15 +1,16 @@
-#if ARDUINO < 153
-#else
-  #define __IS_GALILEO
-#endif
+/**
+ *
+ * WARNING: if you want to use Arduino IDE, see README.md file first
+ *
+ */
+
+#include "buildcfg.h"
 
 #include <Ethernet.h>
 #include <SPI.h>
 #include <EEPROM.h>
 #include <SD.h>
 #include <math.h>
-#define GEN1 1 // 1 if gen1 else 0
-#define GEN2 0 // remove if gen1 = 1
 
 #ifdef __IS_GALILEO
   #include <EthernetUdp.h>
