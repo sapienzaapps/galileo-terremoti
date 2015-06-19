@@ -16,6 +16,27 @@ export BUILDCFG_FOOTER
 ARDUINOFILE=$(shell which arduino)
 ARDUINOROOT=$(shell dirname ${ARDUINOFILE})
 CWD=$(shell pwd)
+WHOAMI=$(shell whoami)
+SUDOEXISTS=$(shell which sudo)
+MOUNTCMD=""
+UMOUNTCMD=""
+CP=""
+PASS=0
+
+ifneq (${SUDOEXISTS}, )
+MOUNTCMD=$(shell which sudo) $(shell which mount)
+UMOUNTCMD=$(shell which sudo) $(shell which umount)
+CP=$(shell which sudo) cp
+PASS=1
+endif
+ifeq (${WHOAMI}, "root")
+MOUNTCMD=$(shell which mount)
+UMOUNTCMD=$(shell which umount)
+CP=cp
+PASS=1
+endif
+
+
 SERIAL=/dev/ttyACM0
 
 ifdef ARDUINODEV
@@ -54,5 +75,29 @@ gen2upload: gen2
 	#arduino --upload --verbose --board intel:i586-uclibc:izmir_fg --pref build.path=build --pref update.check=false galileo-terremoti.ino
 	/bin/bash --verbose --noprofile ${ARDUINOROOT}/hardware/intel/i586-uclibc/tools/izmir/clupload_linux.sh ${ARDUINOROOT}/hardware/tools ${CWD}/build/galileo-terremoti.cpp.elf ${SERIAL}
 
+imageprepare:
+ifeq (${PASS}, 0)
+	$(error Either root permissions or sudo is required)
+endif
+
+gen1image: imageprepare gen1
+	-${UMOUNTCMD} -f /tmp/arduinoimg
+	mkdir -p /tmp/arduinoimg
+	cp -r image-full-galileo build/
+	${MOUNTCMD} -t ext2 -o loop build/image-full-galileo/image-full-galileo-clanton.ext3 /tmp/arduinoimg
+	${CP} build/galileo-terremoti.cpp.elf /tmp/arduinoimg/sketch/sketch.elf
+	${UMOUNTCMD} -f /tmp/arduinoimg
+	rmdir /tmp/arduinoimg
+	
+gen2image: imageprepare gen2
+	-${UMOUNTCMD} -f /tmp/arduinoimg
+	mkdir -p /tmp/arduinoimg
+	cp -r image-full-galileo build/
+	${MOUNTCMD} -t ext2 -o loop build/image-full-galileo/image-full-galileo-clanton.ext3 /tmp/arduinoimg
+	${CP} build/galileo-terremoti.cpp.elf /tmp/arduinoimg/sketch/sketch.elf
+	${UMOUNTCMD} -f /tmp/arduinoimg
+	rmdir /tmp/arduinoimg
+
 clean:
+	-${UMOUNTCMD} -f /tmp/arduinoimg
 	rm -rf build/
