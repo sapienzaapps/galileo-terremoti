@@ -29,3 +29,9 @@ Enter `make gen1` to make Arduino Galileo Gen1 sketch file, or `make gen2` to ma
 
 If you want upload sketch to Arduino Galileo, you can use `make gen1upload` or `make gen2upload`.
 Note that by default Arduino tools will try to upload to `/dev/ttyACM0`: if your Galileo is on a different port, set `$ARDUINODEV` environment variable.
+
+# How to make Arduino Galileo SD Image (Linux-only)
+
+Just use `make gen1image` or `make gen2image` to build and generate files for Arduino Galileo SD Card (based on GNU/Linux code provided by Intel).
+
+Files will be placed on `build/image-full-galileo/` (copy contents to an empty FAT32-formatted SD Card).
