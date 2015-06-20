@@ -22,6 +22,7 @@ MOUNTCMD=""
 UMOUNTCMD=""
 CP=""
 PASS=0
+NEEDUMOUNT=$(shell mount | grep arduinoimg -c)
 
 ifneq (${SUDOEXISTS}, )
 MOUNTCMD=$(shell which sudo) $(shell which mount)
@@ -81,7 +82,9 @@ ifeq (${PASS}, 0)
 endif
 
 gen1image: imageprepare gen1
-	-${UMOUNTCMD} -f /tmp/arduinoimg
+ifeq (${NEEDUMOUNT}, 1)
+	${UMOUNTCMD} -f /tmp/arduinoimg
+endif
 	mkdir -p /tmp/arduinoimg
 	cp -r image-full-galileo build/
 	${MOUNTCMD} -t ext2 -o loop build/image-full-galileo/image-full-galileo-clanton.ext3 /tmp/arduinoimg
@@ -90,7 +93,9 @@ gen1image: imageprepare gen1
 	rmdir /tmp/arduinoimg
 	
 gen2image: imageprepare gen2
-	-${UMOUNTCMD} -f /tmp/arduinoimg
+ifeq (${NEEDUMOUNT}, 1)
+	${UMOUNTCMD} -f /tmp/arduinoimg
+endif
 	mkdir -p /tmp/arduinoimg
 	cp -r image-full-galileo build/
 	${MOUNTCMD} -t ext2 -o loop build/image-full-galileo/image-full-galileo-clanton.ext3 /tmp/arduinoimg
@@ -99,5 +104,7 @@ gen2image: imageprepare gen2
 	rmdir /tmp/arduinoimg
 
 clean:
-	-${UMOUNTCMD} -f /tmp/arduinoimg
+ifeq (${NEEDUMOUNT}, 1)
+	${UMOUNTCMD} -f /tmp/arduinoimg
+endif
 	rm -rf build/
