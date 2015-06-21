@@ -346,8 +346,6 @@ void setupEthernet() {
 
 void setup() {
 
-	Log::setLogFile(log_path);
-
 	analogReadResolution(10);        // 3.3V => 4096
 	Serial.print("    Res12bit: ");
 	delay(1000);
@@ -387,6 +385,14 @@ void setup() {
 	if (debugON) Serial.println("Setting up ethernet connection");
 	setupEthernet();
 	delay(1500);
+
+
+	Log::setLogFile(log_path);
+	IPAddress syslogIp(192, 0, 2, 75);
+	Log::setSyslogServer(syslogIp);
+	Log::i("Log config OK");
+
+
 	//byteMacToString(mac); // create string for MAC address
 	if (request_mac_from_server) {
 		Serial.println("Requesting deviceID to server... ");
@@ -394,6 +400,8 @@ void setup() {
 		HEXtoDecimal(mac_string, strlen(mac_string), mac);
 		byteMacToString(mac);
 		// convertMACFromStringToByte();
+
+		Log::setDeviceId(mac_string);
 	}
 	if(!request_lat_lon) start = true;
 

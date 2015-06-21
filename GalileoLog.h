@@ -19,7 +19,7 @@ static char date_log[30];
 
 
 char *getGalileoDate() {
-  char *cmdDate = "/bin/date +%F%t%T";
+  char *cmdDate = "/bin/date \"+%F %T\"";
   char buf[64];
   //char *date = (char*)malloc(22*sizeof(char)); memory leak ****
   memset(date_log, 0, 22); // zero memory buffer
@@ -80,29 +80,42 @@ public:
 	static void e(const char*, ...);
 
 	static void setLogLevel(LogLevel);
-	static void setSyslogServer(const char*);
+	static void setSyslogServer(IPAddress);
 	static void setLogFile(const char*);
 	static void enableSerialDebug(bool);
+	static void setDeviceId(char*);
 
 private:
 	static void log(LogLevel, const char*, va_list argptr);
-	static const char* syslogServer;
+	static IPAddress syslogServer;
+	static bool syslogEnabled;
+	static EthernetUDP syslogUdp;
 	static const char* logFilePath;
 	static FILE* logFile;
 	static bool serialDebug;
 	static LogLevel logLevel;
+	static char* deviceid;
 };
 
 
 
-const char* Log::syslogServer = NULL;
-const char* Log::logFilePath = NULL;
+IPAddress Log::syslogServer(0, 0, 0, 0);
+bool Log::syslogEnabled = false;
+EthernetUDP Log::syslogUdp;
 FILE* Log::logFile = NULL;
 bool Log::serialDebug = true;
 LogLevel Log::logLevel = LEVEL_INFO;
+char* Log::deviceid = NULL;
 
-void Log::setSyslogServer(const char *server) {
+void Log::setDeviceId(char *deviceid) {
+	Log::deviceid = deviceid;
+}
+
+void Log::setSyslogServer(IPAddress server) {
 	Log::syslogServer = server;
+	Log::syslogEnabled = true;
+	// TODO: choose a special value to disable... maybe 0?
+	Log::syslogUdp.begin(514);
 }
 
 void Log::setLogFile(const char *filepath) {
@@ -110,7 +123,6 @@ void Log::setLogFile(const char *filepath) {
 		fclose(Log::logFile);
 	}
 
-	Log::logFilePath = filepath;
 	Log::logFile = fopen(filepath, "w");
 	if (Log::logFile == NULL) {
 		Serial.println("Error opening log file\n");
@@ -133,18 +145,46 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 
 	//Prepending log message with datetime and level
 	char logentry[1024];
-	snprintf(logentry, 1024, "[%s] [%c] %s", getGalileoDate(), level, realmsg);
+	char levelC = 'D';
+	if(level == LEVEL_INFO) {
+		levelC = 'I';
+	} else if(level == LEVEL_ERROR) {
+		levelC = 'E';
+	}
+	if(deviceid == NULL) {
+		snprintf(logentry, 1024, "[%s] [%c] [?] %s", getGalileoDate(), levelC, realmsg);
+	} else {
+		snprintf(logentry, 1024, "[%s] [%c] [%s] %s", getGalileoDate(), levelC, deviceid, realmsg);
+	}
 
 	if(Log::serialDebug) {
 		Serial.println(logentry);
 	}
 
-	if(Log::syslogServer != NULL) {
-		// TODO: log to syslog
+	if(Log::syslogEnabled) {
+		// priority = (facility * 8) + severity
+		int priority = (16 * 8);
+		if(level == LEVEL_INFO) {
+			priority += 6;
+		} else if(level == LEVEL_ERROR) {
+			priority += 2;
+		} else {
+			priority += 7;
+		}
+
+		// 1024 is the maximum size of syslog UDP entry
+		char pkt[1024];
+		snprintf(pkt, 1024, "<%i>%s", priority, logentry);
+
+		Log::syslogUdp.beginPacket(Log::syslogServer, 514);
+		Log::syslogUdp.write((const uint8_t*)pkt, strlen(pkt));
+		Log::syslogUdp.endPacket();
 	}
 
 	if(Log::logFile != NULL) {
-		// TODO: log to file
+		fwrite(logentry, strlen(logentry), 1, Log::logFile);
+		char newline = '\n';
+		fwrite(&newline, 1, 1, Log::logFile);
 	}
 }
 
@@ -171,20 +211,6 @@ void Log::e(const char* msg, ...) {
 	va_start(argptr, msg);
 	Log::log(LEVEL_ERROR, msg, argptr);
 	va_end(argptr);
-}
-
-void log(char* msg) {
-	// TODO: remove
-	Log::i(msg);
-}
-
-void logInt(int l) {
-	// TODO: remove
-	Log::i("%i", l);
-}
-
-void logLong(long l) {
-	Log::i("%ld", l);
 }
 
 #endif
