@@ -5,16 +5,16 @@ project(galileo_terremoti)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-include_directories(/home/enrico/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/)
-include_directories(/home/enrico/arduino-1.6.0+Intel/libraries/Ethernet/src/)
-include_directories(/home/enrico/arduino-1.6.0+Intel/libraries/SD/src/)
-include_directories(/home/enrico/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/SPI/src/)
-include_directories(/home/enrico/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/EEPROM/src/)
+include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/cores/arduino/)
+include_directories($ENV{ARDUINOIDE}/libraries/Ethernet/src/)
+include_directories($ENV{ARDUINOIDE}/libraries/SD/src/)
+include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/libraries/SPI/src/)
+include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/libraries/EEPROM/src/)
 
-# Gen1
-include_directories(/home/enrico/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/variants/galileo_fab_d/)
+# Gen1 - used only for code completion - no need to change between gen1-gen2
+include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/variants/galileo_fab_d/)
 # Gen2
-#include_directories(/home/enrico/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/variants/galileo_fab_g/)
+#include_directories(galileo_gen2 PUBLIC $ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/variants/galileo_fab_g/)
 
 set(SOURCE_FILES galileo-core.cpp
 	avg.h
@@ -34,5 +34,9 @@ set(SOURCE_FILES galileo-core.cpp
 add_executable(galileo_terremoti ${SOURCE_FILES})
 
 add_custom_target(galileo_gen1 COMMAND make gen1 -C ${PROJECT_SOURCE_DIR}
+	CLION_EXE_DIR=${PROJECT_BINARY_DIR}
+	SOURCES ${SOURCE_FILES})
+
+add_custom_target(galileo_gen2 COMMAND make gen2 -C ${PROJECT_SOURCE_DIR}
 	CLION_EXE_DIR=${PROJECT_BINARY_DIR}
 	SOURCES ${SOURCE_FILES})

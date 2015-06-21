@@ -5,7 +5,7 @@
 #include "buildcfg.h"
 
 #include <math.h>
-//#include <sys/sysinfo.h>
+#include <sys/sysinfo.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -86,9 +86,12 @@ int currentHour = -1;
 //definition freeRam method
 #ifdef __IS_GALILEO
 unsigned long freeRam() {
-	struct sysinfo s;
-	sysinfo(&s);
-	return s.freeram;
+	struct sysinfo sys_info;
+	if (sysinfo(&sys_info) == 0) {
+		return sys_info.freeram;
+	} else {
+		return 0;
+	}
 }
 
 // static temp struct

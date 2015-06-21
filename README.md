@@ -5,7 +5,7 @@
 
 # How to compile using Arduino IDE
 
-If you have GNU/Linux or OSX (and `make`): just create a file named `buildcfg.h` by doing `make gen1prep` or `make gen2prep`. You can change it later by re-issuing one of these commands.
+If you have GNU/Linux or OSX (and `make`): just create a file named `buildcfg.h` by doing `make gen1prep` or `make gen2prep` and then launch Arduino Galileo IDE. You can change it later by re-issuing one of these commands.
 
 Alternatively (eg. if you're on Windows or you don't have `make`), you can create that file manually with this content:
 
@@ -29,6 +29,18 @@ Enter `make gen1` to make Arduino Galileo Gen1 sketch file, or `make gen2` to ma
 
 If you want upload sketch to Arduino Galileo, you can use `make gen1upload` or `make gen2upload`.
 Note that by default Arduino tools will try to upload to `/dev/ttyACM0`: if your Galileo is on a different port, set `$ARDUINODEV` environment variable.
+
+# How to compile using CLion (Linux-only)
+
+To use CLion you should have an environment variable named `$ARDUINOIDE` pointing to Arduino Galileo IDE root directory (eg. the directory which contains "arduino" IDE executable).
+
+For example:
+
+	# export ARDUINOIDE=/home/bob/arduino-galileo-ide/
+	# cd clion-1.0.4/bin/
+	# ./clion.sh
+
+(alternatively you can add `export` command to `.bashrc` or directly into `/etc/environment`)
 
 # How to make Arduino Galileo SD Image (Linux-only)
 
