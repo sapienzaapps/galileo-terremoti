@@ -63,9 +63,11 @@ gen2prep:
 	echo "$$BUILDCFG_FOOTER" >> buildcfg.h
 
 gen1: gen1prep
+	rm -rf build/
 	arduino --verify --verbose --board intel:i586-uclibc:izmir_fd --pref build.path=build --pref update.check=false galileo-terremoti.ino
 
 gen2: gen2prep
+	rm -rf build/
 	arduino --verify --verbose --board intel:i586-uclibc:izmir_fg --pref build.path=build --pref update.check=false galileo-terremoti.ino
 
 gen1upload: gen1

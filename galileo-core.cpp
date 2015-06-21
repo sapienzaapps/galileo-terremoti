@@ -10,8 +10,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "arduino-serial.h"
-
 #ifdef __IS_GALILEO
 	#include "AcceleroMMA7361.h"
 	#include <Arduino.h>
@@ -309,7 +307,7 @@ void setupEthernet() {
 			}
 			else { // Home Static Configuration
 				if (debugON) Serial.println("Static Configuration");
-				if (logON) log("Static Configuration\n");
+				if (logON) Log::i("Static Configuration\n");
 				//add your static IP here
 				if (GEN1) ip = IPAddress(192, 168, 1, 177);// gen1
 				else ip = IPAddress(192, 168, 1, 178); // gen2
@@ -347,6 +345,9 @@ void setupEthernet() {
 }// END SetupEthernet()
 
 void setup() {
+
+	Log::setLogFile(log_path);
+
 	analogReadResolution(10);        // 3.3V => 4096
 	Serial.print("    Res12bit: ");
 	delay(1000);
@@ -371,7 +372,7 @@ void setup() {
 	//storeConfigToSD();
 	//delay(300);
 	Serial.println("#############INITIALIZING DEVICE#############\n");
-	if (logON) log("###INITIALIZING DEVICE###");
+	if (logON) Log::i("###INITIALIZING DEVICE###");
 	//if (logON) log("###INITIALIZING DEVICE###");
 	Serial.println("readConfig()");
 	readConfig(); // read config from SD Card
@@ -498,7 +499,7 @@ void loop() {
 			// if (start)getConfigNew(); // CHEK FOR UPDATES
 
 		}
-		if(logON)log("Still running");
+		if(logON)Log::i("Still running");
 		if (debugON) {
 			Serial.print("Loop - Still running: ");
 			Serial.println(getGalileoDate());
@@ -545,7 +546,7 @@ void loop() {
 	if (resetEthernet && testNoInternet/* || errors_connection > 10 */) {
 		// unsigned long ethRstMill = millis();
 		if (currentMillis - lastRstMill > 120000UL) {
-			if(logON) log("networking restart - NOT CONNECTED FINTO!!!");
+			if(logON) Log::e("networking restart - NOT CONNECTED FINTO!!!");
 			if(debugON) Serial.println("networking restart!!!");
 			// Workaround for Galileo (and other boards with Linux)
 			system("/etc/init.d/networking restart");
@@ -615,7 +616,7 @@ void loop() {
 
 	// reset the device every 24h or after 20 errors
 	if (((currentMillis - millis24h >=  86400000UL * 2  ) && !inEvent /* && !inEventSD */) || (errors_connection > 20)){
-		log("Reboot after 24h of activity");
+		Log::i("Reboot after 24h of activity");
 		if (debugON) Serial.println("<---------- Reboot after 24h of activity ----------->");
 		resetBlink(1);
 		execScript(script_reset);

@@ -288,7 +288,7 @@ void checkCalibrationNeededSD(AcceleroMMA7361 ac, int currentHour) {
       pos += 8;
       writeDoubleSD(pos, &nthresz, thrSDFile, sizeof(double));
       fclose(thrSDFile);
-      if (logON) log("Calibration ended");
+      if (logON) Log::i("Calibration ended");
       if (debugON){ 
         showThresholdValues();
       }
@@ -418,7 +418,7 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
     pos += 8;
     writeDouble(pos, nthresz);
     
-    if (logON) log("Calibration ended");
+    if (logON) Log::i("Calibration ended");
     if (debugON){ 
       Serial.println("Calibration ended - with values:");
       Serial.println("------------------");
@@ -478,24 +478,4 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
     yellowLedStatus = !yellowLedStatus;
   }
 }
-// void showThresholdValues(){
-  
-  // Serial.println("Calibration on SD ended - with values:");
-  // Serial.println("---------------------------------------------");
-  // Serial.print("pthresx: ");
-  // Serial.print(pthresx);
-  // Serial.print(" pthresy: ");
-  // Serial.print(pthresy);
-  // Serial.print(" pthresz: ");
-  // Serial.println(pthresz);
-  // Serial.print("nthresx: ");
-  // Serial.print(nthresx);
-  // Serial.print(" nthresy: ");
-  // Serial.print(nthresy);
-  // Serial.print(" nthresz: ");
-  // Serial.println(nthresz);
-  // Serial.println("---------------------------------------------");
-  
-// }
-
 #endif

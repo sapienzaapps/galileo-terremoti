@@ -134,7 +134,7 @@ int prepareBuffer(char* buf, struct RECORD *db) {
 // open the file into the RAM of the device
 int ramopen(int seqid, int sendingIter) {
   if (debugON) Serial.print("Opening file ");
-  if (logON) log("Opening file ");
+  if (logON) Log::i("Opening file ");
   // Send values
   char filename[100];
   sprintf(filename, "/media/ram/rel%d_%d.dat", seqid, sendingIter);
@@ -149,7 +149,7 @@ void ramunlink(int seqid, int sendingIter) {
     Serial.print(seqid);Serial.print("_");
     Serial.print(sendingIter);
   }
-  if (logON) log("Removing file ");
+  if (logON) Log::i("Removing file ");
   // Send values
   char filename[100];
   sprintf(filename, "/media/ram/rel%d_%d.dat", seqid, sendingIter);
@@ -194,7 +194,7 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
         //Serial.println(byte_written);
         if (byte_written != sizeof(struct RECORD)) Serial.println("byte written MISMATCH! ");
       }
-      if (logON && byte_written != sizeof(struct RECORD)) log("byte written MISMATCH! -- httpSendValues");
+      if (logON && byte_written != sizeof(struct RECORD)) Log::e("byte written MISMATCH! -- httpSendValues");
     }
     //Serial.println(isSending ? "isSending: TRUE!!!!" : "isSending:  FALSE");
     if (isSending) { // IF IS SENDING DATA
@@ -203,7 +203,7 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
       if (!isSendingMapped) {
         isSending = false;
         if (debugON) Serial.println("Child ended");
-        if (logON) log("Child ended");
+        if (logON) Log::i("Child ended");
         
         nextContact = nextContactMapped;
         if (debugON) Serial.print("nextContactMapped: ");
@@ -220,7 +220,7 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
           seqDBfd = -1;
           ramunlink(seqid, sendingIter);
           if (debugON) Serial.println("Storing finished");
-          if (logON) log("Storing finished");
+          if (logON) Log::i("Storing finished");
         }
         else {
           if (debugON) Serial.println("isLAST MAPPED FALSE: ");
@@ -229,7 +229,7 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
     }
     else if (getUNIXTime() >= nextContact) {   // IF IS THE RIGHT TIME, CONTACT SERVER
       if (debugON) Serial.println("Child starting");
-      if (logON) log("Child starting");
+      if (logON) Log::i("Child starting");
       isSending = true;
       realHttpSendValues();
     }
@@ -237,7 +237,7 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
   else {
     // New Event ----------------------------------------------------------
     if (debugON) Serial.print("New Event, values (X-Y-Z): ");
-    if (logON) log("New Event, values (X-Y-Z): ");
+    if (logON) Log::i("New Event, values (X-Y-Z): ");
     printRecord(db); // Debug print recorded axis values
     if (debugON) Serial.println();
 
@@ -295,26 +295,24 @@ void httpSendValues(struct RECORD *db, struct TDEF *td) {
         if (debugON) Serial.println(seqid);
         if (debugON) Serial.print("tempo offset per nextContact:");
         if (debugON) Serial.println(atol(separator+1));
-        if (logON) log("SEQID:");
-        if (logON) log(rBuffer);
+        if (logON) Log::i("SEQID: %s", rBuffer);
         if (debugON){ Serial.print("Next Contact scheduled for new EVENT: ");}
         debugUNIXTime(nextContact);
 
         sendingIter = 0;
         seqDBfd = ramopen(seqid, sendingIter);
         if ((debugON) && (seqDBfd ==-1)) Serial.println("Error in ramopen: httpSendValues");
-        if (logON && (seqDBfd ==-1)) log("Error in ramopen: httpSendValues");
+        if (logON && (seqDBfd ==-1)) Log::e("Error in ramopen: httpSendValues");
       } else {
         if (debugON) Serial.print("Error in reply: ");
         if (debugON) Serial.println(rBuffer);
-        if (logON) log("Error in reply: ");
-        if (logON) log(rBuffer);
+        if (logON) Log::e("Error in reply: %s", rBuffer);
       }
       client.stop();
     }else{
       client.stop();
       if(debugON) Serial.println("Connection error");
-      if(logON)log("connessione fallita");
+      if(logON)Log::e("connessione fallita");
       //resetEthernet = true;
     }
     //free(db);
@@ -333,7 +331,7 @@ void httpSendAlert1(struct RECORD *db, struct TDEF *td) {
     Serial.print("Date: ");
     Serial.println(getGalileoDate());
   }
-  if (logON) log("New Event, values (X-Y-Z): ");
+  if (logON) Log::i("New Event, values (X-Y-Z): ");
   char rBuffer[300];
   bool sent = false;
   bool received = false;
@@ -448,14 +446,13 @@ void httpSendAlert1(struct RECORD *db, struct TDEF *td) {
           Serial.print("Error in reply for req: ");
           Serial.println(rBuffer);
         }
-        if (logON){ 
-          log("HTTPsENDALERT1 connetion response != 200");
-          log(rBuffer);
+        if (logON){
+			Log::e("HTTPsENDALERT1 connetion response != 200: %s", rBuffer);
         }
         sent = false;
       }
     }else{ // client not responding - data not available
-      if(logON){log("Client not available on: sendAlert2");}
+      if(logON){Log::e("Client not available on: sendAlert2");}
       if(debugON){Serial.println("Client not available on: sendAlert2");}
     }
    //client.stop();
@@ -465,7 +462,7 @@ void httpSendAlert1(struct RECORD *db, struct TDEF *td) {
     if(debugON) Serial.println("Connection error on sendAlert1");
     // if(debugON) Serial.print("Connection STATUS: ");
     // if(debugON) Serial.println(connection_status);
-    if(logON)log("connessione fallita");
+    if(logON)Log::e("connessione fallita");
     //resetEthernet = true; check if is there an Internet Connection!!!!!!!!!!!
   }
   while (client.connected()) {
@@ -493,7 +490,7 @@ void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
     Serial.print("Date: ");
     Serial.println(getGalileoDate());
   }
-  if (logON) log("New Event, values (X-Y-Z): ");
+  if (logON) Log::i("New Event, values (X-Y-Z): ");
   char rBuffer[300];
   bool sent = false;
   bool received = false;
@@ -611,21 +608,20 @@ void httpSendAlert2(struct RECORD *db, struct TDEF *td) {
             Serial.print("Error in reply for req: ");
             Serial.println(rBuffer);
           }
-          if (logON){ 
-            log("HTTPsENDALERT2 connetion response != 200");
-            log(rBuffer);
+          if (logON){
+			  Log::e("HTTPsENDALERT2 connetion response != 200: %s", rBuffer);
           }
           sent = false;
         }
      }else{ // client not responding - data not available
-      if(logON){log("Client not available on: sendAlert2");}
+      if(logON){Log::e("Client not available on: sendAlert2");}
       if(debugON){Serial.println("Client not available on: sendAlert2");}
      }
      //client.stop();
     }else{ // connection to server Failed!!!
       // client.stop();
       if(debugON) Serial.println("Connection error on sendAlert2");
-      if(logON)log("connessione fallita");
+      if(logON)Log::e("connessione fallita");
       //resetEthernet = true; check if is there an Internet Connection!!!!!!!!!!!
     }
     prevSend = millis();
@@ -646,7 +642,7 @@ void httpSendAlert(struct RECORD *db, struct TDEF *td) {
     printRecord(db); // Debug print recorded axis values
     Serial.println();
   }
-  if (logON) log("New Event, values (X-Y-Z): ");
+  if (logON) Log::i("New Event, values (X-Y-Z): ");
   char rBuffer[300];
   bool sent = false;
   bool received = false;
@@ -731,9 +727,8 @@ void httpSendAlert(struct RECORD *db, struct TDEF *td) {
             Serial.println(atol(separator+1));
             Serial.println(nextContact);
           }
-          if (logON){ 
-            log("SEQID:");
-            log(rBuffer);
+          if (logON){
+			  Log::i("SEQID: %s", rBuffer);
           }
           if (debugON){ Serial.print("Next Contact scheduled for new EVENT: ");}
           debugUNIXTime(nextContact);
@@ -748,21 +743,20 @@ void httpSendAlert(struct RECORD *db, struct TDEF *td) {
             Serial.print("Error in reply: ");
             Serial.println(rBuffer);
           }
-          if (logON){ 
-            log("Error in reply: ");
-            log(rBuffer);
+          if (logON){
+			  Log::e("Error in reply: %s", rBuffer);
           }
           sent = false;
         }
      }else{ // client not responding - data not available
-      if(logON){log("Client not available on: getMacAddressFromServer");}
+      if(logON){Log::e("Client not available on: getMacAddressFromServer");}
       if(debugON){Serial.println("Client not available on: getMacAddressFromServer");}
      }
      //client.stop();
     }else{ // connection to server Failed!!!
       // client.stop();
       if(debugON) Serial.println("Connection error");
-      if(logON)log("connessione fallita");
+      if(logON)Log::e("connessione fallita");
       //resetEthernet = true; check if is there an Internet Connection!!!!!!!!!!!
     }
   if(received || (connection_status != 1) || sent ){ // if data received or connection failed close socket
@@ -782,7 +776,7 @@ void *pthread_httpSend(void *ptr) {  // if its the child process
       Serial.print("Error in ramopen fd: PTHREAD");
       Serial.println(fd);
     }
-    if (logON) log("Error in ramopen fd: PTHREAD ");
+    if (logON) Log::e("Error in ramopen fd: PTHREAD ");
   }
 
   int size = lseek(fd, 0, SEEK_END);  // get the size of the file
@@ -813,13 +807,13 @@ void *pthread_httpSend(void *ptr) {  // if its the child process
           offset += ls;
           free(rBuffer);
         }else{
-          if (logON) log("MALLOC FAILED rBuffer - pthread_httpSend");
+          if (logON) Log::e("MALLOC FAILED rBuffer - pthread_httpSend");
           if (debugON) Serial.println("MALLOC FAILED rBuffer - pthread_httpSend");
         }
       }
       free(rec);
     }else{
-      if (logON) log("MALLOC FAILED - pthread_httpSend");
+      if (logON) Log::e("MALLOC FAILED - pthread_httpSend");
       if (debugON) Serial.println("MALLOC FAILED - pthread_httpSend");
       r = 0;// stop reading memory error
     }
@@ -898,7 +892,7 @@ void *pthread_httpSend(void *ptr) {  // if its the child process
       if (isLast) {  // debug only
         //inEvent = 0;
         if (debugON) Serial.println("No more relevant values, ending now- IS LAST: TRUE");
-        if (logON) log("No more relevant values, ending now");
+        if (logON) Log::i("No more relevant values, ending now");
       }
       else {
         if (debugON) {
@@ -912,7 +906,7 @@ void *pthread_httpSend(void *ptr) {  // if its the child process
   }else{
       client.stop();
       if(debugON) Serial.println("Connection error");
-      if(logON)log("connessione fallita");
+      if(logON)Log::e("connessione fallita");
       //resetEthernet = true;
   }
 
@@ -1039,14 +1033,14 @@ void getMacAddressFromServer() {
         Serial.println("Connection error - not 200!");
       }
     }else{
-      if(logON){log("Client not available on: getMacAddressFromServer");}
+      if(logON){Log::e("Client not available on: getMacAddressFromServer");}
       if(debugON){Serial.println("Client not available on: getMacAddressFromServer");}
     }
     //client.stop();
   }else{
       //client.stop();
       if(debugON) Serial.println("Connection error");
-      if(logON)log("connessione fallita");
+      if(logON)Log::e("connessione fallita");
   }
   // client.stop();
     while (client.connected()) {

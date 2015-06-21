@@ -175,7 +175,7 @@ bool NTPdataPacket() {
         return 1;
       }else{
           if (debugON) Serial.println("ERROR NTP PACKET NOT RECEIVED");
-          if (logON) log("ERROR NTP PACKET NOT RECEIVED");
+          if (logON) Log::e("ERROR NTP PACKET NOT RECEIVED");
         }
     }
   }else{

@@ -20,7 +20,6 @@ set(SOURCE_FILES galileo-core.cpp
 	avg.h
 	commons.h
 	config.h
-	arduino-serial.h
 	GalileoLog.h
 	ntp_alt.h
 	threshold.h
@@ -37,6 +36,14 @@ add_custom_target(galileo_gen1 COMMAND make gen1 -C ${PROJECT_SOURCE_DIR}
 	CLION_EXE_DIR=${PROJECT_BINARY_DIR}
 	SOURCES ${SOURCE_FILES})
 
+add_custom_target(galileo_gen1upload COMMAND make gen1upload -C ${PROJECT_SOURCE_DIR}
+	CLION_EXE_DIR=${PROJECT_BINARY_DIR}
+	SOURCES ${SOURCE_FILES})
+
 add_custom_target(galileo_gen2 COMMAND make gen2 -C ${PROJECT_SOURCE_DIR}
+	CLION_EXE_DIR=${PROJECT_BINARY_DIR}
+	SOURCES ${SOURCE_FILES})
+
+add_custom_target(galileo_gen2upload COMMAND make gen2upload -C ${PROJECT_SOURCE_DIR}
 	CLION_EXE_DIR=${PROJECT_BINARY_DIR}
 	SOURCES ${SOURCE_FILES})

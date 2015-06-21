@@ -141,14 +141,13 @@ void execScript(const char *path) {
             Serial.print("executing script: ");
             Serial.println(path);
           }
-          if (logON) log(path);
+          if (logON) Log::d("Executing script: %s", path);
           delay(5);
           system(path);
-          //system("/gscript/prova.sh");
           delay(500);
         }else{
           if (debugON) Serial.println("script not found!!!");
-          if (logON) log("script not found!!!");
+          if (logON) Log::e("script not found!!!");
         }
 }
 
@@ -161,8 +160,7 @@ void resetConnection(int numTry){
       Serial.println(numTry);
     }
     if (logON){
-      log("Trying to restore INTERNET CONNECTION: ");
-      logInt(numTry);
+		Log::i("Trying to restore INTERNET CONNECTION: %i", numTry);
     }
     if(numTry % 2 == 0){  // LED RESET CONNECTION BLINK
       digitalWrite(10, LOW);
@@ -182,15 +180,15 @@ void resetConnection(int numTry){
         Serial.println("+++++ setupEthernet() ++++++");
       }
       if (logON){ 
-        log("---- FAILED ----  restore Internet connection");
-        log("+++++ setupEthernet() ++++++");
+		  Log::e("---- FAILED ----  restore Internet connection");
+		  Log::e("+++++ setupEthernet() ++++++");
       }
       //setupEthernet();// After network restart try to set Arduino network
       delay(1000);
       if(!(internetConnected = isConnectedToInternet()) && numTry <= 0){
         // TRYING TO REBOOT DEVICE
         if (debugON) Serial.println("----- REBOOT GALILEO -----");
-        if (logON) log("----- REBOOT GALILEO -----");
+        if (logON) Log::e("----- REBOOT GALILEO -----");
         
         //system("reboot");
         if(!doesFileExist(script_reset)){ // check if reboot script exists
@@ -203,7 +201,7 @@ void resetConnection(int numTry){
       }
     }else {
       if (debugON) Serial.println("---- SUCCESS ----  restore Internet connection");
-      if (logON) log("---- SUCCESS ----  restore Internet connection");
+      if (logON) Log::i("---- SUCCESS ----  restore Internet connection");
     }
   }
 }

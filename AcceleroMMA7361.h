@@ -42,11 +42,20 @@
 #ifndef AcceleroMMA7361_h
 #define AcceleroMMA7361_h
 
+// Temporary workaround for CLion - remove this ifndef and keep only the nested one
+#ifndef ARDUINO
+#include <Arduino.h>
+#include <pins_arduino.h>
+#define EXTERNAL 0
+#else
+
 #if defined(ARDUINO) && ARDUINO >= 100
 #include <Arduino.h>
 #else
 #include <WProgram.h>
 #include <pins_arduino.h>
+#endif
+
 #endif
 
 class AcceleroMMA7361

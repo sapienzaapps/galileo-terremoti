@@ -60,10 +60,10 @@ struct configFile{
   char lon[10] = "00.000000";
 #if GEN2 > 0
   char *model = "galileo2";
-  float version = 1.71;
+  float version = 1.90;
 #else
   char *model = "galileo1";
-  float version = 1.70;
+  float version = 1.90;
 #endif
 } configGal;
 

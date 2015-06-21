@@ -2,6 +2,7 @@
 #define cfgupdate_h 1
 
 #include "GalileoLog.h"
+
 FILE *fp;
 unsigned long lastCfgUpdate = 0;
 unsigned long cfgUpdateInterval = 60;
@@ -33,124 +34,6 @@ int prepareConfigBuffer(char* buf) {
    if(debugON) Serial.println(mac_string);
   return sprintf(buf, "deviceid=%s&lat=%s&lon=%s&version=%.2f&model=%s", mac_string, configGal.lat,configGal.lon, configGal.version, configGal.model );
 }
-
-/* boolean getConfigUpdates(boolean noupdate) {
-  boolean ret = false;
-  if (client.connect(httpServer, 80)) {
-    if (debugON) Serial.print("Requesting CONFIG to: ");
-    if (debugON) Serial.println(httpServer);
-    
-    client.print("GET ");
-    client.print(path_domain);
-    client.print("/device.php?op=config&mac=");
-    for (int m=0; m < 6; m++) {
-      if (mac[m] < 0x10) client.print("0");
-      client.print(mac[m], HEX);
-    }
-    client.println(" HTTP/1.1");
-    client.print("Host: ");
-    client.println(httpServer);
-    client.println("Connection: close");
-    client.println("");
-    
-    delay(100); // ATTENDERE ARRIVO RISPOSTA!!!
-    while (!client.available()) {;}  // Attendere che il client risponda
-    Serial.println("Dati arrivati - getConfigUpdates");
-    char rBuffer[300];
-    // Reading headers
-    int s = getLine(client, rBuffer, 300);
-
-    if (strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {  // if it is an HTTP 200 response
-      int bodySize = 0;
-      do {
-        s = getLine(client, rBuffer, 300);
-        if (strncmp(rBuffer, "Content-Length", 14) == 0) {
-          char* separator = strchr(rBuffer, ':');
-          if (*(separator+1) == ' ') {
-            separator += 2;
-          }
-          else {
-            separator++;
-          }
-          bodySize = atoi(separator);
-        }
-      } while(s > 0);
-      // Content
-      
-      do {
-        s = getLine(client, rBuffer, 300);
-        if (s > 0) {
-          char* separator = strchr(rBuffer, ':');
-          *separator = 0;
-          char* argument = separator+1;
-          if (strncmp(rBuffer, "server", 6) == 0) {
-            free(httpServer);  // ?
-            httpServer = (char*)malloc(strlen(argument)*sizeof(char));
-            if(httpServer!=NULL){
-              strcpy(httpServer, argument);
-            }else{
-              if (logON) log("Malloc FAILED - getConfigUpdates");
-              if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
-            }
-          }
-          else if(strncmp(rBuffer, "ntpserver", 9) == 0) {
-            timeServer = getFromString(argument);
-          }
-        }
-      } while(s > 0);
-      ret = true;
-    }
-    else {
-      if (debugON) Serial.print("Error in reply: ");
-      if (debugON) Serial.println(rBuffer);
-    }
-    client.stop();
-  }else{
-      client.stop();
-      if(debugON) Serial.println("Connection error");
-      if(logON)log("connessione fallita");
-      resetEthernet = true;
-  }
-  if (!noupdate) lastCfgUpdate = getUNIXTime();
-  return ret;
-} */
-
-/* void doConfigUpdates() {
-  //unsigned long currentMillisConfig = millis();
-  //if (currentMillisConfig - previousMillisConfig > intervalConfig) {
-    //previousMillisConfig = currentMillisConfig;
-    log("Still running Config Update");
-    //if (isConnectedToInternet()) {
-    log("isConnectedToInternet");
-    //}
-    log("lastCfgUpdate");
-    logLong(lastCfgUpdate);
-    log("cfgUpdateInterval");
-    logLong(cfgUpdateInterval);
-    log("getUNIXTime()");
-    logLong(getUNIXTime());
-  //}
-
-  //if (lastCfgUpdate+cfgUpdateInterval < getUNIXTime() && isConnectedToInternet()) {
-    // Get Updates
-    if (getConfigNew(false)) {
-      if (debugON) Serial.println("Configuration update succeded");
-      if (logON) log("Configuration update succeded");
-    }
-    else {
-      if (debugON) Serial.println("Configuration update failed");
-      if (logON) log("Configuration update failed");
-    }
- // }
-}
-
-
-
-/* void forceConfigUpdate() {
-  return forceConfigUpdate(false);  // set to FALSE to force the update of the last configuration time (for the NTP sync)
-} */
-
-
 
 // ask config to server - New Da finire
 boolean getConfigNew() {
@@ -185,7 +68,7 @@ boolean getConfigNew() {
     while(!client.available() && (millis() - responseMill < timeoutResponse ) ){;}
     if (millis() - responseMill > timeoutResponse){ 
       if(debugON)Serial.println("TIMEOUT SERVER CONNECTION");
-      if(logON)log("TIMEOUT SERVER CONNECTION- getConfigNew()");
+      if(logON) Log::e("TIMEOUT SERVER CONNECTION- getConfigNew()");
     }else{ // data arrived
       if(debugON)Serial.println("Dati arrivati - getConfigNew()");
       memset( rBuffer, 0, 300*sizeof(char));
@@ -235,11 +118,10 @@ boolean getConfigNew() {
                 Serial.print("Server: ");
                 Serial.println(httpServer);
                 if (logON){
-                  log("cfg Server:");
-                  log(httpServer);
+					Log::i("cfg Server: %s", httpServer);
                 }  
               }else{
-                if (logON) log("Malloc FAILED - getConfigUpdates");
+                if (logON) Log::e("Malloc FAILED - getConfigUpdates");
                 if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
               }
             }
@@ -322,7 +204,7 @@ boolean getConfigNew() {
       client.stop();
       errors_connection++;
       if(debugON) Serial.println("Connection error");
-      if(logON)log("getConfigNew() - connessione fallita");
+      if(logON) Log::e("getConfigNew() - connessione fallita");
       //resetEthernet = true;
   }
   
@@ -334,17 +216,14 @@ boolean getConfigNew() {
   }
   
   if(logON){
-    log("Still running Config Update");
+	  Log::d("Still running Config Update");
     if (isConnectedToInternet()) {
-      log("isConnectedToInternet");
+		Log::d("isConnectedToInternet");
     }
-    log("lastCfgUpdate");
-    logLong(lastCfgUpdate);
-    log("cfgUpdateInterval");
-    logLong(cfgUpdateInterval);
-    log("getUNIXTime()");
-    logLong(getUNIXTime());
-    if(!ret) log("getConfigNew() Update ERROR!!!");
+	  Log::d("lastCfgUpdate: %ld", lastCfgUpdate);
+	  Log::d("cfgUpdateInterval: %ld", cfgUpdateInterval);
+	  Log::d("getUNIXTime(): ", getUNIXTime());
+    if(!ret) Log::e("getConfigNew() Update ERROR!!!");
   }
   Serial.println("getConfigNew()------------------ EXIT ----------------------");
   return ret;
@@ -368,19 +247,10 @@ void initConfigUpdates() {
   if(httpServer != NULL){
     strcpy(httpServer, DEFAULT_HTTP_SERVER);
   }else{
-    if (logON) log("Malloc FAILED - getConfigUpdates");
+    if (logON) Log::e("Malloc FAILED - getConfigUpdates");
     if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
   }
- // Read log.txt size, if too big delete it
-/*  FILE *fp2 = fopen("/media/realroot/log.txt", "a");
- fseek(fp2, 0L, SEEK_END);
- int sz = ftell(fp2);
- fclose (fp2);
- if (sz > 10000) {
-   system("rm /media/realroot/log.txt"); // remove logfile if too old 
-   if(debugON) Serial.println("log file removed");
-   if(logON) log("log file removed");
- } */
+
   if (internetConnected && start ){ // get config onli if Galileo is connected and lat/lon are setted
     //forceConfigUpdate(false);
     boolean ret = getConfigNew();
