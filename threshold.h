@@ -1,7 +1,9 @@
+
+#ifndef __THRESHOLD_H
+#define __THRESHOLD_H
+
 #define CALIBRATIONITER 1000
 #define ORANGEZONE 6
-
-#include "GalileoLog.h"
 
 FILE *thrSDFile; // file for threshold storing
 char *threshold_path = "media/realroot/threshold.txt";
@@ -495,3 +497,5 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
   // Serial.println("---------------------------------------------");
   
 // }
+
+#endif

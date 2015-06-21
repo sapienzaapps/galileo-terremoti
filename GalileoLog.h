@@ -45,7 +45,7 @@ void closeLog() {
   fclose(f);
 }
 
-void log(char *text) {
+void log(const char *text) {
   openLog();
   //Serial.println(text);
   fprintf(f, "%s", getGalileoDate());

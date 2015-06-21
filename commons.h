@@ -1,6 +1,5 @@
 #ifndef COMMONS_H_
 #define COMMONS_H_
-#include <Arduino.h>
 
 //char* itoa(int num, char* str, int base);
 IPAddress ip;
@@ -105,7 +104,7 @@ int doesFileExist(const char *filename) {
 
 
 // create a script
-void createScript(char *path, char *text) {
+void createScript(const char *path, char *text) {
   if (path == NULL){// DOWNLOADED CREATION SCRIPT
     script = fopen(script_path, "w");
   }else {
@@ -136,7 +135,7 @@ void createScript(char *path, char *text) {
 }
 
 // execute a script
-void execScript(char *path) {
+void execScript(const char *path) {
         if (doesFileExist(path)){
           if (debugON){
             Serial.print("executing script: ");
@@ -472,33 +471,76 @@ void storeConfigToSD() {
   fclose(fp);
 }
 
-//avr-objdump -S {compiled *.elf file}
-/* COMMONS_H_ */
 
+void showThresholdValues(){
 
+	Serial.println("Calibration on SD ended - with values:");
+	Serial.println("---------------------------------------------");
+	Serial.print("pthresx: ");
+	Serial.print(pthresx);
+	Serial.print(" pthresy: ");
+	Serial.print(pthresy);
+	Serial.print(" pthresz: ");
+	Serial.println(pthresz);
+	Serial.print("nthresx: ");
+	Serial.print(nthresx);
+	Serial.print(" nthresy: ");
+	Serial.print(nthresy);
+	Serial.print(" nthresz: ");
+	Serial.println(nthresz);
+	Serial.println("---------------------------------------------");
 
-/* void galileoCreateFile(String fileName) {
-Serial.println("\n*****Creation Started*****");
-String status_message = String();
-status_message = fileName;
-char charFileName[fileName.length() + 1];
-fileName.toCharArray(charFileName, sizeof(charFileName));
- 
-if (SD.exists(charFileName)) {
-status_message += " exists already.";
 }
-else {
-char system_message[256];
-char directory[] = "/media/realroot";
-sprintf(system_message, "touch %s/%s", directory, charFileName);
-system(system_message);
-if (SD.exists(charFileName)) {
-status_message += " created.";
+
+void printConfig(){
+	Serial.println("###################### Config ######################### ");
+	Serial.print("UDID: ");
+	Serial.println(mac_string);
+	Serial.print("Lat: ");
+	Serial.print(configGal.lat);
+	Serial.print("\tLon: ");
+	Serial.println(configGal.lon );
+	Serial.print("model: ");
+	Serial.print(configGal.model );
+	Serial.print("\tversion: ");
+	Serial.println(configGal.version );
+	Serial.print("errors: ");
+	Serial.print(errors_connection);
+	Serial.print("\tIp address: ");
+	Serial.println(Ethernet.localIP());
+	showThresholdValues();
+	Serial.println("##################### Config end ####################### ");
+
 }
-else {
-status_message += " creation tried and failed.";
+
+void resetBlink(byte type){
+	if(type){ // if 1 reset
+		digitalWrite(red_Led, HIGH);
+		digitalWrite(green_Led, LOW);
+		delay(500);
+		digitalWrite(red_Led, LOW);
+		digitalWrite(green_Led, HIGH);
+		delay(500);
+		digitalWrite(red_Led, HIGH);
+		digitalWrite(green_Led, LOW);
+		delay(500);
+		digitalWrite(red_Led, LOW);
+		digitalWrite(green_Led, HIGH);
+		delay(1500);
+	}else{ // if 0 update
+		digitalWrite(red_Led, HIGH);
+		digitalWrite(green_Led, HIGH);
+		delay(500);
+		digitalWrite(red_Led, LOW);
+		digitalWrite(green_Led, LOW);
+		delay(500);
+		digitalWrite(red_Led, HIGH);
+		digitalWrite(green_Led, HIGH);
+		delay(500);
+		digitalWrite(red_Led, LOW);
+		digitalWrite(green_Led, LOW);
+		delay(1000);
+	}
 }
-}
-Serial.println(status_message);
-}  */
+
 #endif 

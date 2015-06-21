@@ -1,9 +1,6 @@
 #ifndef config_h
 #define config_h
 
-
-#include "GalileoLog.h"
-
 #define DEFAULT_HTTP_SERVER "www.sapienzaapps.it"
 #define SUCCESS 1 
 char* path_domain = "/terremoti/galileo";
@@ -21,7 +18,6 @@ char *macAddressFilePath = "media/realroot/mac_address.txt";
 char* log_path = "media/realroot/log.txt";
 char* logAcc_path = "media/realroot/acc.txt";
 char* config_path = "media/realroot/seismoconfig.txt";
-void showThresholdValues();
 /* struct configFile {
   byte mac[6];
   float lat;
@@ -70,47 +66,5 @@ struct configFile{
   float version = 1.70;
 #endif
 } configGal;
-
-void printConfig(){
-  Serial.println("###################### Config ######################### ");
-  Serial.print("UDID: ");
-  Serial.println(mac_string);
-  Serial.print("Lat: ");
-  Serial.print(configGal.lat);
-  Serial.print("\tLon: ");
-  Serial.println(configGal.lon );
-  Serial.print("model: ");
-  Serial.print(configGal.model );
-  Serial.print("\tversion: ");
-  Serial.println(configGal.version );
-  Serial.print("errors: ");
-  Serial.print(errors_connection);
-  Serial.print("\tIp address: ");
-  Serial.println(Ethernet.localIP());
-  showThresholdValues();
-  Serial.println("##################### Config end ####################### ");
-   
-}
-
-
-void showThresholdValues(){
-  
-  Serial.println("Calibration on SD ended - with values:");
-  Serial.println("---------------------------------------------");
-  Serial.print("pthresx: ");
-  Serial.print(pthresx);
-  Serial.print(" pthresy: ");
-  Serial.print(pthresy);
-  Serial.print(" pthresz: ");
-  Serial.println(pthresz);
-  Serial.print("nthresx: ");
-  Serial.print(nthresx);
-  Serial.print(" nthresy: ");
-  Serial.print(nthresy);
-  Serial.print(" nthresz: ");
-  Serial.println(nthresz);
-  Serial.println("---------------------------------------------");
-  
-}
 
 #endif 
