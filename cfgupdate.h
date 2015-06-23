@@ -30,20 +30,18 @@ IPAddress getFromString(char* ipAddr) {
 // prepare buffer for config update request
 int prepareConfigBuffer(char* buf) {
   // deviceid, lat, lon, pthresy, version, model
-   if(debugON) Serial.print("mac testo: ");
-   if(debugON) Serial.println(mac_string);
+  Log::d("mac testo: %s", mac_string);
   return sprintf(buf, "deviceid=%s&lat=%s&lon=%s&version=%.2f&model=%s", mac_string, configGal.lat,configGal.lon, configGal.version, configGal.model );
 }
 
 // ask config to server - New Da finire
 boolean getConfigNew() {
-  Serial.println("getConfigNew()------------------ START ----------------------");
+  Log::i("getConfigNew()------------------ START ----------------------");
   //inEvent = 1;
   //milldelayTimeEvent = millis(); // timestamp in millis for Event Interval
   boolean ret = false;
   if (client.connect(httpServer, 80)) {
-    if (debugON) Serial.print("Requesting CONFIG to: ");
-    if (debugON) Serial.println(httpServer);
+    Log::d("Requesting CONFIG to: %s", httpServer);
     char rBuffer[300];
     int rsize = prepareConfigBuffer(rBuffer);  // prepare the info for the new entry to be send to DB
     // sendig request to server
@@ -60,17 +58,15 @@ boolean getConfigNew() {
     client.println("");
     client.println(rBuffer);
     //client.println("");
-    if(debugON) Serial.print("sending Buffer: "); 
-    if(debugON) Serial.println(rBuffer); 
+    Log::d("sending Buffer: %s", rBuffer);
     delay(100); // ATTENDERE ARRIVO RISPOSTA!!!
     unsigned long responseMill = millis();
-    // while (!client.available()) {;}  // Attendere che il client risponda
+    // while (!client.available()) {;}  // Attendere che il server risponda
     while(!client.available() && (millis() - responseMill < timeoutResponse ) ){;}
     if (millis() - responseMill > timeoutResponse){ 
-      if(debugON)Serial.println("TIMEOUT SERVER CONNECTION");
-      if(logON) Log::e("TIMEOUT SERVER CONNECTION- getConfigNew()");
+      Log::e("TIMEOUT SERVER CONNECTION- getConfigNew()");
     }else{ // data arrived
-      if(debugON)Serial.println("Dati arrivati - getConfigNew()");
+      Log::d("Dati arrivati - getConfigNew()");
       memset( rBuffer, 0, 300*sizeof(char));
       // Reading headers
       int s = getLine(client, rBuffer, 300);
@@ -95,7 +91,6 @@ boolean getConfigNew() {
         bool exec_status = false;
         memset( rBuffer, 0, 300*sizeof(char));
         do {
-          // Serial.println("GetPipe");
           p = getPipe(client, rBuffer, 300);
           if (p > 0) {
             size_t l;
@@ -107,29 +102,22 @@ boolean getConfigNew() {
               free(httpServer);  // ?
               httpServer = (char*)malloc(l*sizeof(char));
              
-              Serial.print("dimensione server: ");
-              Serial.println(l, DEC);
-              Serial.print("Argomento:#");
-              Serial.print(argument);
-              Serial.println("#");
+              Log::i("Dimensione server: %i", l);
+              Log::i("Argomento: #%s#", argument);
+
               if(httpServer!=NULL && (l > 0) ){
                 strncpy(httpServer, argument,l);
                 httpServer[l] = '\0';
-                Serial.print("Server: ");
-                Serial.println(httpServer);
-                if (logON){
-					Log::i("cfg Server: %s", httpServer);
-                }  
+                Log::i("Server: %s", httpServer);
               }else{
-                if (logON) Log::e("Malloc FAILED - getConfigUpdates");
-                if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
+                Log::e("Malloc FAILED - getConfigUpdates");
               }
             }
             else if(strncmp(rBuffer, "ntpserver", 9) == 0) { // Ntpserver 
               // char* separator = strchr(rBuffer, ':');
               // *separator = 0;
               // char* argument = separator+1;
-              Serial.println(argument);
+              Log::d(argument);
               timeServer = getFromString(argument);
             }
             else if(strncmp(rBuffer, "script", 6) == 0) { // Check for executing script
@@ -140,14 +128,10 @@ boolean getConfigNew() {
                 scriptTest[len] = '\0';
                 createScript("/media/realroot/script.sh", scriptTest);
                 exec_status = true;
-                if(debugON) Serial.println("Script Creation...");
+                Log::d("Script Creation...");
               }
-              if(debugON){
-                Serial.print("Script length: ");
-                Serial.println(strlen(argument), DEC);
-                Serial.print("Script: ");
-                Serial.println(argument);
-              }
+              Log::d("Script length: %i", strlen(argument));
+              Log::d("Script: %s", argument);
             }
             else if(strncmp(rBuffer, "path", 4) == 0) { // Check for downloading file
               size_t len = strlen(argument);
@@ -156,26 +140,20 @@ boolean getConfigNew() {
                 char pathScriptDownload[300] ;
                 strncpy(pathTest, argument, len); // remote peth for file downloading
                 pathTest[len] = '\0';
-                sprintf(pathScriptDownload,download_scriptText,pathTest); 
-                Serial.print("pathTest: ");
-                Serial.println(pathTest);
-                Serial.print("pathScriptDownload: ");
-                Serial.println(pathScriptDownload);
+                sprintf(pathScriptDownload,download_scriptText,pathTest);
+
+                Log::i("pathTest: %s", pathTest);
+                Log::i("pathScriptDownload: %s", pathScriptDownload);
+
                 createScript(NULL, pathScriptDownload); // creation script for download a file from the path(internet resource) 
-                if(debugON){
-                  Serial.print("execScript for Download....");
-                }
+                Log::d("execScript for Download....");
                 execScript(script_path); // executing download of the file
                 delay(1000);
                 // system("cp /media/mmcblk0p1/sketch/sketch.elf /sketch/sketch.elf");
                 // system("chmod a+rx /sketch/sketch.elf");
               }
-              if(debugON){
-                Serial.print("Path length: ");
-                Serial.println(strlen(argument), DEC);
-                Serial.print("path: ");
-                Serial.println(argument);
-              }
+              Log::d("Path length: %i", strlen(argument));
+              Log::d("path: %s", argument);
             }
           }
             // char* separator = strchr(rBuffer, ':');
@@ -184,10 +162,7 @@ boolean getConfigNew() {
         } while(p > 0);
         if (exec_status){ // check for executing script command
           execScript("/media/realroot/script.sh");
-          if(debugON){
-            Serial.print("execScript....");
-            Serial.print("/media/realroot/script.sh");
-          }
+          Log::d("execScript.... /media/realroot/script.sh");
           for(int x = 0; x < 3; x++){
             resetBlink(0);
           }
@@ -195,37 +170,33 @@ boolean getConfigNew() {
         ret = true;
       }
       else { // not 200 response
-        if (debugON) Serial.print("Error in reply: ");
-        if (debugON) Serial.println(rBuffer);
+        Log::d("Error in reply: %s", rBuffer);
       }
     } // end data arrived
     //client.stop();
   }else{ // impossible to contact the server
       client.stop();
       errors_connection++;
-      if(debugON) Serial.println("Connection error");
-      if(logON) Log::e("getConfigNew() - connessione fallita");
+      Log::e("getConfigNew() - connessione fallita");
       //resetEthernet = true;
   }
   
   
   while (client.connected()) {
-    Serial.println();
-    Serial.println("disconnecting.");
+    Log::i("disconnecting.");
     client.stop();
   }
   
-  if(logON){
-	  Log::d("Still running Config Update");
-    if (isConnectedToInternet()) {
-		Log::d("isConnectedToInternet");
-    }
-	  Log::d("lastCfgUpdate: %ld", lastCfgUpdate);
-	  Log::d("cfgUpdateInterval: %ld", cfgUpdateInterval);
-	  Log::d("getUNIXTime(): ", getUNIXTime());
-    if(!ret) Log::e("getConfigNew() Update ERROR!!!");
+  Log::d("Still running Config Update");
+  if (isConnectedToInternet()) {
+    Log::d("isConnectedToInternet");
   }
-  Serial.println("getConfigNew()------------------ EXIT ----------------------");
+  Log::d("lastCfgUpdate: %ld", lastCfgUpdate);
+  Log::d("cfgUpdateInterval: %ld", cfgUpdateInterval);
+  Log::d("getUNIXTime(): ", getUNIXTime());
+  if(!ret)
+    Log::e("getConfigNew() Update ERROR!!!");
+  Log::i("getConfigNew()------------------ EXIT ----------------------");
   return ret;
 }
 
@@ -247,8 +218,7 @@ void initConfigUpdates() {
   if(httpServer != NULL){
     strcpy(httpServer, DEFAULT_HTTP_SERVER);
   }else{
-    if (logON) Log::e("Malloc FAILED - getConfigUpdates");
-    if (debugON) Serial.println("Malloc FAILED - getConfigUpdates");
+    Log::e("Malloc FAILED - getConfigUpdates");
   }
 
   if (internetConnected && start ){ // get config onli if Galileo is connected and lat/lon are setted
@@ -257,12 +227,14 @@ void initConfigUpdates() {
     int nTimes = 0;
     while(!ret && (nTimes < 5)) { 
       nTimes++;
-      if (debugON) Serial.println("Configuration update failed, retrying in 3 seconds...");
+      if (debugON)
+        Log::d("Configuration update failed, retrying in 3 seconds...");
       delay(3000);
       //ret = getConfigUpdates(noupdate);
       ret = getConfigNew();
     }
-    if(nTimes >=5) Serial.println("getConfigNew()  -  failed!!!!!");
+    if(nTimes >=5)
+      Log::e("getConfigNew()  -  failed!!!!!");
   }
 }
 

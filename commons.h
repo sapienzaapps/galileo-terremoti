@@ -3,7 +3,7 @@
 
 //char* itoa(int num, char* str, int base);
 IPAddress ip;
-IPAddress dns;
+IPAddress dnsServer;
 IPAddress gateway;
 IPAddress subnet;
 
@@ -46,13 +46,7 @@ struct RECORD *rec = &recddl;
 
 //printing a record state
 void printRecord(struct RECORD *db) {
-  if (debugON) {
-    Serial.print(db->valx);
-    Serial.print(":");
-    Serial.print(db->valy);
-    Serial.print(":");
-    Serial.print(db->valz);
-  }
+  Log::d("%ld:%ld:%ld", db->valx, db->valy, db->valz);
 }
 
 void forceConfigUpdate();
@@ -70,17 +64,10 @@ bool isConnectedToInternet() {
       internetConnected = true;
       return true;
     }
-
-    if (debugON) {
-      Serial.print("Ping WEXITSTATUS STATUS: ");
-      Serial.println(WEXITSTATUS(ping));
-    }
+    Log::d("Ping WEXITSTATUS STATUS: %i", WEXITSTATUS(ping));
   }
   else {
-    if (debugON) {
-      Serial.print("Ping Wifexited STATUS: ");
-      Serial.println(pingWifexited);
-    }
+    Log::d("Ping WEXITSTATUS STATUS: %i", pingWifexited);
     internetConnected = false;
     return false;
   }
@@ -111,43 +98,40 @@ void createScript(const char *path, char *text) {
     script = fopen(path, "w");
   }
   if (script  == NULL) {
-    if (debugON) Serial.println("F_Error opening script!\n");
+    Log::d("F_Error opening script!\n");
     //exit(1);
     return;
   }else{
-    if (debugON) Serial.println(text);
+    Log::d(text);
     //fprintf(script, "%s> ", getGalileoDate());
     fprintf(script, "%s\n", text);
     fclose(script);
+
     delay(5);
+
     char *rights = "chmod a+rx %s";
     char str[80];
     int len = sprintf(str, rights, path);
-    if (false){// debug only
-      Serial.print("createScript - bytes written: ");
-      Serial.println(len);
-    }
+
+    Log::d("createScript - bytes written: %d", len);
+
     //str[len] = '\0';// togliere!!!??
     //system("chmod a+rx /gscript/prova.sh");
+
     system(str);
-    Serial.println("chmod a+rx script file");
+    Log::i("chmod a+rx script file");
   }
 }
 
 // execute a script
 void execScript(const char *path) {
         if (doesFileExist(path)){
-          if (debugON){
-            Serial.print("executing script: ");
-            Serial.println(path);
-          }
-          if (logON) Log::d("Executing script: %s", path);
+          Log::d("Executing script: %s", path);
           delay(5);
           system(path);
           delay(500);
         }else{
-          if (debugON) Serial.println("script not found!!!");
-          if (logON) Log::e("script not found!!!");
+          Log::e("script not found!!!");
         }
 }
 
@@ -155,13 +139,7 @@ void execScript(const char *path) {
 void resetConnection(int numTry){
   if (millis() - resetConnetcionMills > resetConnectionInterval){
     resetConnetcionMills = millis();
-    if (debugON){
-      Serial.print("Trying to restore INTERNET CONNECTION: ");
-      Serial.println(numTry);
-    }
-    if (logON){
-		Log::i("Trying to restore INTERNET CONNECTION: %i", numTry);
-    }
+	Log::i("Trying to restore INTERNET CONNECTION: %i", numTry);
     if(numTry % 2 == 0){  // LED RESET CONNECTION BLINK
       digitalWrite(10, LOW);
       digitalWrite(12, HIGH);
@@ -175,20 +153,14 @@ void resetConnection(int numTry){
     delay(3000);
     internetConnected = isConnectedToInternet();
     if (!internetConnected){// TEST TEST TEST TEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      if (debugON){ 
-        Serial.println("---- FAILED ----  restore Internet connection");
-        Serial.println("+++++ setupEthernet() ++++++");
-      }
-      if (logON){ 
-		  Log::e("---- FAILED ----  restore Internet connection");
-		  Log::e("+++++ setupEthernet() ++++++");
-      }
+      Log::e("---- FAILED ----  restore Internet connection");
+      Log::e("+++++ setupEthernet() ++++++");
+
       //setupEthernet();// After network restart try to set Arduino network
       delay(1000);
       if(!(internetConnected = isConnectedToInternet()) && numTry <= 0){
         // TRYING TO REBOOT DEVICE
-        if (debugON) Serial.println("----- REBOOT GALILEO -----");
-        if (logON) Log::e("----- REBOOT GALILEO -----");
+        Log::e("----- REBOOT GALILEO -----");
         
         //system("reboot");
         if(!doesFileExist(script_reset)){ // check if reboot script exists
@@ -200,8 +172,7 @@ void resetConnection(int numTry){
         while(1){;} // lock HERE for  SYSTEM RESET
       }
     }else {
-      if (debugON) Serial.println("---- SUCCESS ----  restore Internet connection");
-      if (logON) Log::i("---- SUCCESS ----  restore Internet connection");
+      Log::i("---- SUCCESS ----  restore Internet connection");
     }
   }
 }
@@ -332,128 +303,6 @@ char *floatToString(char * outstr, float value, int places, int minwidth=0, bool
   outstr[c++] = '\0';
   return outstr;
 }
-/* ################################################################################################## */
-
-float stringToFloat(char *buf){
-  if(debugON) Serial.print("float da convertire: ");
-  if(debugON) Serial.println(buf);
-  
-  int i, temp;
-  //float value;
-  float value;
-  i = strlen(buf) - 1;
-  if(debugON) Serial.print("lunghezza stringa: ");
-  if(debugON) Serial.println(i, DEC);
-  value = 0.000000;
-  while(i >= 0){
-    switch(i){
-           
-        case 8: temp = buf[i] - '0';
-                value += (temp / 1000000.0);
-                if(debugON) Serial.println(value);
-                break;
-        
-        case 7: temp = buf[i] - '0';
-                value += (temp / 100000.0);
-                if(debugON) Serial.println(value);
-                break;    
-        case 6: temp = buf[i] - '0';
-                value += (temp / 10000.0);
-                if(debugON) Serial.println(value);
-                break;
-        
-        case 5: temp = buf[i] - '0';
-                value += (temp / 1000.0);
-                if(debugON) Serial.println(value);
-                break;      
-        case 4: temp = buf[i] - '0';
-                value += (temp / 100.0);
-                if(debugON) Serial.println(value);
-                break;
-        
-        case 3: temp = buf[i] - '0';
-                value += (temp / 10.0);
-                if(debugON) Serial.println(value);
-                break;
-                
-        case 1: temp = buf[i] - '0';
-                value += (temp * 1.0);
-                if(debugON) Serial.println(value);
-                break;
-                
-        case 0: temp = buf[i] - '0';
-                value += (temp * 10.0);
-                if(debugON) Serial.println(value);
-                break;
-    }
-    i--;
-  }
-  if(debugON) Serial.print("#################float convertito: ");
-  if(debugON) Serial.println(value);
-  char outstr[10];
-  Serial.print("Float to string: ");
-  Serial.println(floatToString(outstr, value, 6));
-  return value;
-}
-
-/* ################################################################################################## */
-float stringToDouble(char *buf){
-  if(debugON) Serial.print("float da convertire: ");
-  if(debugON) Serial.println(buf);
-  
-  int i;
-  //float value;
-  float value,temp;
-  i = strlen(buf) - 1;
-  if(debugON) Serial.print("lunghezza stringa: ");
-  if(debugON) Serial.println(i, DEC);
-  value = 0.000000;
-  while(i >= 0){
-    switch(i){
-           
-        case 8: temp = buf[i] - '0';
-                value += (temp / 1000000.0);
-                break;
-        
-        case 7: temp = buf[i] - '0';
-                value += (temp / 100000.0);
-                break;    
-        case 6: temp = buf[i] - '0';
-                value += (temp / 10000.0);
-                break;
-        
-        case 5: temp = buf[i] - '0';
-                value += (temp / 1000.0);
-                break;      
-        case 4: temp = buf[i] - '0';
-                value += (temp / 100.0);
-                break;
-        
-        case 3: temp = buf[i] - '0';
-                value += (temp / 10.0);
-                break;
-                
-        case 1: temp = buf[i] - '0';
-                value += (temp * 1.0);
-                break;
-                
-        case 0: temp = buf[i] - '0';
-                value += (temp * 10.0);
-                break;
-        default:
-             break;
-    }
-    i--;
-  }
-  if(debugON) Serial.print("#################float convertito: ");
-  if(debugON) Serial.println(value );
-  char outstr[10];
-  Serial.print("Float to string: ");
-  Serial.println(floatToString(outstr, value, 6));
-  return value;
-}
-
-
 
 // store the given MAC address to a FILE into the SD card
 void storeConfigToSD() {
@@ -462,53 +311,35 @@ void storeConfigToSD() {
     printf("Error opening file!\n");
     exit(1);
   }
-  Serial.print("Store lat: ");
-  Serial.println(configGal.lat);
+  Log::i("Store lat lon mac: %s %s %s", configGal.lat, configGal.lon, mac_string);
   fprintf(fp,"deviceid:%s\nlat:%s\nlon:%s",mac_string,configGal.lat,configGal.lon);
-  
   fclose(fp);
 }
 
 
 void showThresholdValues(){
-
-	Serial.println("Calibration on SD ended - with values:");
-	Serial.println("---------------------------------------------");
-	Serial.print("pthresx: ");
-	Serial.print(pthresx);
-	Serial.print(" pthresy: ");
-	Serial.print(pthresy);
-	Serial.print(" pthresz: ");
-	Serial.println(pthresz);
-	Serial.print("nthresx: ");
-	Serial.print(nthresx);
-	Serial.print(" nthresy: ");
-	Serial.print(nthresy);
-	Serial.print(" nthresz: ");
-	Serial.println(nthresz);
-	Serial.println("---------------------------------------------");
+    Log::i("Calibration on SD ended");
+    Log::i("Positive thresholds X:%lf Y:%lf Z:%lf", pthresx, pthresy, pthresz);
+    Log::i("Negative thresholds X:%lf Y:%lf Z:%lf", nthresx, nthresy, nthresz);
 
 }
 
-void printConfig(){
-	Serial.println("###################### Config ######################### ");
-	Serial.print("UDID: ");
-	Serial.println(mac_string);
-	Serial.print("Lat: ");
-	Serial.print(configGal.lat);
-	Serial.print("\tLon: ");
-	Serial.println(configGal.lon );
-	Serial.print("model: ");
-	Serial.print(configGal.model );
-	Serial.print("\tversion: ");
-	Serial.println(configGal.version );
-	Serial.print("errors: ");
-	Serial.print(errors_connection);
-	Serial.print("\tIp address: ");
-	Serial.println(Ethernet.localIP());
-	showThresholdValues();
-	Serial.println("##################### Config end ####################### ");
+void ipToString(char* buf, int maxsize, IPAddress addr) {
+  snprintf(buf, maxsize, "%i.%i.%i.%i", addr[0], addr[1], addr[2], addr[3]);
+}
 
+void printConfig(){
+  Log::i("###################### Config ######################### ");
+  Log::i("UDID (DeviceID): %s - Model: %s - Version: %s", mac_string, configGal.model, configGal.version);
+  Log::i("Position (lat, lon): %lf %lf", configGal.lat, configGal.lon);
+
+  char buf[300];
+  IPAddress localIp = Ethernet.localIP();
+  snprintf(buf, 300, "%i.%i.%i.%i", localIp[0], localIp[1], localIp[2], localIp[3]);
+
+  Log::i("IP: %s - Connection errors: %i", buf, errors_connection);
+  showThresholdValues();
+  Log::i("##################### Config end ####################### ");
 }
 
 void resetBlink(byte type){

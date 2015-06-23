@@ -20,6 +20,7 @@
 // For more information: variable declaration, changelog,... see AcceleroMMA7361.h
 
 #include "AcceleroMMA7361.h"
+#include "GalileoLog.h"
 double oneG = 1672;
 double oneGplusHalf = 1876;
 /// constructor
@@ -126,14 +127,11 @@ void AcceleroMMA7361::setAveraging(int avg) {
 
 // test and read voltage AXIS on idle
 void AcceleroMMA7361::test_voltage(){
-  Serial.println("VOLTAGE TEST ++++++++++++++START+++++++++++++++ ");
-  Serial.print("VOLTAGE X: ");
-  Serial.println(analogRead(_xPin), DEC); 
-  Serial.print("VOLTAGE Y: ");
-  Serial.println(analogRead(_yPin), DEC);  
-  Serial.print("VOLTAGE Z: ");
-  Serial.println(analogRead(_zPin), DEC);
-  Serial.println("VOLTAGE TEST ++++++++++++++END+++++++++++++ ");
+  Log::i("VOLTAGE TEST ++++++++++++++START+++++++++++++++ ");
+  Log::i("VOLTAGE X: %i", analogRead(_xPin));
+  Log::i("VOLTAGE X: %i", analogRead(_yPin));
+  Log::i("VOLTAGE X: %i", analogRead(_zPin));
+  Log::i("VOLTAGE TEST ++++++++++++++END+++++++++++++ ");
 }
 /// getXRaw(): Returns the raw data from the X-axis analog I/O port of the Arduino as an integer
 int AcceleroMMA7361::getXRaw() {
@@ -241,12 +239,11 @@ int AcceleroMMA7361::_mapMMA7361G(int value) {
 /// calibrate(): Sets X and Y values via setOffsets to zero. The Z axis will be set to 100 = 1G
 /// WARNING WHEN CALIBRATED YOU HAVE TO MAKE SURE THE Z-AXIS IS PERPENDICULAR WITH THE EARTHS SURFACE
 void AcceleroMMA7361::calibrate() {
-  //Serial.println(getOrientation());
   test_voltage();
   delay(1000);
   setOffSets(0,0,0);
   _sensi = false;
-  Serial.print("\nCalibrating MMA7361011");
+  Log::i("Calibrating MMA7361011");
   double var = 5000;
   double sumX = 0;
   double sumY = 0;
@@ -255,9 +252,10 @@ void AcceleroMMA7361::calibrate() {
     sumX = sumX + getXVolt();
     sumY = sumY + getYVolt();
     sumZ = sumZ + getZVolt();
-    if (i%100 == 0) {
-      Serial.print(".");
-    }
+    // TODO: percent logging?
+//    if (i%100 == 0) {
+//      Serial.print(".");
+//    }
   }
   if (_sensi == false) { // if ref is 3,3V
     setOffSets(oneG - sumX / var, oneG - sumY / var, + oneGplusHalf - sumZ / var);
@@ -266,21 +264,18 @@ void AcceleroMMA7361::calibrate() {
     setOffSets(1650 - sumX / var,1650 - sumY / var, + 2450 - sumZ / var);
   }
   if (abs(getOrientation()) != 3) {
-    Serial.print("\nunable to calibrate");
+    Log::e("unable to calibrate");
     setOffSets(0,0,0);
   }
   else {
-    Serial.print(" ORIENTATION: ");
-    
-    if(getOrientation()== 3) Serial.println(" RIGHT! ");
-    else Serial.println(" WRONG!!! ");
-    Serial.println(" sum: X Y Z");
-    Serial.print(sumX/var, DEC);
-    Serial.print(" ");
-    Serial.print(sumY/var, DEC);
-    Serial.print(" ");
-    Serial.println(sumZ/var, DEC);
-    Serial.println("\nDONE");
+    if(getOrientation()== 3) {
+      Log::i(" ORIENTATION RIGHT! ");
+    } else {
+      Log::i(" ORIENTATION WRONG!!! ");
+    }
+
+    Log::i(" sum: X:%lf Y:%lf Z:%lf", sumX/var, sumY/var, sumZ/var);
+    Log::i("Calibration DONE");
   }
 }
 

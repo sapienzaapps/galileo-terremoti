@@ -55,12 +55,11 @@ double readDoubleSD(int offset, FILE *facc, size_t sizeacc) {
   double val;
   int i = 0;
   if(fseek(facc, offset, SEEK_SET) == 0){
-  fread(&val, sizeacc, 1, facc); 
-  //double _value = 0;
-  //memcpy(&_value, val, sizeacc);
-  if(debugON) Serial.print("doubleRD: ");
-  if(debugON) Serial.println(val);
-  return val;
+    fread(&val, sizeacc, 1, facc);
+    //double _value = 0;
+    //memcpy(&_value, val, sizeacc);
+    Log::d("doubleRD: %lf", val);
+    return val;
   }
   return -1;
 }
@@ -70,12 +69,12 @@ void readDoubleSD2(int offset, FILE *facc, size_t sizeacc, double *ptrd) {
   double val;
   int i = 0;
   if(fseek(facc, offset, SEEK_SET) == 0){
-  fread(&ptrd, sizeacc, 1, facc); 
-  //double _value = 0;
-  //memcpy(&_value, val, sizeacc);
-  if(debugON) Serial.print("doubleRD222222222222 - ");
-  // if(debugON) Serial.println((char*)ptrd, DEC);
-  // return *ptrd;
+    fread(&ptrd, sizeacc, 1, facc);
+    //double _value = 0;
+    //memcpy(&_value, val, sizeacc);
+    Log::d("doubleRD222222222222 - ");
+    // if(debugON) Serial.println((char*)ptrd, DEC);
+    // return *ptrd;
   }
   // return -1;
   delay(50);
@@ -86,12 +85,12 @@ void readDoubleSDS(int offset, FILE *facc, size_t sizeacc, double *ptrd) {
   double val;
   int i = 0;
   if(fseek(facc, offset, SEEK_SET) == 0){
-  fread(&ptrd, sizeacc, 1, facc); 
-  //double _value = 0;
-  //memcpy(&_value, val, sizeacc);
-  if(debugON) Serial.print("doubleRD222222222222 - ");
-  // if(debugON) Serial.println((char*)ptrd, DEC);
-  // return *ptrd;
+    fread(&ptrd, sizeacc, 1, facc);
+    /// /double _value = 0;
+    //memcpy(&_value, val, sizeacc);
+    Log::d("doubleRD222222222222 - ");
+    // if(debugON) Serial.println((char*)ptrd, DEC);
+    // return *ptrd;
   }
   // return -1;
   delay(50);
@@ -104,8 +103,7 @@ void writeDoubleSD(int offset, double *value, FILE *facc, size_t sizeacc ) {
   //memcpy(&val, &value, sizeacc);
   fseek(facc, offset, SEEK_SET);
   fwrite(&value, sizeacc, 1, facc);
-  if(debugON) Serial.print("doubleWR: ");
-  if(debugON) Serial.println(*value);
+  Log::d("doubleWR: %lf", value);
   delay(50);
 }
 
@@ -117,10 +115,10 @@ void initEEPROM(bool forceInitEEPROM) {
   int c4 = EEPROM.read(3);
   
   if (!forceInitEEPROM && (c1 == 'I' && c2 == 'N' && c3 == 'G' && c4 == 'V')) {
-    if (debugON) Serial.println("EEPROM already formatted, skipping...");
+    Log::d("EEPROM already formatted, skipping...");
   }
   else {
-    if (debugON) Serial.println("EEPROM not formatted, let's do it");
+    Log::d("EEPROM not formatted, let's do it");
     int i=0;
     for (i=4; i < (48*24); i++) { //controllare grandezza eeprom
       EEPROM.write(i, 0);
@@ -149,27 +147,28 @@ void initThrSD(bool forceInitEEPROM) {
     size_t n = fread(&buffer, sizeof(buffer), 1, thrSDFile); // check for initialized file
     
     //buffer[4] = '\0';
-    if(debugON) Serial.print("Inizio file: ");
-    if(debugON) Serial.println((char*)buffer);
-    if(debugON) Serial.print("Dimensione read: ");
-    if(debugON) Serial.println(n);
+    Log::d("Inizio file: %s", (char*)buffer);
+    Log::d("Dimensione read: %i", n);
     if ((!forceInitEEPROM) && (strncmp(headSD, buffer,5) == 0)) {
-      if (debugON) Serial.println("Threshold File already formatted, skipping...");
-      if (debugON &&(strncmp(headSD, buffer,5) == 0)) Serial.println("INGV oooooooooKKKKKKKK...");
+      Log::d("Threshold File already formatted, skipping...");
+      if (debugON &&(strncmp(headSD, buffer,5) == 0))
+        Log::i("INGV oooooooooKKKKKKKK...");
     }else {
-      if (debugON) Serial.println("Threshold File not formatted, let's do it");
+      Log::d("Threshold File not formatted, let's do it");
       fseek(thrSDFile, 0, SEEK_SET);   /* Seek to the beginning of the file */
       fwrite(&headSD, sizeof(char), 5, thrSDFile);
       fseek(thrSDFile, 5, SEEK_SET);
       char a[48*24] ={0};
       fwrite(&a, sizeof(char), 48*24, thrSDFile);
-      if (debugON) Serial.print("@@@@@@@@@@@@@a: ");
-      if (debugON) Serial.println(a);
+
+      Log::d("@@@@@@@@@@@@@a: %s", a);
+
       fseek(thrSDFile, 0, SEEK_SET); 
       char buft[5];
       fread(&buft, sizeof(byte), 5, thrSDFile); // check for initialized file
-      if (debugON) Serial.print("@@@@@@@@@@@@@inixio: ");
-      if (debugON) Serial.println(buft);
+
+      Log::d("@@@@@@@@@@@@@inixio: %s", buft);
+
       nextHour = (getUNIXTime()  % 86400L) / 3600;
     }
     fclose(thrSDFile);
@@ -181,8 +180,7 @@ void setThresholdValues(AcceleroMMA7361 ac, int currentHour) {
   int cbufy[CALIBRATIONITER];
   int cbufz[CALIBRATIONITER];
 
-  if (debugON) Serial.print("Begin calibration for hour: ");
-  if (debugON) Serial.println(currentHour);
+  Log::d("Begin calibration for hour: %i", currentHour);
 
   int i=0;
   for (i=0; i < CALIBRATIONITER; i++) {
@@ -216,26 +214,25 @@ void checkCalibrationNeededNOSD(AcceleroMMA7361 ac, int currentHour) {
    
   // do calibration every random amount of hours? or if it's the first time ever
   if ((nextHour == currentHour) || (pthresx <= 0.00) || forceInitEEPROM ) {
-    if(nextHour == currentHour)Serial.print("nextHour = currentHour on SD #-#-#-#-#-#-#-#-#-#: ");
-    if(nextHour == currentHour)Serial.println(currentHour);
-    if(pthresx <= 0)Serial.println("pthresx <= 0 on NOSD #-#-#-#-#-#-#-#-#-#");
+    if(nextHour == currentHour)
+      Log::i("nextHour = currentHour on SD #-#-#-#-#-#-#-#-#-#: %i", currentHour);
+
+    if(pthresx <= 0)
+      Log::i("pthresx <= 0 on NOSD #-#-#-#-#-#-#-#-#-#");
     //setThresholdValuesBasic(ac, currentHour);
     if(!yellowLedStatus){
       digitalWrite(yellow_Led,!yellowLedStatus);
       yellowLedStatus = !yellowLedStatus;
     }
-    if (debugON){ 
-      Serial.println("WRITE THRESHOLD on SD #-#-#-#-#-#-#-#-#-#");
-    }
+
+    Log::d("WRITE THRESHOLD on SD #-#-#-#-#-#-#-#-#-#");
     setThresholdValues(ac, currentHour);
     nextHour = ((currentHour + 1) % 24);
     forceInitEEPROM = false;
   }
 }
 void checkCalibrationNeededSD(AcceleroMMA7361 ac, int currentHour) {
-  if (debugON){ 
-      Serial.println("Calibration on SD START *-*-*-*-*-*-*-*-*");
-  }
+  Log::d("Calibration on SD START *-*-*-*-*-*-*-*-*");
   // Utility (Galileo):
   // sizeof(unsigned long) = 4
   // sizeof(unsigned int) = 4
@@ -253,26 +250,26 @@ void checkCalibrationNeededSD(AcceleroMMA7361 ac, int currentHour) {
   thrSDFile = fopen(threshold_path, "r+");
   double temp;
   if(thrSDFile != NULL){
-    
-    Serial.print("temp #-#-#-#-#-#-#-#-#-#: ");
+
     readDoubleSD2(5 + currentHour*48, thrSDFile, sizeof(double),&temp ); // ??? cosa deve leggere ???
-    Serial.println(temp);
-  
+    Log::i("temp #-#-#-#-#-#-#-#-#-#: %lf", temp);
+
     // double temp = readDouble(4 + currentHour*48); // ??? cosa deve leggere ???
     
     // do calibration every random amount of hours? or if it's the first time ever
     if ((nextHour == currentHour) || (temp <= 0.00) || forceInitEEPROM ) {
-      if(nextHour == currentHour)Serial.print("nextHour = currentHour on SD #-#-#-#-#-#-#-#-#-#: ");
-      if(nextHour == currentHour)Serial.println(currentHour);
-      if(temp <= 0)Serial.println("temp <= 0 on SD #-#-#-#-#-#-#-#-#-#");
+      if(nextHour == currentHour)
+        Log::i("nextHour = currentHour on SD #-#-#-#-#-#-#-#-#-#: %i"), currentHour;
+
+      if(temp <= 0)
+        Log::i("temp <= 0 on SD #-#-#-#-#-#-#-#-#-#");
       //setThresholdValuesBasic(ac, currentHour);
       if(!yellowLedStatus){
         digitalWrite(yellow_Led,!yellowLedStatus);
         yellowLedStatus = !yellowLedStatus;
       }
-      if (debugON){ 
-        Serial.println("WRITE THRESHOLD on SD #-#-#-#-#-#-#-#-#-#");
-      }
+      Log::d("WRITE THRESHOLD on SD #-#-#-#-#-#-#-#-#-#");
+
       setThresholdValues(ac, currentHour);
       int pos = 5 + currentHour*48;
       writeDoubleSD(pos, &pthresx, thrSDFile, sizeof(double));
@@ -288,94 +285,47 @@ void checkCalibrationNeededSD(AcceleroMMA7361 ac, int currentHour) {
       pos += 8;
       writeDoubleSD(pos, &nthresz, thrSDFile, sizeof(double));
       fclose(thrSDFile);
-      if (logON) Log::i("Calibration ended");
-      if (debugON){ 
-        showThresholdValues();
-      }
+
+      Log::i("Calibration ended");
+      showThresholdValues();
+
       //nextHour = (random() % 24);
       nextHour = ((currentHour + 1) % 24);
-      if (debugON) Serial.print("Next calibration scheduled for ");
-      if (debugON) Serial.println(nextHour);
+      Log::d("Next calibration scheduled for %i", nextHour);
     }
     else {
-      if (debugON) Serial.println("Loading values from SD CARD for new hour");
+      Log::d("Loading values from SD CARD for new hour");
+
       int pos = 4 + currentHour*48;
       readDoubleSD2(pos, thrSDFile, sizeof(double), &pthresx);
-      if (debugON) Serial.print("pthresx: ");
-      if (debugON) Serial.print(pthresx);
-      
+
       pos += 8;
       readDoubleSD2(pos, thrSDFile, sizeof(double), &pthresy);
-      if (debugON) Serial.print(" pthresy: ");
-      if (debugON) Serial.print(pthresy);
-      
+
       pos += 8;
       readDoubleSD2(pos, thrSDFile, sizeof(double), &pthresz);
-      if (debugON) Serial.print(" pthresz: ");
-      if (debugON) Serial.println(pthresz);
-      
+
       pos += 8;
       readDoubleSD2(pos, thrSDFile, sizeof(double), &nthresx);
-      if (debugON) Serial.print("nthresx: ");
-      if (debugON) Serial.print(nthresx);
       
       pos += 8;
       readDoubleSD2(pos, thrSDFile, sizeof(double), &nthresy);
-      if (debugON) Serial.print(" nthresy: ");
-      if (debugON) Serial.print(nthresy);
       
       pos += 8;
       readDoubleSD2(pos, thrSDFile, sizeof(double),&nthresz);
       fclose(thrSDFile);
-      if (debugON) Serial.print(" nthresz: ");
-      if (debugON) Serial.println(nthresz);
+
+      Log::d("pthresx:%lf pthresy:%lf pthresz:%lf", pthresx, pthresy, pthresz);
+      Log::d("nthresx:%lf nthresy:%lf nthresz:%lf", nthresx, nthresy, nthresz);
     }
     if(yellowLedStatus){
       digitalWrite(yellow_Led,!yellowLedStatus);
       yellowLedStatus = !yellowLedStatus;
     }
-  }else{Serial.println("NULL -----------------SD THRESHOLD!!!!!!!");
-    
-    }
+  } else {
+    Log::i("NULL -----------------SD THRESHOLD!!!!!!!");
+  }
 }
-
-
-// void setThresholdValues(AcceleroMMA7361 ac, int currentHour) {
-  // int cbufx[CALIBRATIONITER];
-  // int cbufy[CALIBRATIONITER];
-  // int cbufz[CALIBRATIONITER];
-
-  // if (debugON) Serial.print("Begin calibration for hour: ");
-  // if (debugON) Serial.println(currentHour);
-
-  // int i=0;
-  // for (i=0; i < CALIBRATIONITER; i++) {
-    // cbufx[i] = ac.getXAccel();
-    // cbufy[i] = ac.getYAccel();
-    // cbufz[i] = ac.getZAccel();
-  // }
-
-  // float avgx = absavg(cbufx, CALIBRATIONITER);
-  // float avgy = absavg(cbufy, CALIBRATIONITER);
-  // float avgz = absavg(cbufz, CALIBRATIONITER);
-  // double sdevx = stddev(cbufx, CALIBRATIONITER, avgx);
-  // double sdevy = stddev(cbufy, CALIBRATIONITER, avgy);
-  // double sdevz = stddev(cbufz, CALIBRATIONITER, avgz);
-
-  // pthresx = avgx + (sdevx + ORANGEZONE);
-  // pthresy = avgy + (sdevy + ORANGEZONE);
-  // pthresz = avgz + (sdevz + ORANGEZONE);
-
-  // nthresx = avgx - (sdevx + ORANGEZONE);
-  // nthresy = avgy - (sdevy + ORANGEZONE);
-  // nthresz = avgz - (sdevz + ORANGEZONE);
-// }
-
-// void setThresholdValuesBasic(AcceleroMMA7361 ac, int currentHour) {
-  // pthresx = 10;
-  // pthresy = 10;
-  // pthresz = 100;
-// }
 
 void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
   // Utility (Galileo):
@@ -418,60 +368,37 @@ void checkCalibrationNeeded(AcceleroMMA7361 ac, int currentHour) {
     pos += 8;
     writeDouble(pos, nthresz);
     
-    if (logON) Log::i("Calibration ended");
-    if (debugON){ 
-      Serial.println("Calibration ended - with values:");
-      Serial.println("------------------");
-      Serial.print("pthresx: ");
-      Serial.print(pthresx);
-      Serial.print(" pthresy: ");
-      Serial.print(pthresy);
-      Serial.print(" pthresz: ");
-      Serial.println(pthresz);
-      Serial.print("nthresx: ");
-      Serial.print(nthresx);
-      Serial.print(" nthresy: ");
-      Serial.print(nthresy);
-      Serial.print(" nthresz: ");
-      Serial.println(nthresz);
-      Serial.println("------------------");
-    }
+    Log::i("Calibration ended");
+    Log::d("Calibration ended with values:");
+    Log::d("pthresx:%lf pthresy:%lf pthresz:%lf", pthresx, pthresy, pthresz);
+    Log::d("nthresx:%lf nthresy:%lf nthresz:%lf", nthresx, nthresy, nthresz);
+
     //nextHour = (random() % 24);
     nextHour = ((currentHour + 1) % 24);
-    if (debugON) Serial.print("Next calibration scheduled for ");
-    if (debugON) Serial.println(nextHour);
+    Log::d("Next calibration scheduled for %i", nextHour);
   }
   else {
-    if (debugON) Serial.println("Loading values from EEPROM for new hour");
+    Log::d("Loading values from EEPROM for new hour");
     int pos = 4 + currentHour*48;
     pthresx = readDouble(pos);
-    if (debugON) Serial.print("pthresx: ");
-    if (debugON) Serial.print(pthresx);
     
     pos += 8;
     pthresy = readDouble(pos);
-    if (debugON) Serial.print(" pthresy: ");
-    if (debugON) Serial.print(pthresy);
     
     pos += 8;
     pthresz = readDouble(pos);
-    if (debugON) Serial.print(" pthresz: ");
-    if (debugON) Serial.println(pthresz);
     
     pos += 8;
     nthresx = readDouble(pos);
-    if (debugON) Serial.print("nthresx: ");
-    if (debugON) Serial.print(nthresx);
     
     pos += 8;
     nthresy = readDouble(pos);
-    if (debugON) Serial.print(" nthresy: ");
-    if (debugON) Serial.print(nthresy);
     
     pos += 8;
     nthresz = readDouble(pos);
-    if (debugON) Serial.print(" nthresz: ");
-    if (debugON) Serial.println(nthresz);
+
+    Log::d("pthresx:%lf pthresy:%lf pthresz:%lf", pthresx, pthresy, pthresz);
+    Log::d("nthresx:%lf nthresy:%lf nthresz:%lf", nthresx, nthresy, nthresz);
   }
   if(yellowLedStatus){
     digitalWrite(yellow_Led,!yellowLedStatus);

@@ -1,17 +1,32 @@
 #ifndef galileo_log_h
 #define galileo_log_h
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <BitsAndBytes.h>
-#include <variant.h>
-#include "config.h"
+#include "buildcfg.h"
 
-#ifndef ARDUINO
+#include <math.h>
+#include <sys/sysinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdarg.h>
+
+#ifdef __IS_GALILEO
+#include "AcceleroMMA7361.h"
 #include <Arduino.h>
+
+#include <pins_arduino.h>
+#include <BitsAndBytes.h>
+#include <Ethernet.h>
+#include <SPI.h>
+#include <EEPROM.h>
+#include <SD.h>
+#include <EthernetUdp.h>
+
 #endif
+
+#include "config.h"
+#include "avg.h"
+#include "GalileoLog.h"
 
 FILE *f;
 FILE *acc;
@@ -130,6 +145,11 @@ void Log::setLogFile(const char *filepath) {
 }
 
 void Log::enableSerialDebug(bool serialDebug) {
+	if(!Log::serialDebug && serialDebug) {
+		Serial.begin(9600);
+	} else if(Log::serialDebug && !serialDebug) {
+		Serial.end();
+	}
 	Log::serialDebug = serialDebug;
 }
 
