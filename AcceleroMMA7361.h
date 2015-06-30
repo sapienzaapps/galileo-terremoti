@@ -44,8 +44,10 @@
 
 // Temporary workaround for CLion - remove this ifndef and keep only the nested one
 #ifndef ARDUINO
+
 #include <Arduino.h>
 #include <pins_arduino.h>
+
 #define EXTERNAL 0
 #else
 
@@ -58,49 +60,43 @@
 
 #endif
 
-class AcceleroMMA7361
-{
-  public:
-    AcceleroMMA7361();
-    void begin();
-    void begin(/* int sleepPin, int selfTestPin, int zeroGPin, int gSelectPin, */ int xPin, int yPin, int zPin);
-    int getXRaw();
-    int getYRaw();
-    int getZRaw();
-    int getXVolt();
-    int getYVolt();
-    int getZVolt();
-    int getXAccel();
-    int getYAccel();
-    int getZAccel();
-    void test_voltage();
-    void getAccelXYZ(int *_XAxis, int *_YAxis, int *_ZAxis);
-    int getTotalVector();
-    void setOffSets(int xOffSet, int yOffSet, int zOffSet);
-    void calibrate();                             // only to be executed when Z-axis is oriented to the ground
+class AcceleroMMA7361 {
+public:
+	AcceleroMMA7361();
+	void begin();
+	void begin(/* int sleepPin, int selfTestPin, int zeroGPin, int gSelectPin, */ int xPin, int yPin, int zPin);
+	int getXRaw();
+	int getYRaw();
+	int getZRaw();
+	int getXVolt();
+	int getYVolt();
+	int getZVolt();
+	int getXAccel();
+	int getYAccel();
+	int getZAccel();
+	void test_voltage();
+	void getAccelXYZ(int *_XAxis, int *_YAxis, int *_ZAxis);
+	int getTotalVector();
+	void setOffSets(int xOffSet, int yOffSet, int zOffSet);
+	void calibrate();                             // only to be executed when Z-axis is oriented to the ground
 // it calculates the offset values by assuming  Z = +1 G ; X and Y  = 0 G
-    void setARefVoltage(double _refV);
-    void setAveraging(int avg);
-    int getOrientation();
-    void setSensitivity(boolean sensi);
-    /* void sleep(); */
-    //void wake();
+	void setARefVoltage(double _refV);
+	void setAveraging(int avg);
+	int getOrientation();
 
-  private:
-    int _mapMMA7361V(int value);
-    int _mapMMA7361G(int value);
-    //int _sleepPin;
-    //int _selfTestPin;
-    //int _zeroGPin;
-    int _gSelectPin;
-    int _xPin;
-    int _yPin;
-    int _zPin;
-    int _offSets[3];
-    int _polarities[3];
-    double _refVoltage;
-    int _average;
-    boolean _sleep;
-    boolean _sensi;
+private:
+	int _mapMMA7361V(int value);
+	int _mapMMA7361G(int value);
+	int _gSelectPin;
+	int _xPin;
+	int _yPin;
+	int _zPin;
+	int _offSets[3];
+	int _polarities[3];
+	double _refVoltage;
+	int _average;
+	boolean _sleep;
+	boolean _sensi;
 };
+
 #endif

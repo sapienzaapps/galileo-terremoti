@@ -16,7 +16,8 @@ include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/variants/galileo
 # Gen2
 #include_directories(galileo_gen2 PUBLIC $ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/variants/galileo_fab_g/)
 
-set(SOURCE_FILES galileo-core.cpp
+set(SOURCE_FILES
+	galileo-core.cpp
 	avg.h
 	commons.h
 	config.h
@@ -29,8 +30,12 @@ set(SOURCE_FILES galileo-core.cpp
 	AcceleroMMA7361.cpp
 	AcceleroMMA7361.h
 	buildcfg.h
+	avg.cpp
+	GalileoLog.cpp
+	config.cpp
+	threshold.cpp
 	)
-add_executable(galileo_terremoti ${SOURCE_FILES})
+add_executable(galileo_terremoti ${SOURCE_FILES} ntp_alt.cpp commons.cpp cfgupdate.cpp httpconn.cpp localstream.cpp)
 
 add_custom_target(galileo_gen1 COMMAND make gen1 -C ${PROJECT_SOURCE_DIR}
 	CLION_EXE_DIR=${PROJECT_BINARY_DIR}

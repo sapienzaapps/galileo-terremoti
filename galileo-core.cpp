@@ -30,14 +30,6 @@
 
 byte zz = 0;
 
-// accelerometer values
-double pthresx = 0;
-double pthresy = 0;
-double pthresz = 0;
-double nthresx = 0;
-double nthresy = 0;
-double nthresz = 0;
-
 bool resetEthernet = false;
 unsigned long freeRam();
 
@@ -47,7 +39,6 @@ unsigned long pingIntervalCheckCounter = 0;
 unsigned long calibrationInterval = 60*60*1000;
 unsigned long prevMillisCalibration = 0;
 unsigned long TimeEvent = 60*1000;// 60 second per Event
-unsigned long milldelayTimeEvent = 0;
 unsigned long startRecord = 0;
 unsigned long millis24h;
 unsigned long lastRstMill = 0;
@@ -55,14 +46,6 @@ int resetnum = 0;
 int numAlert = 0;
 int reTareNum = 40;
 
-// const byte red_Led = 10;
-// const byte green_Led = 12;
-const byte yellow_Led = 8;
-const byte red_Led = 12;
-const byte green_Led = 10;
-bool redLedStatus = false;
-bool greenLedStatus = false;
-bool yellowLedStatus = false;
 bool chekInternet = false;
 bool recordData = false;
 byte errors_connection = 0;
@@ -114,7 +97,7 @@ boolean isOverThresholdBasic(struct RECORD *db, struct TDEF *td) {
 boolean isOverThresholdFixed(struct RECORD *db, struct TDEF *td) {
 	return (abs(db->valx) > td->pthresx)
 		   || (abs(db->valy) > td->pthresy)
-		   || (abs(db->valz - gForce) > td->pthresz);
+		   || (abs(db->valz - GFORCE) > td->pthresz);
 }
 
 void checkSensore()
@@ -137,17 +120,14 @@ void checkSensore()
 	db->overThreshold = false;
 
 
-	switch(thresholdAlghoritm) {
-		case Basic:
-			db->overThreshold = isOverThresholdBasic(db, &td);
-			break;
-
+	switch(thresholdAlgorithm) {
 		case Fixed:
 			db->overThreshold = isOverThresholdFixed(db, &td);
 			break;
-
-		default:  // Basic
+		case Basic:
+		default:
 			db->overThreshold = isOverThresholdBasic(db, &td);
+			break;
 	}
 
 	//debug_Axis(); // Debug Only
@@ -165,11 +145,11 @@ void checkSensore()
 
 		Log::i(db->overThreshold?"overThreshold":"inEvent");
 		if (ledON && !redLedStatus){
-			digitalWrite(red_Led,HIGH);
+			digitalWrite(LED_RED,HIGH);
 			redLedStatus = !redLedStatus;
 		}
 		if (internetConnected && testNoInternet && start) {// send value data if there is a connection
-			//if (ledON) digitalWrite(green_Led,HIGH);
+			//if (ledON) digitalWrite(LED_GREEN,HIGH);
 			if(alert){
 				inEvent = 1;
 				milldelayTimeEvent = millis(); // timestamp in millis for Event Interval */
@@ -188,7 +168,7 @@ void checkSensore()
 	}
 	else {
 		if (ledON && !(inEvent) && redLedStatus){
-			digitalWrite(red_Led,LOW);
+			digitalWrite(LED_RED,LOW);
 			redLedStatus = !redLedStatus;
 		}
 	}
@@ -224,91 +204,56 @@ void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
 // set up the ethernet connection per location;
 // use the linux underneath the device to force manual DNS and so on
 void setupEthernet() {
-	switch (deviceLocation) {
-		case Colossus:  // Sapienza Colossus
-			ip = IPAddress(10, 10, 1, 101);
-			dnsServer = IPAddress(151, 100, 17, 18);
-			gateway = IPAddress(10, 10, 1, 1);
-			subnet = IPAddress(255, 255, 255, 0);
-			Ethernet.begin(mac, ip, dnsServer, gateway); //vedere
-			timeServer = IPAddress(10, 10, 1, 1);
-			system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-			system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
-			system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
-			break;
-
-		case Panizzi:  // Panizzi's room
-			ip = IPAddress(151, 100, 17, 143);
-			dnsServer = IPAddress(151, 100, 17, 18);
-			gateway = IPAddress(151, 100, 17, 1);
-			subnet = IPAddress(255, 255 ,255 ,0);
-			Ethernet.begin(mac, ip, dnsServer, gateway);
-			timeServer = IPAddress(37, 247, 49, 133);
-			system("ifconfig eth0 151.100.17.143 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-			system("route add default gw 151.100.17.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
-			system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
-			break;
-
-		case Home:  // Home
-			/* timeServer = IPAddress(132, 163, 4, 101); */
-			timeServer = IPAddress(178, 33, 50, 131);
-			if (isDhcpEnabled) {
-				boolean isDhcpWorking = false;
-				while (!isDhcpWorking) { // WARNING: add DHCP timeout
-					/* Trying to get an IP address */
-					if (Ethernet.begin(mac) == 0) {  // Error retrieving DHCP IP
-						Log::e("Error while attempting to get an IP, retrying in 5 seconds...");
-						delay(5000);
-					}else {  // DHCP IP retireved successfull
-						char buf[300];
-						IPAddress localIp = Ethernet.localIP();
-						snprintf(buf, 300, "%i.%i.%i.%i", localIp[0], localIp[1], localIp[2], localIp[3]);
-						Log::d("IP retrived successfully from DHCP: %s", buf);
-						isDhcpWorking = true;
-					}
-				}
-				break;
-			}
-			else { // Home Static Configuration
-				Log::i("Static Configuration\n");
-				//add your static IP here
-				if (GEN1) ip = IPAddress(192, 168, 1, 177);// gen1
-				else ip = IPAddress(192, 168, 1, 178); // gen2
-				//dnsServer = IPAddress(192,168,1,1);
-				dnsServer = IPAddress(192,168,1,254);
-				//gateway = IPAddress(192,168,1,1);
-				gateway = IPAddress(192,168,1,254);
-				subnet = IPAddress(255, 255 ,255 ,0);
-				// ARDUINO START CONNECTION
-				Ethernet.begin(mac, ip, dnsServer, gateway, subnet); // Static address configuration
-				//LINUX SYSTEM START CONNECTION
-				if (GEN1) system("ifconfig eth0 192.168.1.177 netmask 255.255.255.0 up");  // set IP and SubnetMask for the Ethernet
-				else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up");  // set IP and SubnetMask for the Ethernet
-				//else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-				//system("route add default gw 192.168.1.254 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gateway for the Ethernet
-				system("route add default gw 192.168.1.254 eth0");  // change the Gateway for the Ethernet
-				system("echo 'nameserver 8.8.8.8' > /etc/resolv.conf");  // add the GOOGLE DNS
-				//system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
-				//system("ifconfig > /dev/ttyGS0");  // debug
+	timeServer = IPAddress(178, 33, 50, 131);
+	if (isDhcpEnabled) {
+		boolean isDhcpWorking = false;
+		while (!isDhcpWorking) {
+			// WARNING: add DHCP timeout
+			// Trying to get an IP address
+			if (Ethernet.begin(mac) == 0) {
+				// Error retrieving DHCP IP
+				Log::e("Error while attempting to get an IP, retrying in 5 seconds...");
+				delay(5000);
+			} else {
+				// DHCP IP retireved successfull
 				char buf[300];
 				IPAddress localIp = Ethernet.localIP();
 				snprintf(buf, 300, "%i.%i.%i.%i", localIp[0], localIp[1], localIp[2], localIp[3]);
-				Log::d("Static IP: %s");
-				break;
-			}// END - Home Static Configuration
-			break;
-
-		default:  // like case 0, Sapienza Colossus
-			Ethernet.begin(mac, ip, dnsServer, gateway);
-			system("ifconfig eth0 10.10.1.101 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-			system("route add default gw 10.10.1.1 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gatway for the Ethernet
-			system("echo 'nameserver 151.100.17.18' > /etc/resolv.conf");  // add the DNS
-			system("ifconfig > /dev/ttyGS0");  // debug
-	}// END switch device location
-}// END SetupEthernet()
+				Log::d("IP retrived successfully from DHCP: %s", buf);
+				isDhcpWorking = true;
+			}
+		}
+	} else {
+		// Home Static Configuration
+		Log::i("Static Configuration\n");
+		//add your static IP here
+		if (GEN1) ip = IPAddress(192, 168, 1, 177);// gen1
+		else ip = IPAddress(192, 168, 1, 178); // gen2
+		//dnsServer = IPAddress(192,168,1,1);
+		dnsServer = IPAddress(192,168,1,254);
+		//gateway = IPAddress(192,168,1,1);
+		gateway = IPAddress(192,168,1,254);
+		subnet = IPAddress(255, 255 ,255 ,0);
+		// ARDUINO START CONNECTION
+		Ethernet.begin(mac, ip, dnsServer, gateway, subnet); // Static address configuration
+		//LINUX SYSTEM START CONNECTION
+		if (GEN1) system("ifconfig eth0 192.168.1.177 netmask 255.255.255.0 up");  // set IP and SubnetMask for the Ethernet
+		else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up");  // set IP and SubnetMask for the Ethernet
+		//else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
+		//system("route add default gw 192.168.1.254 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gateway for the Ethernet
+		system("route add default gw 192.168.1.254 eth0");  // change the Gateway for the Ethernet
+		system("echo 'nameserver 8.8.8.8' > /etc/resolv.conf");  // add the GOOGLE DNS
+		//system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
+		//system("ifconfig > /dev/ttyGS0");  // debug
+		char buf[300];
+		IPAddress localIp = Ethernet.localIP();
+		snprintf(buf, 300, "%i.%i.%i.%i", localIp[0], localIp[1], localIp[2], localIp[3]);
+		Log::d("Static IP: %s");
+	}
+}
 
 void setup() {
-	Log::setLogFile(log_path);
+	Log::setLogFile(DEFAULT_LOG_PATH);
 
 	analogReadResolution(10);        // 3.3V => 4096
 	Log::i("    Res12bit: ");
@@ -368,25 +313,25 @@ void setup() {
 	delay(500);
 
 	if (ledON) {
-		pinMode(green_Led, OUTPUT);
-		digitalWrite(green_Led,HIGH);
+		pinMode(LED_GREEN, OUTPUT);
+		digitalWrite(LED_GREEN,HIGH);
 		delay(500);
-		digitalWrite(green_Led,LOW);
+		digitalWrite(LED_GREEN,LOW);
 		if (internetConnected){
-			digitalWrite(green_Led,HIGH);
+			digitalWrite(LED_GREEN,HIGH);
 			greenLedStatus = true;
 		}else greenLedStatus = false;
 
-		digitalWrite(red_Led,HIGH);
+		digitalWrite(LED_RED,HIGH);
 		delay(500);
-		digitalWrite(red_Led,LOW);
-		pinMode(red_Led, OUTPUT);
-		digitalWrite(red_Led,LOW);
+		digitalWrite(LED_RED,LOW);
+		pinMode(LED_RED, OUTPUT);
+		digitalWrite(LED_RED,LOW);
 		redLedStatus = false;
-		pinMode(yellow_Led, OUTPUT);
-		digitalWrite(yellow_Led,HIGH);
+		pinMode(LED_YELLOW, OUTPUT);
+		digitalWrite(LED_YELLOW,HIGH);
 		delay(500);
-		digitalWrite(yellow_Led,LOW);
+		digitalWrite(LED_YELLOW,LOW);
 	}
 
 	//system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
@@ -429,14 +374,14 @@ void loop() {
 		if (!internetConnected) {
 			//internetConnected = isConnectedToInternet();
 			if (ledON && greenLedStatus){
-				digitalWrite(green_Led,LOW);
+				digitalWrite(LED_GREEN,LOW);
 				greenLedStatus = !greenLedStatus;
 			}
 			resetEthernet = true;
 		}
 		else { // IF INTERNET IS PRESENT
 			if (ledON && !greenLedStatus){
-				digitalWrite(green_Led,HIGH);
+				digitalWrite(LED_GREEN,HIGH);
 				greenLedStatus = !greenLedStatus;
 			}
 			//doConfigUpdates(); // controllare +++++++++++++++++++++++++++++++++++++++++
@@ -496,17 +441,17 @@ void loop() {
 			resetnum++;
 			if (resetnum > 2){
 				Log::d("SYSTEM restart!!!");
-				digitalWrite(red_Led, HIGH);
-				digitalWrite(green_Led, LOW);
+				digitalWrite(LED_RED, HIGH);
+				digitalWrite(LED_GREEN, LOW);
 				delay(500);
-				digitalWrite(red_Led, LOW);
-				digitalWrite(green_Led, HIGH);
+				digitalWrite(LED_RED, LOW);
+				digitalWrite(LED_GREEN, HIGH);
 				delay(500);
-				digitalWrite(red_Led, HIGH);
-				digitalWrite(green_Led, LOW);
+				digitalWrite(LED_RED, HIGH);
+				digitalWrite(LED_GREEN, LOW);
 				delay(500);
-				digitalWrite(red_Led, LOW);
-				digitalWrite(green_Led, HIGH);
+				digitalWrite(LED_RED, LOW);
+				digitalWrite(LED_GREEN, HIGH);
 				delay(1500);
 				//execScript(script_reset);
 				system("reboot");
