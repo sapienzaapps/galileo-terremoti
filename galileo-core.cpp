@@ -262,7 +262,7 @@ void setup() {
 	Log::i("Starting.........");
 #ifdef __IS_GALILEO
 	// Fixing Arduino Galileo bug
-	//signal(SIGPIPE, SIG_IGN); Removed - caused not restarting sketch
+	signal(SIGPIPE, SIG_IGN); // TODO: Remove? - caused not restarting sketch
 	// Workaround for Galileo (and other boards with Linux)
 	system("/etc/init.d/networking restart");
 	delay(1000);
