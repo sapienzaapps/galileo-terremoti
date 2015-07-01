@@ -13,9 +13,8 @@ Alternatively (eg. if you're on Windows or you don't have `make`), you can creat
     #define __BUILDCFG_H
 
     #define __IS_GALILEO
-    // If you have Gen2 Galileo please set GEN1 to 0 and GEN2 to 1
-    #define GEN1 1
-    #define GEN2 0
+    // If you have Gen2 Galileo please set GALILEO_GEN to 2
+    #define GALILEO_GEN 1
 
     #endif
 

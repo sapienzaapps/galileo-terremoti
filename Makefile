@@ -52,14 +52,12 @@ all:
 
 gen1prep:
 	echo "$$BUILDCFG_HEADER" > buildcfg.h
-	echo "#define GEN1 1" >> buildcfg.h
-	echo "#define GEN2 0" >> buildcfg.h
+	echo "#define GALILEO_GEN 1" >> buildcfg.h
 	echo "$$BUILDCFG_FOOTER" >> buildcfg.h
 
 gen2prep:
 	echo "$$BUILDCFG_HEADER" > buildcfg.h
-	echo "#define GEN1 0" >> buildcfg.h
-	echo "#define GEN2 1" >> buildcfg.h
+	echo "#define GALILEO_GEN 2" >> buildcfg.h
 	echo "$$BUILDCFG_FOOTER" >> buildcfg.h
 
 gen1: gen1prep

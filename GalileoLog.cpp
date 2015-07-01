@@ -61,6 +61,7 @@ FILE* Log::logFile = NULL;
 bool Log::serialDebug = true;
 LogLevel Log::logLevel = LEVEL_INFO;
 char* Log::deviceid = NULL;
+bool Log::stdoutDebug = false;
 
 void Log::setDeviceId(char *deviceid) {
 	Log::deviceid = deviceid;
@@ -117,6 +118,10 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 		snprintf(logentry, 1024, "[%s] [%c] [%s] %s", getGalileoDate(), levelC, deviceid, realmsg);
 	}
 
+	if(Log::stdoutDebug) {
+		printf("%s\n", logentry);
+	}
+
 	if(Log::serialDebug) {
 		Serial.println(logentry);
 	}
@@ -171,4 +176,8 @@ void Log::e(const char* msg, ...) {
 	va_start(argptr, msg);
 	Log::log(LEVEL_ERROR, msg, argptr);
 	va_end(argptr);
+}
+
+void Log::enableStdoutDebug(bool enable) {
+	Log::stdoutDebug = enable;
 }

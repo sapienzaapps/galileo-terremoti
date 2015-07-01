@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 #define DEFAULT_HTTP_SERVER "www.sapienzaapps.it"
-#define DEFAULT_HTTP_PATH "/terremoti/galileo"
+#define DEFAULT_HTTP_PATH "/seismocloud"
 #define DEFAULT_LOG_PATH "/media/realroot/sketch.log"
 #define DEFAULT_ACC_PATH "/media/realroot/acc.txt"
 #define DEFAULT_CONFIG_PATH "/media/realroot/seismoconfig.txt"
@@ -27,15 +27,14 @@ typedef enum {
 } ThresholdAlgorithm_t;
 
 typedef struct _configFile {
-	char lat[10] = "00.000000";
-	char lon[10] = "00.000000";
-#if GEN2 > 0
-  char *model = "galileo2";
-  float version = 1.90;
+	float lat = 0f;
+	float lon = 0f;
+#if GALILEO_GEN == 2
+	char *model = "galileo2";
 #else
 	char *model = "galileo1";
-	float version = 1.90;
 #endif
+	float version = 1.90;
 } ConfigFile;
 
 
@@ -56,6 +55,6 @@ extern bool redLedStatus;
 extern bool greenLedStatus;
 extern bool yellowLedStatus;
 
-extern ConfigFile configGal;
+extern ConfigFile config;
 
 #endif 

@@ -45,6 +45,7 @@ public:
 	static void setSyslogServer(IPAddress);
 	static void setLogFile(const char *);
 	static void enableSerialDebug(bool);
+	static void enableStdoutDebug(bool);
 	static void setDeviceId(char *);
 
 private:
@@ -57,6 +58,7 @@ private:
 	static bool serialDebug;
 	static LogLevel logLevel;
 	static char *deviceid;
+	static bool stdoutDebug;
 };
 
 #endif

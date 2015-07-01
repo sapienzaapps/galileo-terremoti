@@ -192,13 +192,6 @@ boolean getConfigNew() {
 
 // get the HTTP Server(default if not) and NTP Server
 void initConfigUpdates() {
-	httpServer = (char *) malloc(strlen(DEFAULT_HTTP_SERVER) * sizeof(char));
-	if (httpServer != NULL) {
-		strcpy(httpServer, DEFAULT_HTTP_SERVER);
-	} else {
-		Log::e("Malloc FAILED - getConfigUpdates");
-	}
-
 	if (internetConnected && start) { // get config onli if Galileo is connected and lat/lon are setted
 		boolean ret = getConfigNew();
 		int nTimes = 0;

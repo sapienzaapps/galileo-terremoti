@@ -16,7 +16,7 @@ bool forceInitEEPROM = false;
 bool internetConnected = false;
 bool start = false;
 
-ConfigFile configGal;
+ConfigFile config;
 
 bool redLedStatus = false;
 bool greenLedStatus = false;

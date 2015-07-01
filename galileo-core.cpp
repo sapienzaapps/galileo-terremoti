@@ -254,13 +254,15 @@ void setupEthernet() {
 
 void setup() {
 	Log::setLogFile(DEFAULT_LOG_PATH);
-
+	Log::setLogLevel(LEVEL_DEBUG);
 	analogReadResolution(10);        // 3.3V => 4096
-	Log::i("    Res12bit: ");
-	delay(1000);
-	delay(500);
+
+	delay(1500);
+
 	Log::i("Starting.........");
+
 #ifdef __IS_GALILEO
+	Log::i("Fix Galileo bugs");
 	// Fixing Arduino Galileo bug
 	signal(SIGPIPE, SIG_IGN); // TODO: Remove? - caused not restarting sketch
 	// Workaround for Galileo (and other boards with Linux)
@@ -269,34 +271,25 @@ void setup() {
 	// Remove for production use
 	system("telnetd -l /bin/sh");
 #endif
-	//system("/etc/init.d/networking restart");
-	//delay(1000);
-	//system("telnetd -l /bin/sh");
-	//storeConfigToSD();
-	//delay(300);
-	Log::i("INITIALIZING DEVICE");
-	//if (logON) log("###INITIALIZING DEVICE###");
-	Log::i("readConfig()");
-	readConfig(); // read config from SD Card
+
+	Log::i("Loading config...");
+	readConfig();
+
+	Log::i("Initial calibration");
 	/* Calibrating Accelerometer */
 	accelero.begin(/* 13, 12, 11, 10, */ A0, A1, A2);     // set the proper pin x y z
-	//accelero.setSensitivity(LOW);                  // sets the sensitivity to +/-6G
-	Log::d("calibrate()");
 	accelero.setAveraging(10);  // number of samples that have to be averaged
 	accelero.calibrate();
-	Log::d("setAveraging(10)");
-	// Config connection on Ethernet module
-	Log::d("Setting up ethernet connection");
+
+	Log::d("calibration ended, starting up networking");
+
 	setupEthernet();
 	delay(1500);
 
-
-	IPAddress syslogIp(192, 0, 2, 75);
+	IPAddress syslogIp(192, 0, 2, 71);
 	Log::setSyslogServer(syslogIp);
-	Log::i("Syslog enabled");
+	Log::i("Syslog enabled to " + syslogIp);
 
-
-	//byteMacToString(mac); // create string for MAC address
 	if (request_mac_from_server) {
 		Log::i("Requesting deviceID to server... ");
 		getMacAddressFromServer(); // asking for new mac address/deviceid

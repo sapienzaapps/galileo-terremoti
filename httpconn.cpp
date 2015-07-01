@@ -222,13 +222,14 @@ void getMacAddressFromServer() {
 	if (client.connect(DEFAULT_HTTP_SERVER, 80)) {
 		char rBuffer[300];
 		int rsize = prepareMacBuffer(rBuffer);
+		Log::i("rBuffer[%i]: %s", rsize, rBuffer);
 
 		client.print("POST ");
 		client.print(DEFAULT_HTTP_PATH);
 		client.print("/alive.php");
 		client.println(" HTTP/1.1");
 		client.print("Host: ");
-		client.println(httpServer);
+		client.println(DEFAULT_HTTP_SERVER);
 		client.println("Content-Type: application/x-www-form-urlencoded");
 		client.print("Content-Length: ");
 		client.println(rsize);
