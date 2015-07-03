@@ -2,6 +2,7 @@
 
 #include "config.h"
 #include "commons.h"
+#include "httpconn.h"
 
 unsigned int localPort = 8888;  // local port to listen for UDP packets
 const int NTP_PACKET_SIZE = 48;  // NTP time stamp is in the first 48 bytes of the message
@@ -103,14 +104,14 @@ bool NTPdataPacket() {
 	memset(cmd0, 0, 30);
 	memset(bufSTR, 0, 13);
 	// while (!NTPsynced) {
-	if (internetConnected) {
+	if (NetworkManager::isConnectedToInternet()) {
 		sendNTPpacket(timeServer); // send an NTP packet to a time server
 
 		// wait to see if a reply is available
 		delay(500);
 		unsigned long responseMill = millis();
 		// WAIT FOR SERVER RESPONCE
-		while (!NTPsynced && (millis() - responseMill < timeoutResponse)) {
+		while (!NTPsynced && (millis() - responseMill < NTP_RESPONSE_TIMEOUT_VALUE)) {
 			if (UDP_as_NTP.parsePacket() >= NTP_PACKET_SIZE) {
 				NTPsynced = true;
 				// We've received a packet, read the data from it

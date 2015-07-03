@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <string>
 
 #ifdef __IS_GALILEO
 
@@ -46,7 +47,7 @@ public:
 	static void setLogFile(const char *);
 	static void enableSerialDebug(bool);
 	static void enableStdoutDebug(bool);
-	static void setDeviceId(char *);
+	static void setDeviceId(std::string);
 
 private:
 	static void log(LogLevel, const char *, va_list argptr);
@@ -57,7 +58,7 @@ private:
 	static FILE *logFile;
 	static bool serialDebug;
 	static LogLevel logLevel;
-	static char *deviceid;
+	static std::string deviceid;
 	static bool stdoutDebug;
 };
 

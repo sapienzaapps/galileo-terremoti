@@ -4,371 +4,389 @@
 
 #include <fcntl.h>
 
-EthernetClient client;
-byte inEvent = 0;
-unsigned long nextContact = 5000;
+bool NetworkManager::isDhcpClient = true;
+uint8_t* NetworkManager::mac = NULL;
+IPAddress NetworkManager::staticAddress(0, 0, 0, 0);
+IPAddress NetworkManager::subnetMask(0, 0, 0, 0);
+IPAddress NetworkManager::gateway(0, 0, 0, 0);
+IPAddress NetworkManager::dnsHost(0, 0, 0, 0);
+bool NetworkManager::connectionAvailable = false;
+bool NetworkManager::connectionChecked = false;
+bool NetworkManager::networkSetup = false;
 
-// get data from server to buffer line per line
-int getLine(EthernetClient c, char *buffer, int maxsize, int toRead) { //???????
-	int i;
-	byte done = 0;
-	memset(buffer, 0, maxsize);  // set the buffer to 0
+bool NetworkManager::isConnectedToInternet() {
+	return NetworkManager::isConnectedToInternet(false);
+}
 
-	for (i = 0; i < maxsize - 1 && done == 0; i++) {
-		buffer[i] = c.read();
+bool NetworkManager::isConnectedToInternet(bool force) {
+	if(!NetworkManager::networkSetup) {
+		return false;
+	}
+	if(!NetworkManager::connectionChecked || force) {
+		NetworkManager::connectionAvailable = false;
 
-		if (buffer[i] == '\r') i--;
-		if (buffer[i] == '\n' || buffer[i] == -1) {  // if there is nothing more to read
-			done = 1;
-			buffer[i] = 0;
-		}
-		if (toRead == -1) {
-			// do nothing: it'll stop only if the buffer is emptied
-		}
-		else if (toRead > 1) {
-			toRead--;
+		int ping = system("bin/busybox ping -w 2 8.8.8.8");
+
+		int pingWifexited = WIFEXITED(ping);
+		if (pingWifexited) {
+			Log::d("Ping WEXITSTATUS STATUS: %i", WEXITSTATUS(ping));
+			if (WEXITSTATUS(ping) == 0) {
+				NetworkManager::connectionAvailable = true;
+			}
 		}
 		else {
-			done = 1;
+			Log::d("Ping WEXITSTATUS STATUS: %i", pingWifexited);
+		}
+		NetworkManager::connectionChecked = true;
+	}
+	return NetworkManager::connectionAvailable;
+}
+
+void NetworkManager::setupAsDHCPClient(uint8_t *mac) {
+	boolean isDhcpWorking = false;
+	int retry = 0;
+	while (!isDhcpWorking && retry < 5) {
+		// Trying to get an IP address
+		if (Ethernet.begin(mac) == 0) {
+			// Error retrieving DHCP IP
+			Log::e("Timeout while attempting to discover DHCP server, retrying in 5 seconds...");
+			retry++;
+			delay(5000);
+		} else {
+			// DHCP IP retireved successfull
+			IPAddress localIp = Ethernet.localIP();
+			Log::d("IP retrived successfully from DHCP: %i.%i.%i.%i", localIp[0], localIp[1], localIp[2], localIp[3]);
+			isDhcpWorking = true;
 		}
 	}
-	if (toRead == 1) return 1;
-	else return i - 1;
+	NetworkManager::isDhcpClient = true;
+	NetworkManager::networkSetup = isDhcpWorking;
 }
 
-int getLine(EthernetClient c, char *buffer, int maxsize) {
-	return getLine(c, buffer, maxsize, -1);
-}
+void NetworkManager::setupStatic(uint8_t *mac, IPAddress staticAddress, IPAddress subnetMask, IPAddress gateway, IPAddress dnsHost) {
+	Log::d("Static configuration: %i.%i.%i.%i/%i.%i.%i.%i gw %i.%i.%i.%i dns %i.%i.%i.%i",
+		   staticAddress[0], staticAddress[1], staticAddress[2], staticAddress[3],
+		   subnetMask[0], subnetMask[1], subnetMask[2], subnetMask[3],
+		   gateway[0], gateway[1], gateway[2], gateway[3],
+		   dnsHost[0], dnsHost[1], dnsHost[2], dnsHost[3]
+	);
 
-int getPipe(EthernetClient c, char *buffer, int maxsize) {
-	return getPipe(c, buffer, maxsize, -1);
-}
-
-// get data from server to buffer line per line
-int getPipe(EthernetClient c, char *buffer, int maxsize, int toRead) { //???????
-	int i;
-	byte done = 0;
-	memset(buffer, 0, maxsize);  // set the buffer to 0
-	for (i = 0; i < maxsize - 1 && done == 0; i++) {
-		buffer[i] = c.read();
-
-		if (buffer[i] == '|' /*||  buffer[i] == -1 */) {  // if there is nothing more to read
-			done = 1;
-			buffer[i] = 0;
-		} else if (buffer[i] == -1) return -1; // finished to read at last pipe!
-		if (toRead == -1) {
-			// do nothing: it'll stop only if the buffer is emptied
-		}
-		else if (toRead > 1) {
-			toRead--;
-		}
-		else {
-			done = 1;
-		}
+	if(NetworkManager::mac != NULL) {
+		free(NetworkManager::mac);
+		NetworkManager::mac = NULL;
 	}
-	return i - 1;
+	NetworkManager::mac = (uint8_t*) malloc(6);
+	memcpy(NetworkManager::mac, mac, 6);
+	memcpy(&NetworkManager::staticAddress, &staticAddress, sizeof(IPAddress));
+	memcpy(&NetworkManager::subnetMask, &subnetMask, sizeof(IPAddress));
+	memcpy(&NetworkManager::gateway, &gateway, sizeof(IPAddress));
+	memcpy(&NetworkManager::dnsHost, &dnsHost, sizeof(IPAddress));
+
+	NetworkManager::isDhcpClient = false;
+
+	// ARDUINO START CONNECTION
+	Ethernet.begin(mac, staticAddress, dnsHost, gateway, subnetMask); // Static address configuration
+
+	char ipAsString[20], maskAsString[20], gwAsString[20], dnsAsString[20];
+	snprintf(ipAsString, 20, "%i.%i.%i.%i", staticAddress[0], staticAddress[1], staticAddress[2], staticAddress[3]);
+	snprintf(maskAsString, 20, "%i.%i.%i.%i", subnetMask[0], subnetMask[1], subnetMask[2], subnetMask[3]);
+	snprintf(gwAsString, 20, "%i.%i.%i.%i", gateway[0], gateway[1], gateway[2], gateway[3]);
+	snprintf(dnsAsString, 20, "%i.%i.%i.%i", dnsHost[0], dnsHost[1], dnsHost[2], dnsHost[3]);
+
+	char buf[200];
+	memset(buf, 0, 200);
+	snprintf(buf, 200, "ifconfig eth0 %s netmask %s up", ipAsString, maskAsString);
+	system(buf);
+
+	memset(buf, 0, 200);
+	snprintf(buf, 200, "route add default gw %s eth0", gwAsString);
+	system(buf);
+
+	memset(buf, 0, 200);
+	snprintf(buf, 200, "echo 'nameserver %s' > /etc/resolv.conf", dnsAsString);
+	system(buf);
+
+	NetworkManager::networkSetup = true;
+}
+
+void NetworkManager::restart() {
+#ifdef __IS_GALILEO
+	// Workaround for Galileo (and other boards with Linux)
+	system("/etc/init.d/networking restart");
+	delay(1000);
+#endif
+	if(NetworkManager::isDhcpClient) {
+		NetworkManager::setupAsDHCPClient(NetworkManager::mac);
+	} else {
+		NetworkManager::setupStatic(
+				NetworkManager::mac,
+				NetworkManager::staticAddress,
+				NetworkManager::subnetMask,
+				NetworkManager::gateway,
+				NetworkManager::dnsHost
+		);
+	}
+}
+
+void NetworkManager::forceRestart() {
+	bool connected;
+	int retry = 1;
+	do {
+		Log::i("Network reset #%i", retry);
+		NetworkManager::restart();
+		connected = NetworkManager::isConnectedToInternet(true);
+		if(retry > 5) {
+			system("reboot");
+			for(;;);
+		} else if(!connected) {
+			retry++;
+			sleep(2000);
+		}
+	} while(!connected);
 }
 
 
-int prepareFastBuffer(char *buf, struct RECORD *db, struct TDEF *td) {
-	// tsstart, deviceid, lat, lon
-	Log::d("mac testo: %s", mac_string);
-	return sprintf(buf, "tsstart=%u&deviceid=%s&lat=%s&lon=%s", db->ms, mac_string, configGal.lat, configGal.lon);
-}
+unsigned long HTTPClient::nextContact = 5000;
 
-int prepareMacBuffer(char *buf) {
-	// tsstart, deviceid, lat, lon
-	Log::d("mac testo: %s", mac_string);
-	return sprintf(buf, "deviceid=%s", "00000000c1a0");
-}
+std::string HTTPClient::getConfig() {
+	std::string cfg;
+	std::map<std::string, std::string> postValues;
+	postValues["deviceid"] = Config::getMacAddress();
+	postValues["lat"] = Config::getLatitude();
+	postValues["lon"] = Config::getLongitude();
+	postValues["version"] = SOFTWARE_VERSION;
+	postValues["model"] = ARDUINO_MODEL;
 
-int prepareFirstBuffer(char *buf, struct RECORD *db, struct TDEF *td) {
-	// ts, ms, pthresx, pthresy, pthresz, nthresx, nthresy, nthresz, deltax, deltay, deltaz
-	return sprintf(buf, "%ld;%ld;%f;%f;%f;%f;%f;%f;%ld;%ld;%ld",
-				   db->ts, db->ms, td->pthresx, td->pthresy, td->pthresz, td->nthresx, td->nthresy, td->nthresz,
-				   db->valx, db->valy, db->valz);
-}
-
-int prepareBuffer(char *buf, struct RECORD *db) {
-	// ts, ms, deltax, deltay, deltaz
-	return sprintf(buf, "%ld;%ld;%ld;%ld;%ld\r\n", db->ts, db->ms, db->valx, db->valy, db->valz);
-}
-
-// open the file into the RAM of the device
-int ramopen(int seqid, int sendingIter) {
-	// Send values
-	char filename[100];
-	sprintf(filename, "/media/ram/rel%d_%d.dat", seqid, sendingIter);
-
-	Log::i("Opening file %s", filename);
-
-	return open(filename, O_RDWR | O_CREAT);
-}
-
-// remove the file from the RAM of the device
-void ramunlink(int seqid, int sendingIter) {
-	// Send values
-	char filename[100];
-	sprintf(filename, "/media/ram/rel%d_%d.dat", seqid, sendingIter);
-
-	Log::i("Removing file %s", filename);
-
-	unlink(filename);
+	HTTPResponse *resp = httpRequest(HTTP_POST, HTTP_API_ALIVE, postValues);
+	if(resp->error == HTTP_OK && resp->body != NULL) {
+		cfg = std::string((char*)resp->body);
+	} else {
+		cfg = std::string("");
+	}
+	freeHTTPResponse(resp);
+	return cfg;
 }
 
 // send the accelerometer values that got over the threshold
-void httpSendAlert1(struct RECORD *db, struct TDEF *td) {
+void HTTPClient::httpSendAlert1(struct RECORD *db, struct TDEF *td) {
 	// New Event ----------------------------------------------------------
 	Log::d("---- httpSendAlert1 ---------START-------");
 	Log::i("New Event, values (X-Y-Z):");
 	printRecord(db); // Debug print recorded axis values
 	Log::d("Date: %s", getGalileoDate());
 
-	char rBuffer[300];
-	bool sent = false;
-	bool received = false;
-	//int connection_status;
-	int ntimes = 4; // numbers of connection tryies
-// Connecting to server to retrieve "sequence id"
-	Log::i("Connecting to:#%s# - num try:%i", httpServer, 4 - ntimes);
-	//int connection_status = client.connect(DEFAULT_HTTP_SERVER, 80);
-	if (client.connect(DEFAULT_HTTP_SERVER, 80)) { // if connection established
-		Log::d("TRYING SENDING NOW!!!!");
-
-		int rsize = prepareFastBuffer(rBuffer, db, td);  // prepare the info for the new entry to be send to DB
-		// sendig request to server
-		client.print("POST ");
-		client.print(DEFAULT_HTTP_PATH);
-		client.print("/terremoto.php");
-		client.println(" HTTP/1.1");
-		client.print("Host: ");
-		client.println(DEFAULT_HTTP_SERVER);
-		client.println("Content-Type: application/x-www-form-urlencoded");
-		client.print("Content-Length: ");
-		client.println(rsize);
-		client.println("Connection: keep-alive"); // ??? close????
-		client.println("");
-		client.println(rBuffer);
-		Log::d("PATDOMAIN: %s - sending Buffer: %s", DEFAULT_HTTP_PATH, rBuffer);
-
-		sent = true;
-		Log::d("Attendiamo i dati... %i", ntimes);
-
-		unsigned long responseMill = millis();
-
-		// Attende che arrivino i dati con timeout nella risposta ***************
-		while (!client.available() && (millis() - responseMill < timeoutResponse)) { ; }
-		if (millis() - responseMill > timeoutResponse)
-			Log::e("TIMEOUT SERVER CONNECTION");
-		if (client.available()) { // gestire il caso in cui la connessione con il server avviene ma i dati non arrivano
-			// il problema sussiste nel fatto che vengono inviati di nuovo i dati al server
-			// client has sent a response
-			// Reading headers
-			int bodySize = 0;
-			int s = getLine(client, rBuffer, 300);
-			Log::i("buffer response: %s", rBuffer);
-
-			if (strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) { // risposta ok dal server
-				do { // read from client response
-					s = getLine(client, rBuffer, 300);
-					if (strncmp(rBuffer, "Content-Length", 14) == 0) {
-						char *separator = strchr(rBuffer, ':');
-						if (*(separator + 1) == ' ') {
-							separator = separator + 2;
-						} else {
-							separator++;
-						}
-						bodySize = atoi(separator); // get body size response
-						//break; // stop
-					}
-				} while (s > 0); // get data till new line
-
-				s = getLine(client, rBuffer, 300, bodySize); // get content size
-				Log::i("rBuffer LENGTH = %i - rBuffer = %ld", s, atol(rBuffer));
-				//nextContact = atol(separator+1) + getUNIXTime();  // TIME FOR SENDING COLLECTED DATA
-				if (s > 0) {
-					nextContact = (atol(rBuffer) * 1000UL);  // get next time to send new data
-					received = true;
-					Log::i("received = true;");
-
-					inEvent = 1;  // Set ON the Event
-					milldelayTimeEvent = millis(); // timestamp in millis for Event Interval */
-				}
-				Log::d("tempo offset per nextContact: %i - bodySize: %i", nextContact, bodySize);
-
-			} else { // connetion response != 200
-				Log::e("connetion response != 200");
-				Log::e("Error in reply for req: %s", rBuffer);
-				sent = false;
-			}
-		} else { // client not responding - data not available
-			Log::e("Client not available on: sendAlert2");
-		}
-	} else { // connection to server Failed!!!
-		client.stop();
-		errors_connection++;
-		Log::e("connessione fallita");
+	std::map<std::string, std::string> postValues;
+	postValues["tsstart"] = db->ms;
+	postValues["deviceid"] = Config::getMacAddress();
+	postValues["lat"] = Config::getLatitude();
+	postValues["lon"] = Config::getLongitude();
+	HTTPResponse *resp = httpRequest(HTTP_POST, HTTP_API_TERREMOTO, postValues);
+	if(resp->error == HTTP_OK && resp->body != NULL) {
+		nextContact = atol((const char*)resp->body) * 1000UL;
 	}
-	while (client.connected()) {
-		Log::d("disconnecting.");
-		client.stop();
-	}
-	Log::d("---- httpSendAlert1------- EXIT ------------");
+	freeHTTPResponse(resp);
 }
 
-// ask the server for a valid MAC address
-void getMacAddressFromServer() {
-	Log::i("getMacAddressFromServer() --------------- START------ ");
-	if (client.connect(DEFAULT_HTTP_SERVER, 80)) {
-		char rBuffer[300];
-		int rsize = prepareMacBuffer(rBuffer);
-		Log::i("rBuffer[%i]: %s", rsize, rBuffer);
+std::string HTTPClient::getMACAddress() {
+	std::string mac;
+	std::map<std::string, std::string> postValues;
+	postValues["deviceid"] = "00000000c1a0";
+	HTTPResponse *resp = httpRequest(HTTP_POST, HTTP_API_ALIVE, postValues);
+	if(resp->error == HTTP_OK && resp->body != NULL) {
+		mac = std::string((char*)resp->body);
+	} else {
+		mac = std::string("");
+	}
+	freeHTTPResponse(resp);
+	return mac;
+}
 
-		client.print("POST ");
-		client.print(DEFAULT_HTTP_PATH);
-		client.print("/alive.php");
-		client.println(" HTTP/1.1");
-		client.print("Host: ");
-		client.println(DEFAULT_HTTP_SERVER);
-		client.println("Content-Type: application/x-www-form-urlencoded");
-		client.print("Content-Length: ");
-		client.println(rsize);
-		client.println("Connection: close"); // ???
-		client.println("");
-		client.println(rBuffer);
-		unsigned long responseMill = millis();
 
-		delay(100);
-		memset(rBuffer, 0, 300 * sizeof(char));
 
-		while (!client.available() && (millis() - responseMill < timeoutResponse)) { ; }
-		if (client.available()) {
-			int s = getLine(client, rBuffer, 300);
-			Log::i("rBuffer[%i]: %s", s, rBuffer);
 
-			if (strncmp(rBuffer, "HTTP/1.1 200", 12) == 0) {
-				int bodySize = 0;
-				do {
-					s = getLine(client, rBuffer, 300);
-					if (strncmp(rBuffer, "Content-Length", 14) == 0) {
-						char *separator = strchr(rBuffer, ':');
-						if (*(separator + 1) == ' ') {
-							separator += 2;
-						} else {
-							separator++;
-						}
-						bodySize = atoi(separator);
-						Log::i("bodySize: %i", bodySize);
-					}
-				} while (s > 0);
+unsigned long HTTPClient::getNextContact() {
+	return nextContact;
+}
 
-				// Content
-				s = getLine(client, rBuffer, 300, bodySize);
-				if (s > 0) {
-					Log::i("MAC address: %s", rBuffer);
-					memcpy(mac_string, rBuffer, strlen(rBuffer) * sizeof(char)); // copiato mac in stringa
-					mac_string[12] = '\0';
-				}
-				else {
-					Log::e("Error getting the content");
-				}
+size_t HTTPClient::hostFromURL(const char* url, char* hostname, unsigned short* port) {
+	size_t offset = 0;
+	if(strncmp(url, "http://", 7) == 0) {
+		offset += 7;
+	}
 
+	size_t urlSize = strlen(url);
+	size_t hostEnd = offset;
+	while(url[hostEnd] != '/' && url[hostEnd] != ':' && hostEnd < urlSize) {
+		hostEnd++;
+	}
+
+	memcpy(hostname, url+offset, hostEnd-offset);
+	hostname[hostEnd-offset] = 0;
+
+	if(url[hostEnd] == ':') {
+		size_t portEnd = hostEnd+1;
+		while(url[portEnd] != '/' && portEnd < urlSize) {
+			portEnd++;
+		}
+
+		char buf[30+1];
+		size_t p = portEnd - (hostEnd+1);
+		p = (p < 30 ? p : 30);
+		memcpy(buf, url+hostEnd+1, p);
+		buf[p] = 0;
+
+		*port = (unsigned short)atoi(buf);
+
+		return portEnd;
+	} else {
+		return hostEnd;
+	}
+}
+
+unsigned short HTTPClient::getResponseCode(char* line) {
+	// HTTP/1.1 200 Ok
+	char buf[4];
+	memcpy(buf, line + 9, 3);
+	buf[4] = 0;
+	return (unsigned short)atoi(buf);
+}
+
+HTTPResponse* HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues) {
+	HTTPResponse *resp = new HTTPResponse();
+
+	EthernetClient client;
+	char serverName[100];
+	unsigned short serverPort = 80;
+	size_t pathOffset = hostFromURL(URL.c_str(), serverName, &serverPort);
+
+	if(client.connect(serverName, serverPort)) {
+		char linebuf[1024];
+
+		snprintf(linebuf, 1024, "%s %s HTTP/1.1", (method == HTTP_GET ? "GET" : "POST"), URL.c_str() + pathOffset);
+		client.println(linebuf);
+
+		if(serverPort != 80) {
+			snprintf(linebuf, 1024, "Host: %s:%i", serverName, serverPort);
+		} else {
+			snprintf(linebuf, 1024, "Host: %s", serverName);
+		}
+		client.println(linebuf);
+
+		client.println("Connection: close");
+
+		if(method == HTTP_POST && postValues.size() == 0) {
+			client.println("Content-Length: 0");
+			client.println("");
+		} else if(method == HTTP_POST && postValues.size() > 0) {
+			std::string reqBody;
+			for(std::map<std::string, std::string>::iterator i = postValues.begin(); i != postValues.end(); i++) {
+				reqBody.append(i->first);
+				reqBody.append("=");
+				reqBody.append(i->second);
 			}
-			else {
-				Log::e("Connection error - not 200!");
+			client.println("Content-Type: application/x-www-form-urlencoded");
+
+			snprintf(linebuf, 1024, "Content-Length: %lu", reqBody.size());
+			client.println(linebuf);
+
+			client.println("");
+			client.write(reqBody.c_str());
+		}
+
+		// Request sent, wait for reply
+		unsigned long reqTime = millis();
+		while(!client.available() && (millis() - reqTime < HTTP_RESPONSE_TIMEOUT_VALUE ) ){;}
+
+		if(client.available()) {
+			char rBuffer[300+1];
+			memset(rBuffer, 0, 300+1);
+			int s = getLine(client, (uint8_t*)rBuffer, 300);
+
+			Log::i("buffer response[%i]: %s", s, rBuffer);
+
+			if(strncmp(rBuffer, "HTTP/1.1", 8) == 0) {
+				resp->error = HTTP_OK;
+				resp->responseCode = getResponseCode(rBuffer);
+
+				// Read headers
+				int s;
+				do {
+					s = getLine(client, (uint8_t*)rBuffer, 300);
+					if(s > 0 && strlen(rBuffer) != 0) {
+						char* dppos = strchr(rBuffer, ':');
+						*dppos = 0;
+						if(*(dppos+1) == ' ') {
+							dppos++;
+						}
+						dppos++;
+						resp->headers[std::string(rBuffer)] = std::string(dppos);
+					}
+				} while(s > 0 && strlen(rBuffer) != 0);
+
+				resp->body = NULL;
+				if(resp->headers.count("Content-Length") == 1) {
+					size_t bodySize = (size_t) atol(resp->headers["Content-Length"].c_str());
+					resp->body = (uint8_t*)malloc(bodySize);
+
+					client.read(resp->body, bodySize);
+				}
+			} else {
+				resp->error = HTTP_MALFORMED_REPLY;
 			}
 		} else {
-			Log::e("Client not available on: getMacAddressFromServer");
+			resp->error = HTTP_REQUEST_TIMEOUT;
 		}
 	} else {
-		Log::e("connessione fallita");
+		resp->error = HTTP_CONNECTION_TIMEOUT;
 	}
-	while (client.connected()) {
-		Log::d("disconnecting...");
+	client.stop();
+	// TODO: better handling?
+	while(client.connected()) {
 		client.stop();
 	}
-	Log::i("getMacAddressFromServer() --------------- END ------ ");
+	return resp;
 }
 
-// given a string made of pair of characters in HEX base, convert them in decimal base - OK
-uint8_t *HEXtoDecimal(const char *in, size_t len, uint8_t *out) {
-	unsigned int i, t, hn, ln;
-	char *ptr;
-	char tmp[2];
-	long decimal;
-
-
-	for (t = 0, i = 0; i < len; i += 2, ++t) {
-		tmp[0] = in[i];
-		tmp[1] = in[i + 1];
-		decimal = strtol(tmp, &ptr, 16);
-
-		out[t] = decimal;
-		if (decimal < 1) {
-			Log::d("0");
-		}
-
-		Log::d("%x:", out[t]);
+void HTTPClient::freeHTTPResponse(HTTPResponse *resp) {
+	if(resp->body != NULL) {
+		free(resp->body);
 	}
-
-	return out;
+	delete resp;
 }
 
-// read configuration file
-void readConfig() {
-	Log::i("ON CONFIG READING");
+// get data from server to buffer line per line
+int HTTPClient::getLine(EthernetClient c, uint8_t *buffer, size_t maxsize, int toRead) {
+	int i;
+	byte done = 0;
+	memset(buffer, 0, maxsize);  // set the buffer to 0
 
-	FILE *fpconf;
-	fpconf = fopen(DEFAULT_CONFIG_PATH, "r");
-	if (fpconf != NULL) {
-		char buffer[100];
-		char tmp[30];
-		char *argument;
-		int latlon = 0;
-		while (fgets(buffer, 50, fpconf) != NULL) {
-			Log::i("while READING");
-			if (strncmp("deviceid", buffer, 8) == 0) {
-				argument = strchr(buffer, ':');
-				argument++;
-				int a = snprintf(tmp, 15, "%s", argument);
-				Log::i("tmp[%i]:%s", a, tmp);
-				if (a == 13) {
-					strncpy(mac_string, tmp, 12); // copio il MAC in formato stringa
-					mac_string[12] = '\0';
-					HEXtoDecimal(mac_string, strlen(mac_string),
-								 mac); // trasformo il mac da stringa ad array di byte HEX
+	for (i = 0; i < maxsize - 1 && done == 0; i++) {
+		buffer[i] = (uint8_t)c.read();
 
-					request_mac_from_server = false; //
-					Log::i("Finished mac reading");
-				} else {
-					Log::e("config request_mac_from_server please!!!!");
-					request_mac_from_server = true;
-				}
-			} else if (!strncmp("lat", buffer, 3)) {
-				argument = strchr(buffer, ':');
-				argument++;
-				strncpy(configGal.lat, argument, (size_t) 8);
-				Log::i("latitudine: %lf", configGal.lat);
-				latlon++;
-			} else if (!strncmp("lon", buffer, 3)) {
-				argument = strchr(buffer, ':');
-				argument++;
-				strncpy(configGal.lon, argument, (size_t) 8);
-				Log::i("longitudine: %lf", configGal.lon);
-				latlon++;
-			}
+		if (buffer[i] == '\r') {
+			i--;
 		}
-		if (latlon == 2) {
-			request_lat_lon = false;
+
+		if (buffer[i] == '\n' || buffer[i] == -1) {  // if there is nothing more to read
+			done = 1;
+			buffer[i] = 0;
 		}
+
+		if (toRead == -1) {
+			// do nothing: it'll stop only if the buffer is emptied
+		} else if (toRead > 1) {
+			toRead--;
+		} else {
+			done = 1;
+		}
+	}
+	if (toRead == 1) {
+		return 1;
 	} else {
-		Log::e("FOPEN FAILED ON CONFIG READING");
+		return i - 1;
 	}
 }
 
-// convert byte array into C String
-void byteMacToString(byte mac_address[]) {
-	sprintf(mac_string, "%02x%02x%02x%02x%02x%02x", mac_address[0], mac_address[1], mac_address[2], mac_address[3],
-			mac_address[4], mac_address[5]);
-	Log::i("MAC ADDRESS TO STRING: %s", mac_string);
+int HTTPClient::getLine(EthernetClient c, uint8_t *buffer, size_t maxsize) {
+	return getLine(c, buffer, maxsize, -1);
 }

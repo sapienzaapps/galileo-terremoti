@@ -1,4 +1,3 @@
-
 #ifndef __GALILEO_CORE_CPP
 #define __GALILEO_CORE_CPP
 
@@ -30,7 +29,6 @@
 
 byte zz = 0;
 
-bool resetEthernet = false;
 unsigned long freeRam();
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
@@ -45,10 +43,12 @@ unsigned long lastRstMill = 0;
 int resetnum = 0;
 int numAlert = 0;
 int reTareNum = 40;
+byte inEvent = 0;
 
-bool chekInternet = false;
 bool recordData = false;
 byte errors_connection = 0;
+
+bool connectedToInternet = false;
 
 //definition of Accelerometer object
 AcceleroMMA7361 accelero;
@@ -148,13 +148,13 @@ void checkSensore()
 			digitalWrite(LED_RED,HIGH);
 			redLedStatus = !redLedStatus;
 		}
-		if (internetConnected && testNoInternet && start) {// send value data if there is a connection
+		if (connectedToInternet && start) {// send value data if there is a connection
 			//if (ledON) digitalWrite(LED_GREEN,HIGH);
 			if(alert){
 				inEvent = 1;
 				milldelayTimeEvent = millis(); // timestamp in millis for Event Interval */
 
-				httpSendAlert1(db, &td);
+				HTTPClient::httpSendAlert1(db, &td);
 				numAlert++;
 				//getConfigNew();// on testing
 
@@ -205,59 +205,26 @@ void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
 // use the linux underneath the device to force manual DNS and so on
 void setupEthernet() {
 	timeServer = IPAddress(178, 33, 50, 131);
-	if (isDhcpEnabled) {
-		boolean isDhcpWorking = false;
-		while (!isDhcpWorking) {
-			// WARNING: add DHCP timeout
-			// Trying to get an IP address
-			if (Ethernet.begin(mac) == 0) {
-				// Error retrieving DHCP IP
-				Log::e("Error while attempting to get an IP, retrying in 5 seconds...");
-				delay(5000);
-			} else {
-				// DHCP IP retireved successfull
-				char buf[300];
-				IPAddress localIp = Ethernet.localIP();
-				snprintf(buf, 300, "%i.%i.%i.%i", localIp[0], localIp[1], localIp[2], localIp[3]);
-				Log::d("IP retrived successfully from DHCP: %s", buf);
-				isDhcpWorking = true;
-			}
-		}
+
+	byte mac[6];
+	Config::getMacAddressAsByte(mac);
+
+	if (DHCP_CLIENT_ENABLED) {
+		NetworkManager::setupAsDHCPClient(mac);
 	} else {
-		// Home Static Configuration
-		Log::i("Static Configuration\n");
-		//add your static IP here
-		if (GEN1) ip = IPAddress(192, 168, 1, 177);// gen1
-		else ip = IPAddress(192, 168, 1, 178); // gen2
-		//dnsServer = IPAddress(192,168,1,1);
-		dnsServer = IPAddress(192,168,1,254);
-		//gateway = IPAddress(192,168,1,1);
-		gateway = IPAddress(192,168,1,254);
-		subnet = IPAddress(255, 255 ,255 ,0);
-		// ARDUINO START CONNECTION
-		Ethernet.begin(mac, ip, dnsServer, gateway, subnet); // Static address configuration
-		//LINUX SYSTEM START CONNECTION
-		if (GEN1) system("ifconfig eth0 192.168.1.177 netmask 255.255.255.0 up");  // set IP and SubnetMask for the Ethernet
-		else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up");  // set IP and SubnetMask for the Ethernet
-		//else system("ifconfig eth0 192.168.1.178 netmask 255.255.255.0 up > /dev/ttyGS0 < /dev/ttyGS0");  // set IP and SubnetMask for the Ethernet
-		//system("route add default gw 192.168.1.254 eth0 > /dev/ttyGS0 < /dev/ttyGS0");  // change the Gateway for the Ethernet
-		system("route add default gw 192.168.1.254 eth0");  // change the Gateway for the Ethernet
-		system("echo 'nameserver 8.8.8.8' > /etc/resolv.conf");  // add the GOOGLE DNS
-		//system("ifconfig eth0 192.168.1.36");  // fixed ip address to use the telnet connection
-		//system("ifconfig > /dev/ttyGS0");  // debug
-		char buf[300];
-		IPAddress localIp = Ethernet.localIP();
-		snprintf(buf, 300, "%i.%i.%i.%i", localIp[0], localIp[1], localIp[2], localIp[3]);
-		Log::d("Static IP: %s");
+		IPAddress staticAddress(192, 168, 1, 5);
+		IPAddress subnetMask(255, 255, 255, 0);
+		IPAddress gateway(192, 168, 1, 1);
+		IPAddress dnsServer(8, 8, 8, 8);
+		NetworkManager::setupStatic(mac, staticAddress, subnetMask, gateway, dnsServer);
 	}
 }
 
 void setup() {
 	Log::setLogFile(DEFAULT_LOG_PATH);
 	Log::setLogLevel(LEVEL_DEBUG);
-	analogReadResolution(10);        // 3.3V => 4096
 
-	delay(1500);
+	analogReadResolution(10);        // 3.3V => 4096
 
 	Log::i("Starting.........");
 
@@ -269,11 +236,11 @@ void setup() {
 	system("/etc/init.d/networking restart");
 	delay(1000);
 	// Remove for production use
-	system("telnetd -l /bin/sh");
+	//system("telnetd -l /bin/sh");
 #endif
 
 	Log::i("Loading config...");
-	readConfig();
+	Config::readConfigFile(DEFAULT_CONFIG_PATH);
 
 	Log::i("Initial calibration");
 	/* Calibrating Accelerometer */
@@ -284,112 +251,114 @@ void setup() {
 	Log::d("calibration ended, starting up networking");
 
 	setupEthernet();
-	delay(1500);
+	if(!NetworkManager::isConnectedToInternet(true)) {
+		NetworkManager::forceRestart();
+	}
 
 	IPAddress syslogIp(192, 0, 2, 71);
 	Log::setSyslogServer(syslogIp);
-	Log::i("Syslog enabled to " + syslogIp);
+	Log::i("Syslog enabled");
 
-	if (request_mac_from_server) {
+	if (!Config::hasMACAddress()) {
 		Log::i("Requesting deviceID to server... ");
-		getMacAddressFromServer(); // asking for new mac address/deviceid
-		HEXtoDecimal(mac_string, strlen(mac_string), mac);
-		byteMacToString(mac);
-		// convertMACFromStringToByte();
+		std::string mac_string;
+		do {
+			mac_string = HTTPClient::getMACAddress(); // asking for new mac address/deviceid
+			if (mac_string == "") {
+				Log::e("Cannot get MAC Address from server, retrying in 5 seconds...");
+				sleep(5000);
+			}
+		} while(mac_string == "");
+		Config::setMacAddress(mac_string);
 		Log::setDeviceId(mac_string);
 	}
-	if(!request_lat_lon) start = true;
+	if(Config::hasPosition()) {
+		start = true;
+	}
 
-	internetConnected = isConnectedToInternet();
-	delay(500); // wait internet connaction Status
+	bool internetConnected = NetworkManager::isConnectedToInternet();
+
 	Log::i("STATUS CONNECTION: %s", internetConnected ? "CONNECTED" : "NOT CONNECTED");
-	delay(500);
 
 	if (ledON) {
 		pinMode(LED_GREEN, OUTPUT);
+		pinMode(LED_YELLOW, OUTPUT);
+		pinMode(LED_RED, OUTPUT);
+
 		digitalWrite(LED_GREEN,HIGH);
 		delay(500);
 		digitalWrite(LED_GREEN,LOW);
-		if (internetConnected){
+		if (internetConnected) {
 			digitalWrite(LED_GREEN,HIGH);
 			greenLedStatus = true;
-		}else greenLedStatus = false;
+		} else {
+			greenLedStatus = false;
+		}
 
 		digitalWrite(LED_RED,HIGH);
 		delay(500);
 		digitalWrite(LED_RED,LOW);
-		pinMode(LED_RED, OUTPUT);
 		digitalWrite(LED_RED,LOW);
 		redLedStatus = false;
-		pinMode(LED_YELLOW, OUTPUT);
+
 		digitalWrite(LED_YELLOW,HIGH);
 		delay(500);
 		digitalWrite(LED_YELLOW,LOW);
 	}
 
-	//system("cat /etc/resolv.conf > /dev/ttyGS0 < /dev/ttyGS0");  // DEBUG
 	Log::d("Forcing config update...");
 	initConfigUpdates();
-	Log::d("EEPROM init");
-	//initThrSD(false);
-	//initEEPROM(forceInitEEPROM);
-	Log::d("UDP Command Socket init");
-	commandInterfaceInit(); // open port for mobile app
 
-	if(internetConnected && testNoInternet){
+	Log::d("UDP Command Socket init");
+	commandInterfaceInit();
+
+	if(internetConnected){
 		Log::d("Syncing NTP...");
 		initNTP(); // controllare il ritorno ++++++++++++++++++++++++++++++++++++++++++++
 		// We need to set this AFTER ntp sync...
 		lastCfgUpdate = getUNIXTime();
 	}
 
-	if(doesFileExist(script_reset)!= 1){ // check if reset script exists
+	if(doesFileExist(script_reset) != 1) { // check if reset script exists
 		Log::d("createScript...");
 		createScript(script_reset, reboot_scriptText);
 	}
 
 	Log::d("Free RAM: %lu", freeRam());
 	Log::d("INIZIALIZATION COMPLETE!");
-	Log::d("Testttttttt - FINITOOOOO");
 
 	millis24h =  millis();
 	milldelayTime = millis24h;
-	testNoInternet = true; // true = NOT IN TEST -- false = IN TEST
 }
 // end SETUP
 
 void loop() {
 	currentMillis = millis();
-	// debug only, check if the sketch is still running and Internet is CONNECTED
-	if ((testNoInternet) && (currentMillis - previousMillis > checkInternetConnectionInterval) || chekInternet/*|| resetConnection*/) {
-		if(chekInternet) chekInternet = false;
-		internetConnected = isConnectedToInternet();
-		if (!internetConnected) {
-			//internetConnected = isConnectedToInternet();
+
+	if ((currentMillis - previousMillis > checkInternetConnectionInterval)) {
+		connectedToInternet = NetworkManager::isConnectedToInternet(true);
+		if(!connectedToInternet) {
+			NetworkManager::restart();
+		}
+
+		if (!connectedToInternet) {
 			if (ledON && greenLedStatus){
 				digitalWrite(LED_GREEN,LOW);
 				greenLedStatus = !greenLedStatus;
 			}
-			resetEthernet = true;
-		}
-		else { // IF INTERNET IS PRESENT
+		} else {
 			if (ledON && !greenLedStatus){
 				digitalWrite(LED_GREEN,HIGH);
 				greenLedStatus = !greenLedStatus;
 			}
-			//doConfigUpdates(); // controllare +++++++++++++++++++++++++++++++++++++++++
-			resetEthernet = false;
-			// if (start)getConfigNew(); // CHEK FOR UPDATES
-
 		}
 		Log::d("Still running: %s CHECK INTERNET INTERVAL: %lu STATUS: %s",
-			   getGalileoDate(), checkInternetConnectionInterval, internetConnected?"CONNECTED":"NOT CONNECTED");
+			   getGalileoDate(), checkInternetConnectionInterval, connectedToInternet?"CONNECTED":"NOT CONNECTED");
 		previousMillis = currentMillis;
 	}
 
 	// sync with the NTP server
-	// unsigned long currentMillisNTP = millis();
-	if ((testNoInternet) &&(currentMillis - previousMillisNTP > NTPInterval) && internetConnected && !resetEthernet) {
+	if ((currentMillis - previousMillisNTP > NTPInterval) && connectedToInternet) {
 		NTPdataPacket();
 		execSystemTimeUpdate();
 		previousMillisNTP = currentMillis;
@@ -397,7 +366,7 @@ void loop() {
 
 	// Check for calibration Sensor
 	// unsigned long currentMillisCalibration = millis();
-	if (testNoInternet && (currentMillis - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
+	if ((currentMillis - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
 		int cHour = (getUNIXTime() % 86400L) / 3600;
 		Log::d("checkCalibrationNeeded---------------------------------------");
 		// checkCalibrationNeeded(accelero, cHour);
@@ -415,42 +384,8 @@ void loop() {
 	}
 	if (inEvent) {// unlock inEvent time
 		// unsigned long millisTimeEvent = millis();
-		if (currentMillis - milldelayTimeEvent > nextContact /* TimeEvent */) { // unlock Alert after xxx millisecs
+		if (currentMillis - milldelayTimeEvent > HTTPClient::getNextContact() /* TimeEvent */) { // unlock Alert after xxx millisecs
 			inEvent = 0;
-		}
-	}
-	if (resetEthernet && testNoInternet/* || errors_connection > 10 */) {
-		// unsigned long ethRstMill = millis();
-		if (currentMillis - lastRstMill > 120000UL) {
-			Log::e("networking restart - NOT CONNECTED FINTO!!!");
-			// Workaround for Galileo (and other boards with Linux)
-			system("/etc/init.d/networking restart");
-
-			delay(2000);
-			setupEthernet();
-			delay(1000);
-			lastRstMill = currentMillis;
-			chekInternet = true;
-			resetnum++;
-			if (resetnum > 2){
-				Log::d("SYSTEM restart!!!");
-				digitalWrite(LED_RED, HIGH);
-				digitalWrite(LED_GREEN, LOW);
-				delay(500);
-				digitalWrite(LED_RED, LOW);
-				digitalWrite(LED_GREEN, HIGH);
-				delay(500);
-				digitalWrite(LED_RED, HIGH);
-				digitalWrite(LED_GREEN, LOW);
-				delay(500);
-				digitalWrite(LED_RED, LOW);
-				digitalWrite(LED_GREEN, HIGH);
-				delay(1500);
-				//execScript(script_reset);
-				system("reboot");
-				//system("shutdown -r -t sec 00");
-				for(;;);
-			}
 		}
 	}
 
@@ -477,7 +412,7 @@ void loop() {
 	}
 
 	// check if is time to update config
-	if (/* start && */ testNoInternet && internetConnected){
+	if (/* start && */ connectedToInternet){
 		if (currentMillis - lastCfgUpdate > checkConfigInterval){
 			getConfigNew(); // CHEK FOR UPDATES
 			lastCfgUpdate = currentMillis;

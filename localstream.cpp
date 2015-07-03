@@ -21,6 +21,10 @@ union ArrayToFloat {
 
 // check if the mobile APP sent a command to the device
 int checkCommandPacket() {
+
+	byte mac[6];
+	Config::getMacAddressAsByte(mac);
+
 	if (_cmdc.parsePacket() > 0) {  // if it received a packet
 		memset(_pktBuffer, 0, 48);
 		_cmdc.read(_pktBuffer, CONTROLPKTSIZE);
@@ -48,27 +52,18 @@ int checkCommandPacket() {
 				case 1: // Discovery
 					Log::d("DISCOVERY");
 					_pktBuffer[5] = 1;
-					memcpy(_pktBuffer + 6, mac,
-						   6);  // store the MAC address of the device inside the packet to let the APP know
-					char version_[5];
-					floatToString(version_, configGal.version, 2);
-					_pktBuffer[35] = version_[0];
-					_pktBuffer[36] = version_[1];
-					_pktBuffer[37] = version_[2];
-					_pktBuffer[38] = version_[3];
-					_pktBuffer[39] = configGal.model[0];
-					_pktBuffer[40] = configGal.model[1];
-					_pktBuffer[41] = configGal.model[2];
-					_pktBuffer[42] = configGal.model[3];
-					_pktBuffer[43] = configGal.model[4];
-					_pktBuffer[44] = configGal.model[5];
-					_pktBuffer[45] = configGal.model[6];
-					_pktBuffer[46] = configGal.model[7];
+
+					// store the MAC address of the device inside the packet to let the APP know
+					memcpy(_pktBuffer + 6, mac, 6);
+
+					// Store software version
+					memcpy(_pktBuffer + 35, SOFTWARE_VERSION, 4);
+
+					memcpy(_pktBuffer + 39, ARDUINO_MODEL, 8);
+
 					_pktBuffer[47] = '\0';
 
-					Log::d("Version: %s", version_);
 					_cmdc.beginPacket(_udpTemp, 62001);
-					// _cmdc.write(_pktBuffer, CONTROLPKTSIZE+4);
 					_cmdc.write(_pktBuffer, CONTROLPKTSIZE + 4);
 					_cmdc.endPacket();
 					break;
@@ -90,29 +85,21 @@ int checkCommandPacket() {
 					_udpDest = (uint32_t) 0;
 					break;
 				case 6: // Setted
-					Log::d("Setted");  // close the socket connection with the mobile APP
 					// Reply
 					_pktBuffer[46] = '\0';
-					Log::d("PACCHETTO DATI SET GPS !!!!!!!!");
-					Log::d((char *) _pktBuffer);
 					char *argument = (char *) _pktBuffer + 16;
 
-					memcpy(configGal.lat, argument, (size_t) (sizeof(configGal.lat) - 1));
-					configGal.lat[(sizeof(configGal.lat) - 1)] = '\0';
+					Config::setLongitude(atof(argument));
 
 					argument = (char *) _pktBuffer + 26;
-					memcpy(configGal.lon, argument, (size_t) (sizeof(configGal.lon) - 1));
-					configGal.lon[(sizeof(configGal.lon) - 1)] = '\0';
+					Config::setLatitude(atof(argument));
 
-					Log::d("Ricevute latitudine: %lf longitudine: %lf", configGal.lat, configGal.lon);
+					Log::d("Location received - latitude: %lf - longitude: %lf", Config::getLatitude(), Config::getLongitude());
 
 					_pktBuffer[5] = 6;
 					_cmdc.beginPacket(_udpTemp, 62001);
 					_cmdc.write(_pktBuffer, CONTROLPKTSIZE);// send ack lat/lon received
 					_cmdc.endPacket();
-
-					if (_pktBuffer[46] == '\0') Log::i("FINE PACCHETTO GIUSTO # !!!");
-					Log::d("OK - DATA LAT/LON RECEIVED!!!");
 
 					storeConfigToSD();
 					start = true;
@@ -120,8 +107,7 @@ int checkCommandPacket() {
 					break;
 			}
 		} else {
-			Log::e("PACCHETTO DATI NON RICONOSCIUTO!!!!!!!!!!!!");
-			Log::e((char *) _pktBuffer);
+			Log::e("Invalid packet magic");
 		}
 	}
 }

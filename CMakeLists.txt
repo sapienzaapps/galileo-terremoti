@@ -34,8 +34,13 @@ set(SOURCE_FILES
 	GalileoLog.cpp
 	config.cpp
 	threshold.cpp
+	ntp_alt.cpp
+	commons.cpp
+	cfgupdate.cpp
+	httpconn.cpp
+	localstream.cpp
 	)
-add_executable(galileo_terremoti ${SOURCE_FILES} ntp_alt.cpp commons.cpp cfgupdate.cpp httpconn.cpp localstream.cpp)
+add_executable(galileo_terremoti ${SOURCE_FILES})
 
 add_custom_target(galileo_gen1 COMMAND make gen1 -C ${PROJECT_SOURCE_DIR}
 	CLION_EXE_DIR=${PROJECT_BINARY_DIR}

@@ -1,4 +1,5 @@
 #include "commons.h"
+#include "httpconn.h"
 
 IPAddress ip;
 IPAddress dnsServer;
@@ -19,33 +20,6 @@ void printRecord(struct RECORD *db) {
 	Log::d("%ld:%ld:%ld", db->valx, db->valy, db->valz);
 }
 
-// check if Internet Connection is available
-bool isConnectedToInternet() {
-	int ping = system("bin/busybox ping -w 2 8.8.8.8");
-
-	if (!testNoInternet) {
-		return true;
-	}
-
-	int pingWifexited = WIFEXITED(ping);
-	if (pingWifexited) {
-		if (WEXITSTATUS(ping) == 0) {
-			internetConnected = true;
-			return true;
-		}
-		Log::d("Ping WEXITSTATUS STATUS: %i", WEXITSTATUS(ping));
-	}
-	else {
-		Log::d("Ping WEXITSTATUS STATUS: %i", pingWifexited);
-		internetConnected = false;
-		return false;
-	}
-
-	internetConnected = false;
-	return false;
-}
-
-
 // check if a file exists
 int doesFileExist(const char *filename) {
 	if (access(filename, F_OK) != -1) {
@@ -57,7 +31,6 @@ int doesFileExist(const char *filename) {
 		return 0;
 	}
 }
-
 
 // create a script
 void createScript(const char *path, const char *text) {
@@ -120,14 +93,14 @@ void resetConnection(int numTry) {
 		// Workaround for Galileo (and other boards with Linux)
 		system("/etc/init.d/networking restart");
 		delay(3000);
-		internetConnected = isConnectedToInternet();
+		bool internetConnected = NetworkManager::isConnectedToInternet();
 		if (!internetConnected) {// TEST TEST TEST TEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			Log::e("---- FAILED ----  restore Internet connection");
 			Log::e("+++++ setupEthernet() ++++++");
 
 			//setupEthernet();// After network restart try to set Arduino network
 			delay(1000);
-			if (!(internetConnected = isConnectedToInternet()) && numTry <= 0) {
+			if (!(NetworkManager::isConnectedToInternet()) && numTry <= 0) {
 				// TRYING TO REBOOT DEVICE
 				Log::e("----- REBOOT GALILEO -----");
 
@@ -285,19 +258,19 @@ void storeConfigToSD() {
 		printf("Error opening file!\n");
 		exit(1);
 	}
-	Log::i("Store lat lon mac: %s %s %s", configGal.lat, configGal.lon, mac_string);
-	fprintf(fp, "deviceid:%s\nlat:%s\nlon:%s", mac_string, configGal.lat, configGal.lon);
+	Log::i("Store lat lon mac: %s %s %s", Config::getLatitude(), Config::getLongitude(), Config::getMacAddress().c_str());
+	fprintf(fp, "deviceid:%s\nlat:%lf\nlon:%lf", Config::getMacAddress().c_str(), Config::getLatitude(), Config::getLongitude());
 	fclose(fp);
 }
 
-void ipToString(char *buf, int maxsize, IPAddress addr) {
+void ipToString(char *buf, size_t maxsize, IPAddress addr) {
 	snprintf(buf, maxsize, "%i.%i.%i.%i", addr[0], addr[1], addr[2], addr[3]);
 }
 
 void printConfig() {
 	Log::i("###################### Config ######################### ");
-	Log::i("UDID (DeviceID): %s - Model: %s - Version: %s", mac_string, configGal.model, configGal.version);
-	Log::i("Position (lat, lon): %lf %lf", configGal.lat, configGal.lon);
+	Log::i("UDID (DeviceID): %s - Model: %s - Version: %s", Config::getMacAddress().c_str(), ARDUINO_MODEL, SOFTWARE_VERSION);
+	Log::i("Position (lat, lon): %lf %lf", Config::getLatitude(), Config::getLongitude());
 
 	char buf[300];
 	IPAddress localIp = Ethernet.localIP();
@@ -336,4 +309,14 @@ void resetBlink(byte type) {
 		digitalWrite(LED_GREEN, LOW);
 		delay(1000);
 	}
+}
+
+double atofn(char* buf, size_t max) {
+	size_t bufLen = strlen(buf);
+	max = (max <= bufLen ? max : bufLen);
+	char termination = buf[max];
+	buf[max] = 0;
+	double ret = atof(buf);
+	buf[max] = termination;
+	return ret;
 }

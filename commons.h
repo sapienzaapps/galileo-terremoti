@@ -46,7 +46,6 @@ extern unsigned long milldelayTimeEvent;
 
 void printRecord(struct RECORD *db);
 void forceConfigUpdate();
-bool isConnectedToInternet();
 int doesFileExist(const char *filename);
 void createScript(const char *path, const char *text);
 void execScript(const char *path);
@@ -59,5 +58,7 @@ void storeConfigToSD();
 void ipToString(char *buf, int maxsize, IPAddress addr);
 void printConfig();
 void resetBlink(byte type);
+uint8_t *HEXtoDecimal(const char *in, size_t len, uint8_t *out);
+double atofn(char* buf, size_t max);
 
 #endif 

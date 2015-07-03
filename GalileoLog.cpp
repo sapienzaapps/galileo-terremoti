@@ -60,10 +60,10 @@ EthernetUDP Log::syslogUdp;
 FILE* Log::logFile = NULL;
 bool Log::serialDebug = true;
 LogLevel Log::logLevel = LEVEL_INFO;
-char* Log::deviceid = NULL;
+std::string Log::deviceid = "";
 bool Log::stdoutDebug = false;
 
-void Log::setDeviceId(char *deviceid) {
+void Log::setDeviceId(std::string deviceid) {
 	Log::deviceid = deviceid;
 }
 
@@ -112,10 +112,10 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 	} else if(level == LEVEL_ERROR) {
 		levelC = 'E';
 	}
-	if(deviceid == NULL) {
+	if(deviceid == "") {
 		snprintf(logentry, 1024, "[%s] [%c] [?] %s", getGalileoDate(), levelC, realmsg);
 	} else {
-		snprintf(logentry, 1024, "[%s] [%c] [%s] %s", getGalileoDate(), levelC, deviceid, realmsg);
+		snprintf(logentry, 1024, "[%s] [%c] [%s] %s", getGalileoDate(), levelC, deviceid.c_str(), realmsg);
 	}
 
 	if(Log::stdoutDebug) {

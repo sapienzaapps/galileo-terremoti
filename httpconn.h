@@ -1,28 +1,68 @@
 #ifndef httpconn_h
 #define httpconn_h 1
 
+#define HTTP_API_ALIVE "http://www.sapienzaapps.it/seismocloud/alive.php"
+#define HTTP_API_TERREMOTO "http://www.sapienzaapps.it/seismocloud/terremoto.php"
+
+#include <string>
+#include <map>
 #include <Arduino.h>
 #include <Ethernet.h>
 
-extern EthernetClient client;
-extern byte inEvent;
-extern unsigned long nextContact;
+class NetworkManager {
+public:
+	static bool isConnectedToInternet();
+	static bool isConnectedToInternet(bool force);
+	static void setupAsDHCPClient(uint8_t *mac);
+	static void setupStatic(uint8_t *mac, IPAddress staticAddress, IPAddress subnetMask, IPAddress gateway, IPAddress dnsHost);
+	static void restart();
+	static void forceRestart();
+private:
+	static bool networkSetup;
+	static bool connectionAvailable;
+	static bool connectionChecked;
+	static bool isDhcpClient;
+	static uint8_t *mac;
+	static IPAddress staticAddress;
+	static IPAddress subnetMask;
+	static IPAddress gateway;
+	static IPAddress dnsHost;
+};
 
-void byteMacToString(byte mac_address[]);
-int getLine(EthernetClient c, char *buffer, int maxsize, int toRead);
-int getLine(EthernetClient c, char *buffer, int maxsize);
-int getPipe(EthernetClient c, char *buffer, int maxsize);
-int getPipe(EthernetClient c, char *buffer, int maxsize, int toRead);
-int prepareFastBuffer(char *buf, struct RECORD *db, struct TDEF *td);
-int prepareMacBuffer(char *buf);
-int prepareFirstBuffer(char *buf, struct RECORD *db, struct TDEF *td);
-int prepareBuffer(char *buf, struct RECORD *db);
-int ramopen(int seqid, int sendingIter);
-void ramunlink(int seqid, int sendingIter);
-void httpSendAlert1(struct RECORD *db, struct TDEF *td);
-void getMacAddressFromServer();
-uint8_t *HEXtoDecimal(const char *in, size_t len, uint8_t *out);
-void readConfig();
-void byteMacToString(byte mac_address[]);
+typedef enum {
+	HTTP_OK,
+	HTTP_CONNECTION_TIMEOUT,
+	HTTP_REQUEST_TIMEOUT,
+	HTTP_MALFORMED_REPLY
+} HTTPError;
+
+typedef enum {
+	HTTP_GET,
+	HTTP_POST
+} HTTPMethod;
+
+typedef struct HTTPResponse {
+	HTTPError error;
+	unsigned short responseCode;
+	std::map<std::string, std::string> headers;
+	uint8_t *body;
+};
+
+class HTTPClient {
+public:
+	static std::string getConfig();
+	static std::string getMACAddress();
+	static void httpSendAlert1(struct RECORD *db, struct TDEF *td);
+	static unsigned long getNextContact();
+private:
+	static unsigned long nextContact;
+
+	static void freeHTTPResponse(HTTPResponse* resp);
+	static HTTPResponse* httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);
+	static size_t hostFromURL(const char* url, char* hostname, unsigned short* port);
+	static unsigned short getResponseCode(char* line);
+	static int getLine(EthernetClient c, uint8_t* buffer, size_t maxsize, int toRead);
+	static int getLine(EthernetClient c, uint8_t* buffer, size_t maxsize);
+};
 
 #endif
