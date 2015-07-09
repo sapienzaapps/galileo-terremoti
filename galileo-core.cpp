@@ -46,6 +46,7 @@ AcceleroMMA7361 accelero;
 #include "localstream.h"
 #include "HTTPClient.h"
 #include "cfgupdate.h"
+#include "LED.h"
 
 //definition freeRam method
 #ifdef __IS_GALILEO
@@ -166,7 +167,7 @@ void checkSensore()
 
 void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
 	if(recordData){// if recording data -> get accelero data
-		int _valx, _valy, _valz;
+		long _valx, _valy, _valz;
 		accelero.getAccelXYZ(&_valx, &_valy, &_valz) ;
 		if(zz == 0 ){ // first time record
 			resetBlink(0);
@@ -211,24 +212,16 @@ void setup() {
 
 	Log::i("Starting.........");
 
-#ifdef __IS_GALILEO
-	Log::i("Fix Galileo bugs");
-	// Fixing Arduino Galileo bug
-	signal(SIGPIPE, SIG_IGN); // TODO: Remove? - caused not restarting sketch
-	// Workaround for Galileo (and other boards with Linux)
-	system("/etc/init.d/networking restart");
-	delay(1000);
-	// Remove for production use
-	//system("telnetd -l /bin/sh");
-#endif
+	NetworkManager::init();
 
 	Log::i("Loading config...");
 	Config::readConfigFile(DEFAULT_CONFIG_PATH);
 
 	Log::i("Initial calibration");
 	/* Calibrating Accelerometer */
-	accelero.begin(/* 13, 12, 11, 10, */ A0, A1, A2);     // set the proper pin x y z
-	accelero.setAveraging(10);  // number of samples that have to be averaged
+	accelero.begin(A0, A1, A2);
+	// number of samples that have to be averaged
+	accelero.setAveraging(10);
 	accelero.calibrate();
 
 	Log::d("calibration ended, starting up networking");
@@ -263,31 +256,33 @@ void setup() {
 
 	Log::i("STATUS CONNECTION: %s", internetConnected ? "CONNECTED" : "NOT CONNECTED");
 
-	if (ledON) {
-		pinMode(LED_GREEN, OUTPUT);
-		pinMode(LED_YELLOW, OUTPUT);
-		pinMode(LED_RED, OUTPUT);
 
-		digitalWrite(LED_GREEN,HIGH);
-		delay(500);
-		digitalWrite(LED_GREEN,LOW);
-		if (internetConnected) {
-			digitalWrite(LED_GREEN,HIGH);
-			greenLedStatus = true;
-		} else {
-			greenLedStatus = false;
-		}
 
-		digitalWrite(LED_RED,HIGH);
-		delay(500);
-		digitalWrite(LED_RED,LOW);
-		digitalWrite(LED_RED,LOW);
-		redLedStatus = false;
+	LED::prepare(LED_GREEN, LED_MODE_OUTPUT);
+	LED::prepare(LED_YELLOW, LED_MODE_OUTPUT);
+	LED::prepare(LED_RED, LED_MODE_OUTPUT);
 
-		digitalWrite(LED_YELLOW,HIGH);
-		delay(500);
-		digitalWrite(LED_YELLOW,LOW);
+	LED::set(LED_GREEN, LED_ON);
+	delay(500);
+	LED::set(LED_GREEN, LED_OFF);
+
+	if (internetConnected) {
+		LED::set(LED_GREEN, LED_ON);
+		greenLedStatus = true;
+	} else {
+		greenLedStatus = false;
 	}
+
+	LED::set(LED_RED, LED_ON);
+	delay(500);
+	LED::set(LED_RED, LED_OFF);
+	redLedStatus = false;
+
+	LED::set(LED_YELLOW, LED_ON);
+	delay(500);
+	LED::set(LED_YELLOW, LED_OFF);
+
+
 
 	Log::d("Forcing config update...");
 	initConfigUpdates();
@@ -410,11 +405,8 @@ void loop() {
 		execScript(script_reset);
 		//system("reboot");
 		//delay(500);
-		for(;;){
-			resetBlink(1);
-		}
+		for(;;){}
 	}
-	//delay(1);
 }
 
 #endif

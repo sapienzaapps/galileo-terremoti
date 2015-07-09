@@ -9,6 +9,7 @@
 
 class NetworkManager {
 public:
+	static void init();
 	static bool isConnectedToInternet();
 	static bool isConnectedToInternet(bool force);
 	static void setupAsDHCPClient(uint8_t *mac);

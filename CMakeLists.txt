@@ -41,6 +41,9 @@ set(SOURCE_FILES
 	localstream.cpp
 	NetworkManager.cpp
 	NetworkManager.h
+	LED.h
+	GalileoLED.cpp
+	GalileoLED.h
 	)
 add_executable(galileo_terremoti ${SOURCE_FILES})
 

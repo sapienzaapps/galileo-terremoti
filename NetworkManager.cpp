@@ -143,3 +143,16 @@ void NetworkManager::forceRestart() {
 		}
 	} while (!connected);
 }
+
+void NetworkManager::init() {
+#ifdef __IS_GALILEO
+	Log::i("Fix Galileo bugs");
+	// Fixing Arduino Galileo bug
+	signal(SIGPIPE, SIG_IGN); // TODO: Remove? - caused not restarting sketch
+	// Workaround for Galileo (and other boards with Linux)
+	system("/etc/init.d/networking restart");
+	// Remove for production use
+	//system("telnetd -l /bin/sh");
+	delay(1000);
+#endif
+}
