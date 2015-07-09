@@ -63,20 +63,19 @@
 class AcceleroMMA7361 {
 public:
 	AcceleroMMA7361();
-	void begin();
-	void begin(/* int sleepPin, int selfTestPin, int zeroGPin, int gSelectPin, */ int xPin, int yPin, int zPin);
-	int getXRaw();
-	int getYRaw();
-	int getZRaw();
-	int getXVolt();
-	int getYVolt();
-	int getZVolt();
-	int getXAccel();
-	int getYAccel();
-	int getZAccel();
+	void begin(uint8_t xPin, uint8_t yPin, uint8_t zPin);
+	long getXRaw();
+	long getYRaw();
+	long getZRaw();
+	long getXVolt();
+	long getYVolt();
+	long getZVolt();
+	long getXAccel();
+	long getYAccel();
+	long getZAccel();
 	void test_voltage();
-	void getAccelXYZ(int *_XAxis, int *_YAxis, int *_ZAxis);
-	int getTotalVector();
+	void getAccelXYZ(long *_XAxis, long *_YAxis, long *_ZAxis);
+	double getTotalVector();
 	void setOffSets(int xOffSet, int yOffSet, int zOffSet);
 	void calibrate();                             // only to be executed when Z-axis is oriented to the ground
 // it calculates the offset values by assuming  Z = +1 G ; X and Y  = 0 G
@@ -85,17 +84,14 @@ public:
 	int getOrientation();
 
 private:
-	int _mapMMA7361V(int value);
-	int _mapMMA7361G(int value);
-	int _gSelectPin;
-	int _xPin;
-	int _yPin;
-	int _zPin;
-	int _offSets[3];
-	int _polarities[3];
+	long _mapMMA7361V(long value);
+	long _mapMMA7361G(long value);
+	uint8_t _xPin;
+	uint8_t _yPin;
+	uint8_t _zPin;
+	long _offSets[3];
 	double _refVoltage;
 	int _average;
-	boolean _sleep;
 	boolean _sensi;
 };
 

@@ -26,47 +26,18 @@ double oneG = 1672;
 double oneGplusHalf = 1876;
 
 /// constructor
-AcceleroMMA7361::AcceleroMMA7361() { /* empty */ }
+AcceleroMMA7361::AcceleroMMA7361() {}
 
-/// begin function to set pins: sleepPin = 13, selfTestPin = 12, zeroGPin = 11, gSelectPin = 10, xPin = A0, yPin = A1, zPin = A2.
-/// When you use begin() with an empty parameter list, these standard values are used
-void AcceleroMMA7361::begin() {
-	begin(/* 13, 12, 11, 10, */ A0, A1, A2);
-}
-
-/// begin variables
-/// - int sleepPin: number indicating to which pin the sleep port is attached. DIGITAL OUT
-/// - int selfTestPin: number indicating to which pin the selftest port is attached. DIGITAL OUT
-/// - int zeroGPin: number indicating to which pin the ZeroGpin is connected to. DIGITAL IN
-/// - int gSelectPin: number indication to which pin the Gselect is connected to. DIGITAL OUT
-/// - int xPin: number indicating to which pin the x-axis pin is connected to. ANALOG IN
-/// - int yPin: number indicating to which pin the y-axis  pin is connected to. ANALOG IN
-/// - int zPin: number indicating to which pin the z-axis  pin is connected to. ANALOG IN
-/// - int offset: array indicating the G offset on the x,y and z-axis
-/// When you use begin() without variables standard values are loaded: A0,A1,A2 as input for X,Y,Z and digital pins 13,12,11,10 for sleep, selftest, zeroG and gSelect
-void AcceleroMMA7361::begin(/* int sleepPin, int selfTestPin, int zeroGPin, int gSelectPin, */ int xPin, int yPin,
-																							   int zPin) {
-	//pinMode(sleepPin, OUTPUT);
-	//pinMode(selfTestPin, OUTPUT);
-	//pinMode(zeroGPin, INPUT);
-	//pinMode(gSelectPin, OUTPUT);
+void AcceleroMMA7361::begin(uint8_t xPin, uint8_t yPin, uint8_t zPin) {
 	pinMode(xPin, INPUT);
 	pinMode(yPin, INPUT);
 	pinMode(zPin, INPUT);
-	//digitalWrite(sleepPin, HIGH);
-	//digitalWrite(selfTestPin, LOW);
-	//_sleepPin = sleepPin;
-	//_selfTestPin = selfTestPin;
-	//_zeroGPin = zeroGPin;
-	//_gSelectPin = gSelectPin;
 	_xPin = xPin;
 	_yPin = yPin;
 	_zPin = zPin;
-	_sleep = false;
 	setOffSets(0, 0, 0);
 	setARefVoltage(3.3);
 	setAveraging(10);
-	//setSensitivity(HIGH);
 }
 
 /// setOffSets( int offSetX, int offSetY, int offSetZ): Sets the offset values for the x,y,z axis.
@@ -77,9 +48,6 @@ void AcceleroMMA7361::setOffSets(int xOffSet, int yOffSet, int zOffSet) {
 		_offSets[0] = map(xOffSet, 0, 3300, 0, 1024);
 		_offSets[1] = map(yOffSet, 0, 3300, 0, 1024);
 		_offSets[2] = map(zOffSet, 0, 3300, 0, 1024);
-		// _offSets[0]= map(xOffSet,0,3300,0,4096);
-		// _offSets[1]= map(yOffSet,0,3300,0,4096);
-		// _offSets[2]= map(zOffSet,0,3300,0,4096);
 	}
 	else {
 		_offSets[0] = map(xOffSet, 0, 5000, 0, 1024);
@@ -105,29 +73,6 @@ void AcceleroMMA7361::setAveraging(int avg) {
 	_average = avg;
 }
 
-/// setSensitivity sets the sensitivity to +/-1.5 G (HIGH) or +/-6 G (LOW) using a boolean HIGH (1.5 G) or LOW (6 G)
-/* void AcceleroMMA7361::setSensitivity(boolean sensi) {
-  _sensi = sensi;
-  digitalWrite(_gSelectPin, !sensi);
-} */
-
-/// sleep lets the device sleep (when device is sleeping already this does nothing)
-/* void AcceleroMMA7361::sleep() {
-  if (!_sleep) {
-    digitalWrite(_sleepPin, LOW);
-    _sleep = true;
-  }
-} */
-
-/// wake enables the device after sleep (when device is not sleeping this does nothing) there is a 2 ms delay, due to enable response time (datasheet: typ 0.5 ms, max 2 ms)
-/* void AcceleroMMA7361::wake() {
-  if (_sleep == true) {
-    digitalWrite(_sleepPin, HIGH);
-    _sleep = false;
-    delay(2);
-  } 
-}*/
-
 // test and read voltage AXIS on idle
 void AcceleroMMA7361::test_voltage() {
 	Log::i("VOLTAGE TEST ++++++++++++++START+++++++++++++++ ");
@@ -138,38 +83,38 @@ void AcceleroMMA7361::test_voltage() {
 }
 
 /// getXRaw(): Returns the raw data from the X-axis analog I/O port of the Arduino as an integer
-int AcceleroMMA7361::getXRaw() {
+long AcceleroMMA7361::getXRaw() {
 	return analogRead(_xPin) + _offSets[0] + 2;
 }
 
 /// getYRaw(): Returns the raw data from the Y-axis analog I/O port of the Arduino as an integer
-int AcceleroMMA7361::getYRaw() {
+long AcceleroMMA7361::getYRaw() {
 	return analogRead(_yPin) + _offSets[1] + 2;
 }
 
 /// getZRaw(): Returns the raw data from the Z-axis analog I/O port of the Arduino as an integer
-int AcceleroMMA7361::getZRaw() {
+long AcceleroMMA7361::getZRaw() {
 	return analogRead(_zPin) + _offSets[2];
 }
 
 /// getXVolt(): Returns the voltage in mV from the X-axis analog I/O port of the Arduino as a integer
-int AcceleroMMA7361::getXVolt() {
+long AcceleroMMA7361::getXVolt() {
 	return _mapMMA7361V(getXRaw());
 }
 
 /// getYVolt(): Returns the voltage in mV from the Y-axis analog I/O port of the Arduino as a integer
-int AcceleroMMA7361::getYVolt() {
+long AcceleroMMA7361::getYVolt() {
 	return _mapMMA7361V(getYRaw());
 }
 
 /// getZVolt(): Returns the voltage in mV from the Z-axis analog I/O port of the Arduino as a integer
-int AcceleroMMA7361::getZVolt() {
+long AcceleroMMA7361::getZVolt() {
 	return _mapMMA7361V(getZRaw());
 }
 
 /// getXAccel(): Returns the acceleration of the X-axis as a int (1 G = 100.00)
-int AcceleroMMA7361::getXAccel() {
-	int sum = 0;
+long AcceleroMMA7361::getXAccel() {
+	long sum = 0;
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getXRaw());
 	}
@@ -177,8 +122,8 @@ int AcceleroMMA7361::getXAccel() {
 }
 
 /// getYAccel(): Returns the acceleration of the Y-axis as a int (1 G = 100.00)
-int AcceleroMMA7361::getYAccel() {
-	int sum = 0;
+long AcceleroMMA7361::getYAccel() {
+	long sum = 0;
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getYRaw());
 	}
@@ -186,8 +131,8 @@ int AcceleroMMA7361::getYAccel() {
 }
 
 /// getZAccel(): Returns the acceleration of the Z-axis as a int (1 G = 100.00)
-int AcceleroMMA7361::getZAccel() {
-	int sum = 0;
+long AcceleroMMA7361::getZAccel() {
+	long sum = 0;
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getZRaw());
 	}
@@ -195,8 +140,8 @@ int AcceleroMMA7361::getZAccel() {
 }
 
 /// getAccelXYZ(int *_XAxis, int *_YAxis, int *_ZAxis) returns all axis at once as pointers
-void AcceleroMMA7361::getAccelXYZ(int *_XAxis, int *_YAxis, int *_ZAxis) {
-	int sum[3];
+void AcceleroMMA7361::getAccelXYZ(long *_XAxis, long *_YAxis, long *_ZAxis) {
+	long sum[3];
 	sum[0] = 0;
 	sum[1] = 0;
 	sum[2] = 0;
@@ -211,9 +156,9 @@ void AcceleroMMA7361::getAccelXYZ(int *_XAxis, int *_YAxis, int *_ZAxis) {
 }
 
 /// mapMMA7361V: calculates and returns the voltage value derived from the raw data. Used in getXVoltage, getYVoltage, getZVoltage
-int AcceleroMMA7361::_mapMMA7361V(int value) {
+long AcceleroMMA7361::_mapMMA7361V(long value) {
 	if (_refVoltage == 3.3) {
-		// return map(value,0,1024,0,3300);
+		return map(value,0,1024,0,3300);
 		// return map(value,0,4096,0,3300);
 	}
 	else {
@@ -222,20 +167,17 @@ int AcceleroMMA7361::_mapMMA7361V(int value) {
 }
 
 /// mapMMA7361G: calculates and returns the accelerometer value in degrees derived from the raw data. Used in getXAccel, getYAccel, getZAccel
-int AcceleroMMA7361::_mapMMA7361G(int value) {
+long AcceleroMMA7361::_mapMMA7361G(long value) {
 	if (_sensi == false) {
 		if (_refVoltage == 3.3) {
 			return map(value, 0, 1024, -825, 800);
-		}
-		else {
+		} else {
 			return map(value, 0, 1024, -800, 1600);
 		}
-	}
-	else {
+	} else {
 		if (_refVoltage == 3.3) {
 			return map(value, 0, 1024, -206, 206);
-		}
-		else {
+		} else {
 			return map(value, 0, 1024, -260, 419);
 		}
 	}
@@ -253,30 +195,27 @@ void AcceleroMMA7361::calibrate() {
 	double sumX = 0;
 	double sumY = 0;
 	double sumZ = 0;
+
 	for (int i = 0; i < var; i++) {
 		sumX = sumX + getXVolt();
 		sumY = sumY + getYVolt();
 		sumZ = sumZ + getZVolt();
-		// TODO: percent logging?
-//    if (i%100 == 0) {
-//      Serial.print(".");
-//    }
 	}
+
 	if (_sensi == false) { // if ref is 3,3V
-		setOffSets(oneG - sumX / var, oneG - sumY / var, +oneGplusHalf - sumZ / var);
+		setOffSets((int)(oneG - sumX / var), (int)(oneG - sumY / var), (int)(+oneGplusHalf - sumZ / var));
+	} else {
+		setOffSets((int)(1650 - sumX / var), (int)(1650 - sumY / var), (int)(+2450 - sumZ / var));
 	}
-	else {
-		setOffSets(1650 - sumX / var, 1650 - sumY / var, +2450 - sumZ / var);
-	}
+
 	if (abs(getOrientation()) != 3) {
 		Log::e("unable to calibrate");
 		setOffSets(0, 0, 0);
-	}
-	else {
+	} else {
 		if (getOrientation() == 3) {
-			Log::i(" ORIENTATION RIGHT! ");
+			Log::i("ORIENTATION RIGHT! ");
 		} else {
-			Log::i(" ORIENTATION WRONG!!! ");
+			Log::i("ORIENTATION WRONG!!! ");
 		}
 
 		Log::i(" sum: X:%lf Y:%lf Z:%lf", sumX / var, sumY / var, sumZ / var);
@@ -288,12 +227,12 @@ void AcceleroMMA7361::calibrate() {
 /// negative depending on which side of the axis is pointing downwards
 int AcceleroMMA7361::getOrientation() {
 	int gemiddelde = 10;
-	int x = 0;
-	int y = 0;
-	int z = 0;
-	int xAbs = 0;
-	int yAbs = 0;
-	int zAbs = 0;
+	long x = 0;
+	long y = 0;
+	long z = 0;
+	long xAbs = 0;
+	long yAbs = 0;
+	long zAbs = 0;
 	for (int i = 0; i < gemiddelde; i++) {  // We take in this case 10 measurements to average the error a little bit
 		x = x + getXAccel();
 		y = y + getYAccel();
@@ -302,9 +241,9 @@ int AcceleroMMA7361::getOrientation() {
 	x = x / gemiddelde;
 	y = y / gemiddelde;
 	z = z / gemiddelde;
-	xAbs = abs(100 - abs(x));
-	yAbs = abs(100 - abs(y));
-	zAbs = abs(100 - abs(z));
+	xAbs = labs(100 - labs(x));
+	yAbs = labs(100 - labs(y));
+	zAbs = labs(100 - labs(z));
 	if (xAbs < yAbs && xAbs < zAbs) {
 		if (x > 0) {
 			return 1;
@@ -330,6 +269,6 @@ int AcceleroMMA7361::getOrientation() {
 double square(double x) { return x * x; }
 
 // getTotalVector returns the magnitude of the total acceleration vector as an integer
-int AcceleroMMA7361::getTotalVector() {
+double AcceleroMMA7361::getTotalVector() {
 	return sqrt(square(_mapMMA7361G(getXRaw())) + square(_mapMMA7361G(getYRaw())) + square(_mapMMA7361G(getZRaw())));
 }
