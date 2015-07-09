@@ -146,6 +146,7 @@ void NetworkManager::forceRestart() {
 
 
 unsigned long HTTPClient::nextContact = 5000;
+std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
 
 std::string HTTPClient::getConfig() {
 	std::string cfg;
@@ -156,7 +157,7 @@ std::string HTTPClient::getConfig() {
 	postValues["version"] = SOFTWARE_VERSION;
 	postValues["model"] = ARDUINO_MODEL;
 
-	HTTPResponse *resp = httpRequest(HTTP_POST, HTTP_API_ALIVE, postValues);
+	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "alive.php", postValues);
 	if (resp->error == HTTP_OK && resp->body != NULL) {
 		cfg = std::string((char *) resp->body);
 	} else {
@@ -179,7 +180,7 @@ void HTTPClient::httpSendAlert1(struct RECORD *db, struct TDEF *td) {
 	postValues["deviceid"] = Config::getMacAddress();
 	postValues["lat"] = Config::getLatitude();
 	postValues["lon"] = Config::getLongitude();
-	HTTPResponse *resp = httpRequest(HTTP_POST, HTTP_API_TERREMOTO, postValues);
+	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "terremoto.php", postValues);
 	if (resp->error == HTTP_OK && resp->body != NULL) {
 		nextContact = atol((const char *) resp->body) * 1000UL;
 	}
@@ -190,7 +191,7 @@ std::string HTTPClient::getMACAddress() {
 	std::string mac;
 	std::map<std::string, std::string> postValues;
 	postValues["deviceid"] = "00000000c1a0";
-	HTTPResponse *resp = httpRequest(HTTP_POST, HTTP_API_ALIVE, postValues);
+	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "alive.php", postValues);
 	if (resp->error == HTTP_OK && resp->body != NULL) {
 		mac = std::string((char *) resp->body);
 	} else {
@@ -386,4 +387,8 @@ int HTTPClient::getLine(EthernetClient c, uint8_t *buffer, size_t maxsize, int t
 
 int HTTPClient::getLine(EthernetClient c, uint8_t *buffer, size_t maxsize) {
 	return getLine(c, buffer, maxsize, -1);
+}
+
+void HTTPClient::setBaseURL(std::string baseUrl) {
+	HTTPClient::baseUrl = baseUrl;
 }

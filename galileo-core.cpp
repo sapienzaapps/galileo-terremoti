@@ -3,7 +3,6 @@
 
 #include "buildcfg.h"
 
-#include <math.h>
 #include <sys/sysinfo.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -11,15 +10,8 @@
 
 #ifdef __IS_GALILEO
 	#include "AcceleroMMA7361.h"
-	#include <Arduino.h>
 
-	#include <pins_arduino.h>
-	#include <BitsAndBytes.h>
-	#include <Ethernet.h>
-	#include <SPI.h>
-	#include <EEPROM.h>
-	#include <SD.h>
-	#include <EthernetUdp.h>
+#include <Ethernet.h>
 
 #endif
 
@@ -33,14 +25,10 @@ unsigned long freeRam();
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
 unsigned long previousMillisNTP = 0;     // will store last time LED was updated
-unsigned long pingIntervalCheckCounter = 0;
 unsigned long calibrationInterval = 60*60*1000;
 unsigned long prevMillisCalibration = 0;
-unsigned long TimeEvent = 60*1000;// 60 second per Event
 unsigned long startRecord = 0;
 unsigned long millis24h;
-unsigned long lastRstMill = 0;
-int resetnum = 0;
 int numAlert = 0;
 int reTareNum = 40;
 byte inEvent = 0;
@@ -52,17 +40,12 @@ bool connectedToInternet = false;
 
 //definition of Accelerometer object
 AcceleroMMA7361 accelero;
-int currentHour = -1;
 
 #include "commons.h"
 #include "ntp_alt.h"
-#include "threshold.h"
 #include "localstream.h"
 #include "httpconn.h"
 #include "cfgupdate.h"
-
-
-
 
 //definition freeRam method
 #ifdef __IS_GALILEO
@@ -88,13 +71,13 @@ unsigned long currentMillis, milldelayTime;
 #endif
 
 // return true if at least one of the axis is over the threshold
-boolean isOverThresholdBasic(struct RECORD *db, struct TDEF *td) {
+bool isOverThresholdBasic(struct RECORD *db, struct TDEF *td) {
 	return (db->valx > td->pthresx || db->valx < td->nthresx)
 		   || (db->valy > td->pthresy || db->valy < td->nthresy)
 		   || (db->valz > td->pthresz || db->valz < td->nthresz);
 }
 
-boolean isOverThresholdFixed(struct RECORD *db, struct TDEF *td) {
+bool isOverThresholdFixed(struct RECORD *db, struct TDEF *td) {
 	return (abs(db->valx) > td->pthresx)
 		   || (abs(db->valy) > td->pthresy)
 		   || (abs(db->valz - GFORCE) > td->pthresz);
@@ -141,7 +124,7 @@ void checkSensore()
 	//  or if an "event" is currently running
 	//if (db->overThreshold || inEvent != 1) {
 	if (db->overThreshold && inEvent != 1) {
-		db->ms = getUNIXTimeMS();
+		db->ms = NTP::getUNIXTimeMS();
 
 		Log::i(db->overThreshold?"overThreshold":"inEvent");
 		if (ledON && !redLedStatus){
@@ -314,9 +297,9 @@ void setup() {
 
 	if(internetConnected){
 		Log::d("Syncing NTP...");
-		initNTP(); // controllare il ritorno ++++++++++++++++++++++++++++++++++++++++++++
+		NTP::initNTP(); // controllare il ritorno ++++++++++++++++++++++++++++++++++++++++++++
 		// We need to set this AFTER ntp sync...
-		lastCfgUpdate = getUNIXTime();
+		lastCfgUpdate = NTP::getUNIXTime();
 	}
 
 	if(doesFileExist(script_reset) != 1) { // check if reset script exists
@@ -359,15 +342,14 @@ void loop() {
 
 	// sync with the NTP server
 	if ((currentMillis - previousMillisNTP > NTPInterval) && connectedToInternet) {
-		NTPdataPacket();
-		execSystemTimeUpdate();
+		NTP::dataPacket();
 		previousMillisNTP = currentMillis;
 	}
 
 	// Check for calibration Sensor
 	// unsigned long currentMillisCalibration = millis();
 	if ((currentMillis - prevMillisCalibration > calibrationInterval) || ForceCalibrationNeeded) {
-		int cHour = (getUNIXTime() % 86400L) / 3600;
+		int cHour = (int)(NTP::getUNIXTime() % 86400L) / 3600;
 		Log::d("checkCalibrationNeeded---------------------------------------");
 		// checkCalibrationNeeded(accelero, cHour);
 		checkCalibrationNeededNOSD(accelero, cHour);
@@ -378,7 +360,7 @@ void loop() {
 		Log::i(" alert >40 recalibrating......");
 		accelero.calibrate();
 		forceInitEEPROM = true;
-		int cHour = (getUNIXTime() % 86400L) / 3600;
+		int cHour = (int)(NTP::getUNIXTime() % 86400L) / 3600;
 		checkCalibrationNeededNOSD(accelero, cHour);
 		numAlert = 0;
 	}

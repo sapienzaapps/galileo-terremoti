@@ -56,11 +56,11 @@ boolean getConfigNew() {
 		ret = true;
 		std::map<std::string, std::string> params = configSplit(cfg, '|');
 
-		// TODO: fix this
-		httpServer = (char *) params["server"].c_str();
+		HTTPClient::setBaseURL(params["server"]);
 
-		// TODO
-		std::string ntpServer = params["ntpserver"];
+		// Only IP Address!!
+		IPAddress ntpserver((const uint8_t *)params["ntpserver"].c_str());
+		NTP::setNTPServer(ntpserver);
 
 		bool exec_status = false;
 		std::string script = params["script"];
@@ -108,7 +108,7 @@ boolean getConfigNew() {
 	}
 	Log::d("lastCfgUpdate: %ld", lastCfgUpdate);
 	Log::d("cfgUpdateInterval: %ld", cfgUpdateInterval);
-	Log::d("getUNIXTime(): ", getUNIXTime());
+	Log::d("getUNIXTime(): ", NTP::getUNIXTime());
 	if (!ret) {
 		Log::e("getConfigNew() Update ERROR!!!");
 	}

@@ -29,7 +29,6 @@ extern IPAddress dnsServer;
 extern IPAddress gateway;
 extern IPAddress subnet;
 
-extern char *httpServer;
 extern IPAddress timeServer;
 
 extern FILE *script;

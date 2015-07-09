@@ -1,9 +1,6 @@
 #ifndef httpconn_h
 #define httpconn_h 1
 
-#define HTTP_API_ALIVE "http://www.sapienzaapps.it/seismocloud/alive.php"
-#define HTTP_API_TERREMOTO "http://www.sapienzaapps.it/seismocloud/terremoto.php"
-
 #include <string>
 #include <map>
 #include <Arduino.h>
@@ -55,8 +52,10 @@ public:
 	static std::string getMACAddress();
 	static void httpSendAlert1(struct RECORD *db, struct TDEF *td);
 	static unsigned long getNextContact();
+	static void setBaseURL(std::string baseUrl);
 private:
 	static unsigned long nextContact;
+	static std::string baseUrl;
 
 	static void freeHTTPResponse(HTTPResponse *resp);
 	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);
