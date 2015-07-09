@@ -3,8 +3,9 @@
 
 #include "cfgupdate.h"
 #include "commons.h"
-#include "httpconn.h"
-#include "ntp_alt.h"
+#include "HTTPClient.h"
+#include "NetworkManager.h"
+#include "NTP.h"
 
 unsigned long lastCfgUpdate = 0;
 unsigned long cfgUpdateInterval = 60;

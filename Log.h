@@ -25,7 +25,7 @@
 
 #endif
 
-#include "config.h"
+#include "Config.h"
 
 char *getGalileoDate();
 void logAccValues(long _valx, long _valy, long _valz, byte zz);

@@ -1,5 +1,5 @@
 #include "commons.h"
-#include "httpconn.h"
+#include "NetworkManager.h"
 
 IPAddress ip;
 IPAddress dnsServer;

@@ -15,9 +15,9 @@
 
 #endif
 
-#include "config.h"
+#include "Config.h"
 #include "avg.h"
-#include "GalileoLog.h"
+#include "Log.h"
 
 byte zz = 0;
 
@@ -42,9 +42,9 @@ bool connectedToInternet = false;
 AcceleroMMA7361 accelero;
 
 #include "commons.h"
-#include "ntp_alt.h"
+#include "NTP.h"
 #include "localstream.h"
-#include "httpconn.h"
+#include "HTTPClient.h"
 #include "cfgupdate.h"
 
 //definition freeRam method

@@ -2,8 +2,8 @@
 #define __THRESHOLD_H
 
 #include "AcceleroMMA7361.h"
-#include "GalileoLog.h"
-#include "config.h"
+#include "Log.h"
+#include "Config.h"
 
 
 // accelerometer values

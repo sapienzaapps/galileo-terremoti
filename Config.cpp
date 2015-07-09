@@ -1,5 +1,5 @@
 #include <string>
-#include "config.h"
+#include "Config.h"
 #include "commons.h"
 
 ThresholdAlgorithm_t thresholdAlgorithm = Basic;

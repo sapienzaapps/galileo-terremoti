@@ -6,27 +6,6 @@
 #include <Arduino.h>
 #include <Ethernet.h>
 
-class NetworkManager {
-public:
-	static bool isConnectedToInternet();
-	static bool isConnectedToInternet(bool force);
-	static void setupAsDHCPClient(uint8_t *mac);
-	static void setupStatic(uint8_t *mac, IPAddress staticAddress, IPAddress subnetMask, IPAddress gateway,
-							IPAddress dnsHost);
-	static void restart();
-	static void forceRestart();
-private:
-	static bool networkSetup;
-	static bool connectionAvailable;
-	static bool connectionChecked;
-	static bool isDhcpClient;
-	static uint8_t *mac;
-	static IPAddress staticAddress;
-	static IPAddress subnetMask;
-	static IPAddress gateway;
-	static IPAddress dnsHost;
-};
-
 typedef enum {
 	HTTP_OK,
 	HTTP_CONNECTION_TIMEOUT,

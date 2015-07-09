@@ -20,25 +20,27 @@ set(SOURCE_FILES
 	galileo-core.cpp
 	avg.h
 	commons.h
-	config.h
-	GalileoLog.h
-	ntp_alt.h
+	Config.h
+	Log.h
+	NTP.h
 	threshold.h
 	localstream.h
-	httpconn.h
+	HTTPClient.h
 	cfgupdate.h
 	AcceleroMMA7361.cpp
 	AcceleroMMA7361.h
 	buildcfg.h
 	avg.cpp
-	GalileoLog.cpp
-	config.cpp
+	Log.cpp
+	Config.cpp
 	threshold.cpp
-	ntp_alt.cpp
+	NTP.cpp
 	commons.cpp
 	cfgupdate.cpp
-	httpconn.cpp
+	HTTPClient.cpp
 	localstream.cpp
+	NetworkManager.cpp
+	NetworkManager.h
 	)
 add_executable(galileo_terremoti ${SOURCE_FILES})
 

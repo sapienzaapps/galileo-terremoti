@@ -1,4 +1,4 @@
-#include "GalileoLog.h"
+#include "Log.h"
 
 FILE *acc;
 static char date_log[30];

@@ -1,7 +1,7 @@
 #ifndef cfgupdate_h
 #define cfgupdate_h 1
 
-#include "GalileoLog.h"
+#include "Log.h"
 
 extern unsigned long lastCfgUpdate;
 

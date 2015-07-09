@@ -20,7 +20,7 @@
 // For more information: variable declaration, changelog,... see AcceleroMMA7361.h
 
 #include "AcceleroMMA7361.h"
-#include "GalileoLog.h"
+#include "Log.h"
 
 double oneG = 1672;
 double oneGplusHalf = 1876;

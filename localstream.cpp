@@ -1,5 +1,5 @@
 #include "localstream.h"
-#include "GalileoLog.h"
+#include "Log.h"
 #include "commons.h"
 
 byte _pktBuffer[CONTROLPKTSIZE];

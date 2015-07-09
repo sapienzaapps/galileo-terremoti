@@ -1,7 +1,7 @@
-#include "ntp_alt.h"
-#include "config.h"
+#include "NTP.h"
+#include "Config.h"
 #include "commons.h"
-#include "httpconn.h"
+#include "HTTPClient.h"
 
 // NTP time stamp is in the first 48 bytes of the message
 #define NTP_PACKET_SIZE 48

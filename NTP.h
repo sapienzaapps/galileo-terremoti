@@ -5,6 +5,7 @@
 #include <Ethernet.h>
 #include <EthernetUdp.h>
 #include <sstream>
+#include "NetworkManager.h"
 
 unsigned long fixword(byte b1, byte b2);
 
