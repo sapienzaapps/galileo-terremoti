@@ -35,19 +35,6 @@ typedef enum {
 #define ARDUINO_MODEL "galileo2"
 #endif
 
-//
-//typedef struct _configFile {
-//	float lat = 0.0;
-//	float lon = 0.0;
-//#if GALILEO_GEN == 2
-//	char *model = "galileo2";
-//#else
-//	char *model = "galileo1";
-//#endif
-//	float version = 1.90;
-//} ConfigFile;
-
-
 extern ThresholdAlgorithm_t thresholdAlgorithm;
 extern bool ledON;
 extern bool alert;
@@ -61,7 +48,7 @@ extern bool yellowLedStatus;
 
 class Config {
 public:
-	static void readConfigFile(const char* filepath);
+	static void readConfigFile(const char *filepath);
 	static bool hasMACAddress();
 	static std::string getMacAddress();
 	static void setMacAddress(std::string macAddress);

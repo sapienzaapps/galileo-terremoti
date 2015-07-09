@@ -1,7 +1,5 @@
-
 #include "GalileoLog.h"
 
-FILE *f;
 FILE *acc;
 static char date_log[30];
 
@@ -13,10 +11,8 @@ char *getGalileoDate() {
 	strcpy(date_log, "");
 	FILE *ptr;
 
-	if ((ptr = popen(cmdDate, "r")) != NULL)
-	{
-		while (fgets(buf, 64, ptr) != NULL)
-		{
+	if ((ptr = popen(cmdDate, "r")) != NULL) {
+		while (fgets(buf, 64, ptr) != NULL) {
 			strcat(date_log, buf);
 			//Serial.print(buf);
 		}
@@ -26,7 +22,7 @@ char *getGalileoDate() {
 
 	//strcat(date_log, " > ");
 	//strcat(date_log, (char *)'\0');
-	date_log[strlen(date_log)-1] = 0;
+	date_log[strlen(date_log) - 1] = 0;
 	return date_log;
 }
 
@@ -37,18 +33,18 @@ void logAccValues(long _valx, long _valy, long _valz, byte zz) { // function to 
 	// printf("Error opening file!\n");
 	// exit(1);
 	// }
-	if(zz == 0){ // FIRST
+	if (zz == 0) { // FIRST
 
 		acc = fopen(DEFAULT_ACC_PATH, "a");
 		if (acc == NULL) {
 			printf("Error opening file!\n");
 			exit(1);
 		}
-		fprintf(acc, "%s > %s\n ", getGalileoDate(), "#####Starting logging for 1h#####" );
-	}else if(zz == 1){// NORMAL
+		fprintf(acc, "%s > %s\n ", getGalileoDate(), "#####Starting logging for 1h#####");
+	} else if (zz == 1) {// NORMAL
 		fprintf(acc, "%lu , %lu , %lu\n ", _valx, _valy, _valz);
-	}else if(zz == 2){ // LAST
-		fprintf(acc, "%s> %s\n ", getGalileoDate(), "#####Finished logging after 1h#####" );
+	} else if (zz == 2) { // LAST
+		fprintf(acc, "%s> %s\n ", getGalileoDate(), "#####Finished logging after 1h#####");
 		fclose(acc);
 	}
 	// fclose(acc);
@@ -57,7 +53,7 @@ void logAccValues(long _valx, long _valy, long _valz, byte zz) { // function to 
 IPAddress Log::syslogServer(0, 0, 0, 0);
 bool Log::syslogEnabled = false;
 EthernetUDP Log::syslogUdp;
-FILE* Log::logFile = NULL;
+FILE *Log::logFile = NULL;
 bool Log::serialDebug = true;
 LogLevel Log::logLevel = LEVEL_INFO;
 std::string Log::deviceid = "";
@@ -75,7 +71,7 @@ void Log::setSyslogServer(IPAddress server) {
 }
 
 void Log::setLogFile(const char *filepath) {
-	if(Log::logFile != NULL) {
+	if (Log::logFile != NULL) {
 		fclose(Log::logFile);
 	}
 
@@ -86,9 +82,9 @@ void Log::setLogFile(const char *filepath) {
 }
 
 void Log::enableSerialDebug(bool serialDebug) {
-	if(!Log::serialDebug && serialDebug) {
+	if (!Log::serialDebug && serialDebug) {
 		Serial.begin(9600);
-	} else if(Log::serialDebug && !serialDebug) {
+	} else if (Log::serialDebug && !serialDebug) {
 		Serial.end();
 	}
 	Log::serialDebug = serialDebug;
@@ -96,7 +92,7 @@ void Log::enableSerialDebug(bool serialDebug) {
 
 void Log::log(LogLevel level, const char *msg, va_list argptr) {
 	// Skip messages with low log priority
-	if(Log::logLevel > level) {
+	if (Log::logLevel > level) {
 		return;
 	}
 
@@ -107,31 +103,31 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 	//Prepending log message with datetime and level
 	char logentry[1024];
 	char levelC = 'D';
-	if(level == LEVEL_INFO) {
+	if (level == LEVEL_INFO) {
 		levelC = 'I';
-	} else if(level == LEVEL_ERROR) {
+	} else if (level == LEVEL_ERROR) {
 		levelC = 'E';
 	}
-	if(deviceid == "") {
+	if (deviceid == "") {
 		snprintf(logentry, 1024, "[%s] [%c] [?] %s", getGalileoDate(), levelC, realmsg);
 	} else {
 		snprintf(logentry, 1024, "[%s] [%c] [%s] %s", getGalileoDate(), levelC, deviceid.c_str(), realmsg);
 	}
 
-	if(Log::stdoutDebug) {
+	if (Log::stdoutDebug) {
 		printf("%s\n", logentry);
 	}
 
-	if(Log::serialDebug) {
+	if (Log::serialDebug) {
 		Serial.println(logentry);
 	}
 
-	if(Log::syslogEnabled) {
+	if (Log::syslogEnabled) {
 		// priority = (facility * 8) + severity
 		int priority = (16 * 8);
-		if(level == LEVEL_INFO) {
+		if (level == LEVEL_INFO) {
 			priority += 6;
-		} else if(level == LEVEL_ERROR) {
+		} else if (level == LEVEL_ERROR) {
 			priority += 2;
 		} else {
 			priority += 7;
@@ -142,11 +138,11 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 		snprintf(pkt, 1024, "<%i>%s", priority, logentry);
 
 		Log::syslogUdp.beginPacket(Log::syslogServer, 514);
-		Log::syslogUdp.write((const uint8_t*)pkt, strlen(pkt));
+		Log::syslogUdp.write((const uint8_t *) pkt, strlen(pkt));
 		Log::syslogUdp.endPacket();
 	}
 
-	if(Log::logFile != NULL) {
+	if (Log::logFile != NULL) {
 		fwrite(logentry, strlen(logentry), 1, Log::logFile);
 		char newline = '\n';
 		fwrite(&newline, 1, 1, Log::logFile);
@@ -157,21 +153,21 @@ void Log::setLogLevel(LogLevel level) {
 	Log::logLevel = level;
 }
 
-void Log::d(const char* msg, ...) {
+void Log::d(const char *msg, ...) {
 	va_list argptr;
 	va_start(argptr, msg);
 	Log::log(LEVEL_DEBUG, msg, argptr);
 	va_end(argptr);
 }
 
-void Log::i(const char* msg, ...) {
+void Log::i(const char *msg, ...) {
 	va_list argptr;
 	va_start(argptr, msg);
 	Log::log(LEVEL_INFO, msg, argptr);
 	va_end(argptr);
 }
 
-void Log::e(const char* msg, ...) {
+void Log::e(const char *msg, ...) {
 	va_list argptr;
 	va_start(argptr, msg);
 	Log::log(LEVEL_ERROR, msg, argptr);

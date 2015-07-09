@@ -1,4 +1,3 @@
-
 #include <sstream>
 #include <vector>
 
@@ -7,7 +6,6 @@
 #include "httpconn.h"
 #include "ntp_alt.h"
 
-FILE *fp;
 unsigned long lastCfgUpdate = 0;
 unsigned long cfgUpdateInterval = 60;
 
@@ -31,12 +29,13 @@ IPAddress getFromString(char *ipAddr) {
 	return (uint32_t) (d1 * 16777216 + d2 * 65536 + d3 * 256 + d4);
 }
 
-std::map<std::string, std::string> &configSplit(const std::string &s, char delim, std::map<std::string, std::string> &elems) {
+std::map<std::string, std::string> &configSplit(const std::string &s, char delim,
+												std::map<std::string, std::string> &elems) {
 	std::stringstream ss(s);
 	std::string item;
 	while (std::getline(ss, item, delim)) {
 		std::size_t dppos = item.find(':');
-		elems[item.substr(0, dppos)] = item.substr(dppos+1, std::string::npos);
+		elems[item.substr(0, dppos)] = item.substr(dppos + 1, std::string::npos);
 	}
 	return elems;
 }
@@ -53,19 +52,19 @@ boolean getConfigNew() {
 	boolean ret = false;
 
 	std::string cfg = HTTPClient::getConfig();
-	if(cfg != "") {
+	if (cfg != "") {
 		ret = true;
 		std::map<std::string, std::string> params = configSplit(cfg, '|');
 
 		// TODO: fix this
-		httpServer = (char*)params["server"].c_str();
+		httpServer = (char *) params["server"].c_str();
 
 		// TODO
 		std::string ntpServer = params["ntpserver"];
 
 		bool exec_status = false;
 		std::string script = params["script"];
-		if(!script.empty()) {
+		if (!script.empty()) {
 			char scriptTest[1024];
 			strncpy(scriptTest, script.c_str(), (min(script.size(), 1024)));
 			createScript("/media/realroot/script.sh", scriptTest);
@@ -76,7 +75,7 @@ boolean getConfigNew() {
 		}
 
 		std::string path = params["path"];
-		if(!path.empty()) {
+		if (!path.empty()) {
 			char pathTest[1024];
 			char pathScriptDownload[1024];
 			strncpy(pathTest, path.c_str(), path.size()); // remote peth for file downloading
@@ -85,7 +84,8 @@ boolean getConfigNew() {
 			Log::i("pathTest: %s", pathTest);
 			Log::i("pathScriptDownload: %s", pathScriptDownload);
 
-			createScript(NULL, pathScriptDownload); // creation script for download a file from the path(internet resource)
+			createScript(NULL,
+						 pathScriptDownload); // creation script for download a file from the path(internet resource)
 			Log::d("execScript for Download....");
 			execScript(script_path); // executing download of the file
 			delay(1000);
@@ -118,7 +118,8 @@ boolean getConfigNew() {
 
 // get the HTTP Server(default if not) and NTP Server
 void initConfigUpdates() {
-	if (NetworkManager::isConnectedToInternet() && start) { // get config onli if Galileo is connected and lat/lon are setted
+	if (NetworkManager::isConnectedToInternet() &&
+		start) { // get config onli if Galileo is connected and lat/lon are setted
 		boolean ret = getConfigNew();
 		int nTimes = 0;
 		while (!ret && (nTimes < 5)) {
@@ -131,5 +132,3 @@ void initConfigUpdates() {
 			Log::e("getConfigNew()  -  failed!!!!!");
 	}
 }
-
-

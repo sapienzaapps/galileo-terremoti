@@ -1,28 +1,18 @@
 #include "ntp_alt.h"
-
 #include "config.h"
 #include "commons.h"
 #include "httpconn.h"
 
-unsigned int localPort = 8888;  // local port to listen for UDP packets
+uint16_t localPort = 8888;  // local port to listen for UDP packets
 const int NTP_PACKET_SIZE = 48;  // NTP time stamp is in the first 48 bytes of the message
 byte packetBuffer[NTP_PACKET_SIZE];  // buffer to hold incoming and outgoing packets
 
 // An UDP instance to let us send and receive packets over UDP
 static char cmd0[30] = "";
-static char cmd1[] = "/bin/date ";
 static char cmd2[] = "/bin/date -s @";
 static char bufSTR[13];
 
-// conversion date from epoch
-#define PROGMEM
-#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
-
-#define SECONDS_PER_DAY 86400L
 #define GMT 0 // Time Zone is managed on the mobile app side
-
-#define SECONDS_FROM_1970_TO_2000 946684800
-uint8_t yOff, m, d, hh, mm, ss;  // data
 
 /* *** OLD NTP.H *** START */
 unsigned long _unixTimeTS = 0;
@@ -41,40 +31,7 @@ unsigned long fixword(byte b1, byte b2) {
 ////////////////////////////////////////////////////////////////////////////////
 // utility code to get Human Date From epoch
 
-const uint8_t daysInMonth[] PROGMEM = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 EthernetUDP UDP_as_NTP;
-
-
-void dateGalileo(uint32_t t) {
-	t -= SECONDS_FROM_1970_TO_2000;  // bring to 2000 timestamp from 1970
-
-	ss = t % 60;
-	t /= 60;
-	mm = t % 60;
-	t /= 60;
-	hh = t % 24;
-	uint16_t days = t / 24;
-	uint8_t leap;
-	for (yOff = 0; ; ++yOff) {
-		leap = yOff % 4 == 0;
-		if (days < 365 + leap)
-			break;
-		days -= 365 + leap;
-	}
-	for (m = 1; ; ++m) {
-		uint8_t daysPerMonth = pgm_read_byte(daysInMonth + m - 1);
-		if (leap && m == 2)
-			++daysPerMonth;
-		if (days < daysPerMonth)
-			break;
-		days -= daysPerMonth;
-	}
-	d = days + 1;
-	// Displaying Current Date and Time
-
-	Log::d("%i:%i:%i %i/%i%/%i", hh, mm, ss, d, m, 2000 + yOff);
-}
-// end conversion date from epoch
 
 // send an NTP request to the time server at the given address
 void sendNTPpacket(IPAddress &address) {
@@ -100,10 +57,8 @@ void sendNTPpacket(IPAddress &address) {
 }
 
 bool NTPdataPacket() {
-	bool NTPsynced = false;
 	memset(cmd0, 0, 30);
 	memset(bufSTR, 0, 13);
-	// while (!NTPsynced) {
 	if (NetworkManager::isConnectedToInternet()) {
 		sendNTPpacket(timeServer); // send an NTP packet to a time server
 
@@ -111,9 +66,8 @@ bool NTPdataPacket() {
 		delay(500);
 		unsigned long responseMill = millis();
 		// WAIT FOR SERVER RESPONCE
-		while (!NTPsynced && (millis() - responseMill < NTP_RESPONSE_TIMEOUT_VALUE)) {
+		while (millis() - responseMill < NTP_RESPONSE_TIMEOUT_VALUE) {
 			if (UDP_as_NTP.parsePacket() >= NTP_PACKET_SIZE) {
-				NTPsynced = true;
 				// We've received a packet, read the data from it
 				UDP_as_NTP.read(packetBuffer, NTP_PACKET_SIZE);  // read the packet into the buffer
 
@@ -136,14 +90,13 @@ bool NTPdataPacket() {
 				_unixTimeUpdate = millis();
 				// print Unix time:
 				Log::d("Unix time = %i", epoch);
-				//dateGalileo(epoch);
 				delay(50);
 				strcat(cmd0, cmd2);
 				snprintf(bufSTR, 12, "%lu", epoch);
 				strcat(cmd0, bufSTR);
 
 				Log::d("Date and Time Command: %s", cmd0);
-				return 1;
+				return true;
 			} else {
 				Log::e("ERROR NTP PACKET NOT RECEIVED");
 			}
@@ -152,7 +105,7 @@ bool NTPdataPacket() {
 		Log::e("ERROR INTERNET NOT PRESENT IN: NTPdataPacket()");
 		//  Internet not connected while try to sync with NTP
 	}
-	return 0;
+	return false;
 }
 
 // Set date and time to NTP's retrieved one
@@ -179,21 +132,6 @@ void initNTP() {
 	} else {
 		Log::d("Errore NTPdataPacket() ");
 	}
-}
-
-// for debug purpose only
-void testNTP() {
-	char *cmdP = "/bin/date +%F%t%T";
-	char buf[64];
-	FILE *ptr;
-
-	if ((ptr = popen(cmdP, "r")) != NULL) {
-		while (fgets(buf, 64, ptr) != NULL) {
-			Log::d(buf);
-		}
-	}
-	(void) pclose(ptr);
-	delay(1000);
 }
 
 unsigned long getUNIXTime() {

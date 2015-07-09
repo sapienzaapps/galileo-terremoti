@@ -4,7 +4,7 @@
 // const int CONTROLPKTSIZE = 16;
 #define CONTROLPKTSIZE 48 //36
 
-int checkCommandPacket();
+void checkCommandPacket();
 void sendValues(struct RECORD *db);
 void commandInterfaceInit();
 

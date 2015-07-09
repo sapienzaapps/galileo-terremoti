@@ -72,7 +72,7 @@ void checkCalibrationNeededNOSD(AcceleroMMA7361 ac, int currentHour) {
 			Log::i("pthresx <= 0 on NOSD #-#-#-#-#-#-#-#-#-#");
 		//setThresholdValuesBasic(ac, currentHour);
 		if (!yellowLedStatus) {
-			digitalWrite(LED_YELLOW, !yellowLedStatus);
+			digitalWrite(LED_YELLOW, yellowLedStatus ? (uint8_t) 0 : (uint8_t) 1);
 			yellowLedStatus = !yellowLedStatus;
 		}
 

@@ -45,20 +45,15 @@ extern unsigned long resetConnectionInterval;
 extern unsigned long milldelayTimeEvent;
 
 void printRecord(struct RECORD *db);
-void forceConfigUpdate();
 int doesFileExist(const char *filename);
 void createScript(const char *path, const char *text);
 void execScript(const char *path);
-void resetConnection(int numTry);
 int itoa(int value, char *sp, int radix);
 char *floatToString(char *outstr, float value, int places, int minwidth, boolean rightjustify);
 char *floatToString(char *outstr, float value, int places, int minwidth);
-char *floatToString(char *outstr, float value, int places);
 void storeConfigToSD();
-void ipToString(char *buf, int maxsize, IPAddress addr);
 void printConfig();
 void resetBlink(byte type);
-uint8_t *HEXtoDecimal(const char *in, size_t len, uint8_t *out);
-double atofn(char* buf, size_t max);
+double atofn(char *buf, size_t max);
 
 #endif 

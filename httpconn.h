@@ -14,7 +14,8 @@ public:
 	static bool isConnectedToInternet();
 	static bool isConnectedToInternet(bool force);
 	static void setupAsDHCPClient(uint8_t *mac);
-	static void setupStatic(uint8_t *mac, IPAddress staticAddress, IPAddress subnetMask, IPAddress gateway, IPAddress dnsHost);
+	static void setupStatic(uint8_t *mac, IPAddress staticAddress, IPAddress subnetMask, IPAddress gateway,
+							IPAddress dnsHost);
 	static void restart();
 	static void forceRestart();
 private:
@@ -57,12 +58,12 @@ public:
 private:
 	static unsigned long nextContact;
 
-	static void freeHTTPResponse(HTTPResponse* resp);
-	static HTTPResponse* httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);
-	static size_t hostFromURL(const char* url, char* hostname, unsigned short* port);
-	static unsigned short getResponseCode(char* line);
-	static int getLine(EthernetClient c, uint8_t* buffer, size_t maxsize, int toRead);
-	static int getLine(EthernetClient c, uint8_t* buffer, size_t maxsize);
+	static void freeHTTPResponse(HTTPResponse *resp);
+	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);
+	static size_t hostFromURL(const char *url, char *hostname, unsigned short *port);
+	static unsigned short getResponseCode(char *line);
+	static int getLine(EthernetClient c, uint8_t *buffer, size_t maxsize, int toRead);
+	static int getLine(EthernetClient c, uint8_t *buffer, size_t maxsize);
 };
 
 #endif

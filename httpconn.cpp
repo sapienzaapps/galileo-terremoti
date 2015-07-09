@@ -2,10 +2,8 @@
 #include "GalileoLog.h"
 #include "commons.h"
 
-#include <fcntl.h>
-
 bool NetworkManager::isDhcpClient = true;
-uint8_t* NetworkManager::mac = NULL;
+uint8_t *NetworkManager::mac = NULL;
 IPAddress NetworkManager::staticAddress(0, 0, 0, 0);
 IPAddress NetworkManager::subnetMask(0, 0, 0, 0);
 IPAddress NetworkManager::gateway(0, 0, 0, 0);
@@ -19,10 +17,10 @@ bool NetworkManager::isConnectedToInternet() {
 }
 
 bool NetworkManager::isConnectedToInternet(bool force) {
-	if(!NetworkManager::networkSetup) {
+	if (!NetworkManager::networkSetup) {
 		return false;
 	}
-	if(!NetworkManager::connectionChecked || force) {
+	if (!NetworkManager::connectionChecked || force) {
 		NetworkManager::connectionAvailable = false;
 
 		int ping = system("bin/busybox ping -w 2 8.8.8.8");
@@ -63,7 +61,8 @@ void NetworkManager::setupAsDHCPClient(uint8_t *mac) {
 	NetworkManager::networkSetup = isDhcpWorking;
 }
 
-void NetworkManager::setupStatic(uint8_t *mac, IPAddress staticAddress, IPAddress subnetMask, IPAddress gateway, IPAddress dnsHost) {
+void NetworkManager::setupStatic(uint8_t *mac, IPAddress staticAddress, IPAddress subnetMask, IPAddress gateway,
+								 IPAddress dnsHost) {
 	Log::d("Static configuration: %i.%i.%i.%i/%i.%i.%i.%i gw %i.%i.%i.%i dns %i.%i.%i.%i",
 		   staticAddress[0], staticAddress[1], staticAddress[2], staticAddress[3],
 		   subnetMask[0], subnetMask[1], subnetMask[2], subnetMask[3],
@@ -71,11 +70,11 @@ void NetworkManager::setupStatic(uint8_t *mac, IPAddress staticAddress, IPAddres
 		   dnsHost[0], dnsHost[1], dnsHost[2], dnsHost[3]
 	);
 
-	if(NetworkManager::mac != NULL) {
+	if (NetworkManager::mac != NULL) {
 		free(NetworkManager::mac);
 		NetworkManager::mac = NULL;
 	}
-	NetworkManager::mac = (uint8_t*) malloc(6);
+	NetworkManager::mac = (uint8_t *) malloc(6);
 	memcpy(NetworkManager::mac, mac, 6);
 	memcpy(&NetworkManager::staticAddress, &staticAddress, sizeof(IPAddress));
 	memcpy(&NetworkManager::subnetMask, &subnetMask, sizeof(IPAddress));
@@ -115,7 +114,7 @@ void NetworkManager::restart() {
 	system("/etc/init.d/networking restart");
 	delay(1000);
 #endif
-	if(NetworkManager::isDhcpClient) {
+	if (NetworkManager::isDhcpClient) {
 		NetworkManager::setupAsDHCPClient(NetworkManager::mac);
 	} else {
 		NetworkManager::setupStatic(
@@ -135,14 +134,14 @@ void NetworkManager::forceRestart() {
 		Log::i("Network reset #%i", retry);
 		NetworkManager::restart();
 		connected = NetworkManager::isConnectedToInternet(true);
-		if(retry > 5) {
+		if (retry > 5) {
 			system("reboot");
-			for(;;);
-		} else if(!connected) {
+			for (; ;);
+		} else if (!connected) {
 			retry++;
 			sleep(2000);
 		}
-	} while(!connected);
+	} while (!connected);
 }
 
 
@@ -158,8 +157,8 @@ std::string HTTPClient::getConfig() {
 	postValues["model"] = ARDUINO_MODEL;
 
 	HTTPResponse *resp = httpRequest(HTTP_POST, HTTP_API_ALIVE, postValues);
-	if(resp->error == HTTP_OK && resp->body != NULL) {
-		cfg = std::string((char*)resp->body);
+	if (resp->error == HTTP_OK && resp->body != NULL) {
+		cfg = std::string((char *) resp->body);
 	} else {
 		cfg = std::string("");
 	}
@@ -181,8 +180,8 @@ void HTTPClient::httpSendAlert1(struct RECORD *db, struct TDEF *td) {
 	postValues["lat"] = Config::getLatitude();
 	postValues["lon"] = Config::getLongitude();
 	HTTPResponse *resp = httpRequest(HTTP_POST, HTTP_API_TERREMOTO, postValues);
-	if(resp->error == HTTP_OK && resp->body != NULL) {
-		nextContact = atol((const char*)resp->body) * 1000UL;
+	if (resp->error == HTTP_OK && resp->body != NULL) {
+		nextContact = atol((const char *) resp->body) * 1000UL;
 	}
 	freeHTTPResponse(resp);
 }
@@ -192,8 +191,8 @@ std::string HTTPClient::getMACAddress() {
 	std::map<std::string, std::string> postValues;
 	postValues["deviceid"] = "00000000c1a0";
 	HTTPResponse *resp = httpRequest(HTTP_POST, HTTP_API_ALIVE, postValues);
-	if(resp->error == HTTP_OK && resp->body != NULL) {
-		mac = std::string((char*)resp->body);
+	if (resp->error == HTTP_OK && resp->body != NULL) {
+		mac = std::string((char *) resp->body);
 	} else {
 		mac = std::string("");
 	}
@@ -202,40 +201,38 @@ std::string HTTPClient::getMACAddress() {
 }
 
 
-
-
 unsigned long HTTPClient::getNextContact() {
 	return nextContact;
 }
 
-size_t HTTPClient::hostFromURL(const char* url, char* hostname, unsigned short* port) {
+size_t HTTPClient::hostFromURL(const char *url, char *hostname, unsigned short *port) {
 	size_t offset = 0;
-	if(strncmp(url, "http://", 7) == 0) {
+	if (strncmp(url, "http://", 7) == 0) {
 		offset += 7;
 	}
 
 	size_t urlSize = strlen(url);
 	size_t hostEnd = offset;
-	while(url[hostEnd] != '/' && url[hostEnd] != ':' && hostEnd < urlSize) {
+	while (url[hostEnd] != '/' && url[hostEnd] != ':' && hostEnd < urlSize) {
 		hostEnd++;
 	}
 
-	memcpy(hostname, url+offset, hostEnd-offset);
-	hostname[hostEnd-offset] = 0;
+	memcpy(hostname, url + offset, hostEnd - offset);
+	hostname[hostEnd - offset] = 0;
 
-	if(url[hostEnd] == ':') {
-		size_t portEnd = hostEnd+1;
-		while(url[portEnd] != '/' && portEnd < urlSize) {
+	if (url[hostEnd] == ':') {
+		size_t portEnd = hostEnd + 1;
+		while (url[portEnd] != '/' && portEnd < urlSize) {
 			portEnd++;
 		}
 
-		char buf[30+1];
-		size_t p = portEnd - (hostEnd+1);
+		char buf[30 + 1];
+		size_t p = portEnd - (hostEnd + 1);
 		p = (p < 30 ? p : 30);
-		memcpy(buf, url+hostEnd+1, p);
+		memcpy(buf, url + hostEnd + 1, p);
 		buf[p] = 0;
 
-		*port = (unsigned short)atoi(buf);
+		*port = (unsigned short) atoi(buf);
 
 		return portEnd;
 	} else {
@@ -243,15 +240,16 @@ size_t HTTPClient::hostFromURL(const char* url, char* hostname, unsigned short* 
 	}
 }
 
-unsigned short HTTPClient::getResponseCode(char* line) {
+unsigned short HTTPClient::getResponseCode(char *line) {
 	// HTTP/1.1 200 Ok
 	char buf[4];
 	memcpy(buf, line + 9, 3);
 	buf[4] = 0;
-	return (unsigned short)atoi(buf);
+	return (unsigned short) atoi(buf);
 }
 
-HTTPResponse* HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues) {
+HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
+									  std::map<std::string, std::string> postValues) {
 	HTTPResponse *resp = new HTTPResponse();
 
 	EthernetClient client;
@@ -259,13 +257,13 @@ HTTPResponse* HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 	unsigned short serverPort = 80;
 	size_t pathOffset = hostFromURL(URL.c_str(), serverName, &serverPort);
 
-	if(client.connect(serverName, serverPort)) {
+	if (client.connect(serverName, serverPort)) {
 		char linebuf[1024];
 
 		snprintf(linebuf, 1024, "%s %s HTTP/1.1", (method == HTTP_GET ? "GET" : "POST"), URL.c_str() + pathOffset);
 		client.println(linebuf);
 
-		if(serverPort != 80) {
+		if (serverPort != 80) {
 			snprintf(linebuf, 1024, "Host: %s:%i", serverName, serverPort);
 		} else {
 			snprintf(linebuf, 1024, "Host: %s", serverName);
@@ -274,12 +272,12 @@ HTTPResponse* HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 
 		client.println("Connection: close");
 
-		if(method == HTTP_POST && postValues.size() == 0) {
+		if (method == HTTP_POST && postValues.size() == 0) {
 			client.println("Content-Length: 0");
 			client.println("");
-		} else if(method == HTTP_POST && postValues.size() > 0) {
+		} else if (method == HTTP_POST && postValues.size() > 0) {
 			std::string reqBody;
-			for(std::map<std::string, std::string>::iterator i = postValues.begin(); i != postValues.end(); i++) {
+			for (std::map<std::string, std::string>::iterator i = postValues.begin(); i != postValues.end(); i++) {
 				reqBody.append(i->first);
 				reqBody.append("=");
 				reqBody.append(i->second);
@@ -295,38 +293,37 @@ HTTPResponse* HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 
 		// Request sent, wait for reply
 		unsigned long reqTime = millis();
-		while(!client.available() && (millis() - reqTime < HTTP_RESPONSE_TIMEOUT_VALUE ) ){;}
+		while (!client.available() && (millis() - reqTime < HTTP_RESPONSE_TIMEOUT_VALUE)) { ; }
 
-		if(client.available()) {
-			char rBuffer[300+1];
-			memset(rBuffer, 0, 300+1);
-			int s = getLine(client, (uint8_t*)rBuffer, 300);
+		if (client.available()) {
+			char rBuffer[300 + 1];
+			memset(rBuffer, 0, 300 + 1);
+			int s = getLine(client, (uint8_t *) rBuffer, 300);
 
 			Log::i("buffer response[%i]: %s", s, rBuffer);
 
-			if(strncmp(rBuffer, "HTTP/1.1", 8) == 0) {
+			if (strncmp(rBuffer, "HTTP/1.1", 8) == 0) {
 				resp->error = HTTP_OK;
 				resp->responseCode = getResponseCode(rBuffer);
 
 				// Read headers
-				int s;
 				do {
-					s = getLine(client, (uint8_t*)rBuffer, 300);
-					if(s > 0 && strlen(rBuffer) != 0) {
-						char* dppos = strchr(rBuffer, ':');
+					s = getLine(client, (uint8_t *) rBuffer, 300);
+					if (s > 0 && strlen(rBuffer) != 0) {
+						char *dppos = strchr(rBuffer, ':');
 						*dppos = 0;
-						if(*(dppos+1) == ' ') {
+						if (*(dppos + 1) == ' ') {
 							dppos++;
 						}
 						dppos++;
 						resp->headers[std::string(rBuffer)] = std::string(dppos);
 					}
-				} while(s > 0 && strlen(rBuffer) != 0);
+				} while (s > 0 && strlen(rBuffer) != 0);
 
 				resp->body = NULL;
-				if(resp->headers.count("Content-Length") == 1) {
+				if (resp->headers.count("Content-Length") == 1) {
 					size_t bodySize = (size_t) atol(resp->headers["Content-Length"].c_str());
-					resp->body = (uint8_t*)malloc(bodySize);
+					resp->body = (uint8_t *) malloc(bodySize);
 
 					client.read(resp->body, bodySize);
 				}
@@ -341,14 +338,14 @@ HTTPResponse* HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 	}
 	client.stop();
 	// TODO: better handling?
-	while(client.connected()) {
+	while (client.connected()) {
 		client.stop();
 	}
 	return resp;
 }
 
 void HTTPClient::freeHTTPResponse(HTTPResponse *resp) {
-	if(resp->body != NULL) {
+	if (resp->body != NULL) {
 		free(resp->body);
 	}
 	delete resp;
@@ -361,7 +358,7 @@ int HTTPClient::getLine(EthernetClient c, uint8_t *buffer, size_t maxsize, int t
 	memset(buffer, 0, maxsize);  // set the buffer to 0
 
 	for (i = 0; i < maxsize - 1 && done == 0; i++) {
-		buffer[i] = (uint8_t)c.read();
+		buffer[i] = (uint8_t) c.read();
 
 		if (buffer[i] == '\r') {
 			i--;

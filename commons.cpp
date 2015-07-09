@@ -127,13 +127,14 @@ int itoa(int value, char *sp, int radix) {
 	char tmp[16];// be careful with the length of the buffer
 	char *tp = tmp;
 	int i;
-	unsigned v;
+	unsigned int v;
 
 	int sign = (radix == 10 && value < 0);
-	if (sign)
+	if (sign) {
 		v = -value;
-	else
-		v = (unsigned) value;
+	} else {
+		v = (unsigned int) value;
+	}
 
 	while (v || tp == tmp) {
 		i = v % radix;
@@ -258,18 +259,17 @@ void storeConfigToSD() {
 		printf("Error opening file!\n");
 		exit(1);
 	}
-	Log::i("Store lat lon mac: %s %s %s", Config::getLatitude(), Config::getLongitude(), Config::getMacAddress().c_str());
-	fprintf(fp, "deviceid:%s\nlat:%lf\nlon:%lf", Config::getMacAddress().c_str(), Config::getLatitude(), Config::getLongitude());
+	Log::i("Store lat lon mac: %s %s %s", Config::getLatitude(), Config::getLongitude(),
+		   Config::getMacAddress().c_str());
+	fprintf(fp, "deviceid:%s\nlat:%lf\nlon:%lf", Config::getMacAddress().c_str(), Config::getLatitude(),
+			Config::getLongitude());
 	fclose(fp);
-}
-
-void ipToString(char *buf, size_t maxsize, IPAddress addr) {
-	snprintf(buf, maxsize, "%i.%i.%i.%i", addr[0], addr[1], addr[2], addr[3]);
 }
 
 void printConfig() {
 	Log::i("###################### Config ######################### ");
-	Log::i("UDID (DeviceID): %s - Model: %s - Version: %s", Config::getMacAddress().c_str(), ARDUINO_MODEL, SOFTWARE_VERSION);
+	Log::i("UDID (DeviceID): %s - Model: %s - Version: %s", Config::getMacAddress().c_str(), ARDUINO_MODEL,
+		   SOFTWARE_VERSION);
 	Log::i("Position (lat, lon): %lf %lf", Config::getLatitude(), Config::getLongitude());
 
 	char buf[300];
@@ -311,7 +311,7 @@ void resetBlink(byte type) {
 	}
 }
 
-double atofn(char* buf, size_t max) {
+double atofn(char *buf, size_t max) {
 	size_t bufLen = strlen(buf);
 	max = (max <= bufLen ? max : bufLen);
 	char termination = buf[max];

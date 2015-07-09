@@ -13,14 +13,8 @@ union ArrayToInteger {
 	uint32_t integer;
 };
 
-union ArrayToFloat {
-	byte array[4];
-	float lat;
-	float lon;
-};
-
 // check if the mobile APP sent a command to the device
-int checkCommandPacket() {
+void checkCommandPacket() {
 
 	byte mac[6];
 	Config::getMacAddressAsByte(mac);
@@ -36,20 +30,18 @@ int checkCommandPacket() {
 			Log::d("%s", _pktBuffer);
 
 			byte command = _pktBuffer[5];
-			ArrayToInteger cv;
-			cv.array[0] = _pktBuffer[12];
-			cv.array[1] = _pktBuffer[13];
-			cv.array[2] = _pktBuffer[14];
-			cv.array[3] = _pktBuffer[15];
 
 			/* CONVERTING IP ADDRESS FROM CHAR TO BYTE */
 			uint32_t IPinteger =
-					(uint32_t) cv.array[0] << 24 | (uint32_t) cv.array[1] << 16 | (uint32_t) cv.array[2] << 8 |
-					cv.array[3];
+					(uint32_t) _pktBuffer[12] << 24
+					| (uint32_t) _pktBuffer[13] << 16
+					| (uint32_t) _pktBuffer[14] << 8
+					| _pktBuffer[15];
 			_udpTemp = IPinteger;
 
 			switch (command) {
 				case 1: // Discovery
+				{
 					Log::d("DISCOVERY");
 					_pktBuffer[5] = 1;
 
@@ -66,8 +58,10 @@ int checkCommandPacket() {
 					_cmdc.beginPacket(_udpTemp, 62001);
 					_cmdc.write(_pktBuffer, CONTROLPKTSIZE + 4);
 					_cmdc.endPacket();
+				}
 					break;
 				case 2: // Ping
+				{
 					Log::d("PING");  // start sending packets to the mobile APP
 					// Reply
 					_pktBuffer[5] = 3;
@@ -75,16 +69,22 @@ int checkCommandPacket() {
 					_cmdc.write(_pktBuffer, CONTROLPKTSIZE);
 					_cmdc.endPacket();
 					Log::d("PONG");
+				}
 					break;
 				case 4: // Start
+				{
 					Log::d("START");  // start the socket connection with the mobile APP
 					_udpDest = IPinteger;
+				}
 					break;
 				case 5: // Stop
+				{
 					Log::d("STOP");  // close the socket connection with the mobile APP
 					_udpDest = (uint32_t) 0;
+				}
 					break;
 				case 6: // Setted
+				{
 					// Reply
 					_pktBuffer[46] = '\0';
 					char *argument = (char *) _pktBuffer + 16;
@@ -94,7 +94,8 @@ int checkCommandPacket() {
 					argument = (char *) _pktBuffer + 26;
 					Config::setLatitude(atof(argument));
 
-					Log::d("Location received - latitude: %lf - longitude: %lf", Config::getLatitude(), Config::getLongitude());
+					Log::d("Location received - latitude: %lf - longitude: %lf", Config::getLatitude(),
+						   Config::getLongitude());
 
 					_pktBuffer[5] = 6;
 					_cmdc.beginPacket(_udpTemp, 62001);
@@ -104,6 +105,12 @@ int checkCommandPacket() {
 					storeConfigToSD();
 					start = true;
 					memset(_pktBuffer, 0, 48);
+				}
+					break;
+				default:
+				{
+					Log::e("Unknown command");
+				}
 					break;
 			}
 		} else {
@@ -113,10 +120,11 @@ int checkCommandPacket() {
 }
 
 // send the accelerometer values to the mobile APP
+// TODO: check
 void sendValues(struct RECORD *db) {
-	int valx = db->valx;
-	int valy = db->valy;
-	int valz = db->valz;
+	uint32_t valx = (uint32_t)db->valx;
+	uint32_t valy = (uint32_t)db->valy;
+	uint32_t valz = (uint32_t)db->valz;
 	if (_udpDest != 0) {  // if a socket connection with the mobile APP has been established
 		_cmdc.beginPacket(_udpDest, 62002);
 		ArrayToInteger cv;
