@@ -18,6 +18,7 @@
 #include "Config.h"
 #include "avg.h"
 #include "Log.h"
+#include "Seismometer.h"
 
 byte zz = 0;
 
@@ -31,15 +32,10 @@ unsigned long startRecord = 0;
 unsigned long millis24h;
 int numAlert = 0;
 int reTareNum = 40;
-byte inEvent = 0;
 
-bool recordData = false;
 byte errors_connection = 0;
 
 bool connectedToInternet = false;
-
-//definition of Accelerometer object
-AcceleroMMA7361 accelero;
 
 #include "commons.h"
 #include "NTP.h"
@@ -60,8 +56,7 @@ unsigned long freeRam() {
 }
 
 // static temp struct
-static struct RECORD ddl = {0, 0, 0, 0, 0, false};
-struct RECORD *db = &ddl;
+
 unsigned long currentMillis, milldelayTime;
 #else
 #if (ARDUINO >= 100)
@@ -70,120 +65,6 @@ unsigned long currentMillis, milldelayTime;
   #include <WProgram.h>
 #endif
 #endif
-
-// return true if at least one of the axis is over the threshold
-bool isOverThresholdBasic(struct RECORD *db, struct TDEF *td) {
-	return (db->valx > td->pthresx || db->valx < td->nthresx)
-		   || (db->valy > td->pthresy || db->valy < td->nthresy)
-		   || (db->valz > td->pthresz || db->valz < td->nthresz);
-}
-
-bool isOverThresholdFixed(struct RECORD *db, struct TDEF *td) {
-	return (abs(db->valx) > td->pthresx)
-		   || (abs(db->valy) > td->pthresy)
-		   || (abs(db->valz - GFORCE) > td->pthresz);
-}
-
-void checkSensore()
-{
-	int valx, valy, valz;
-
-	valx = accelero.getXAccel();
-	valy = accelero.getYAccel();
-	valz = accelero.getZAccel();
-
-	TDEF td = { pthresx, pthresy, pthresz, nthresx, nthresy, nthresz };
-
-	//struct RECORD *db = (struct RECORD*)malloc(sizeof(struct RECORD));
-	//db->ts = getUNIXTime();
-	// db->ms = getUNIXTimeMS(); !!!!!!! necessary for mobile app!!!!!!!!!! sendValues()
-	db->valx = getAvgX(valx);
-	db->valy = getAvgY(valy);
-	db->valz = getAvgZ(valz);
-	//db->overThreshold = isOverThresholdBasic(db, &td);
-	db->overThreshold = false;
-
-
-	switch(thresholdAlgorithm) {
-		case Fixed:
-			db->overThreshold = isOverThresholdFixed(db, &td);
-			break;
-		case Basic:
-		default:
-			db->overThreshold = isOverThresholdBasic(db, &td);
-			break;
-	}
-
-	//debug_Axis(); // Debug Only
-
-	//if (internetConnected || !testNoInternet ) {
-	sendValues(db);  // send the values of the accelerometer to the mobile APP (if the APP is listening)
-	//delay(1);
-	//}
-
-	// if the values of the accelerometer have passed the threshold
-	//  or if an "event" is currently running
-	//if (db->overThreshold || inEvent != 1) {
-	if (db->overThreshold && inEvent != 1) {
-		db->ms = NTP::getUNIXTimeMS();
-
-		Log::i(db->overThreshold?"overThreshold":"inEvent");
-		if (ledON && !redLedStatus){
-			digitalWrite(LED_RED,HIGH);
-			redLedStatus = !redLedStatus;
-		}
-		if (connectedToInternet && start) {// send value data if there is a connection
-			//if (ledON) digitalWrite(LED_GREEN,HIGH);
-			if(alert){
-				inEvent = 1;
-				milldelayTimeEvent = millis(); // timestamp in millis for Event Interval */
-
-				HTTPClient::httpSendAlert1(db, &td);
-				numAlert++;
-				//getConfigNew();// on testing
-
-			}else{
-				Log::i("IN EVENT - BUT NOT ADJUSTED SENDVALUES");
-			}
-		}
-		else {
-			Log::d("NOT CONNECTED - or not in start!");
-		}
-	}
-	else {
-		if (ledON && !(inEvent) && redLedStatus){
-			digitalWrite(LED_RED,LOW);
-			redLedStatus = !redLedStatus;
-		}
-	}
-
-	db->ts = 0;
-	db->ms = 0;
-	db->valx = 0;
-	db->valy = 0;
-	db->valz = 0;
-	db->overThreshold = false;
-}
-
-void debug_Axis() {  // Reading sensor to view what is measuring. For Debug Only
-	if(recordData){// if recording data -> get accelero data
-		long _valx, _valy, _valz;
-		accelero.getAccelXYZ(&_valx, &_valy, &_valz) ;
-		if(zz == 0 ){ // first time record
-			resetBlink(0);
-			logAccValues( 0,  0,  0, zz);
-			zz = 1;
-		}else if(zz == 1){ // RECORDING
-			logAccValues( _valx,  _valy,  _valz, zz );
-		}else if(zz == 2 ){ // last time record
-			logAccValues( 0,  0,  0, zz);
-			zz = 3;
-			resetBlink(0);
-		}
-	}else{
-		Log::d("Valori Accelerometro: %lf %lf %lf", db->valx, db->valy, db->valz);
-	}
-}
 
 // set up the ethernet connection per location;
 // use the linux underneath the device to force manual DNS and so on
@@ -206,25 +87,43 @@ void setupEthernet() {
 
 void setup() {
 	Log::setLogFile(DEFAULT_LOG_PATH);
-	Log::setLogLevel(LEVEL_DEBUG);
-
-	analogReadResolution(10);        // 3.3V => 4096
+	Log::setLogLevel(LEVEL_INFO);
 
 	Log::i("Starting.........");
 
+	// Settings resolution to 10 => 3.3V => 4096
+	analogReadResolution(10);
+
+	Log::i("Loading config");
+	// Load saved config - if not available, load defaults
+	Config::init();
+
+	Log::i("Network init");
+	// Network init
 	NetworkManager::init();
 
-	Log::i("Loading config...");
-	Config::readConfigFile(DEFAULT_CONFIG_PATH);
+	Log::i("Check new config");
+	// Download new config from server
+	Config::checkServerConfig();
 
-	Log::i("Initial calibration");
-	/* Calibrating Accelerometer */
-	accelero.begin(A0, A1, A2);
-	// number of samples that have to be averaged
-	accelero.setAveraging(10);
-	accelero.calibrate();
+	Log::i("Update networking settings if necessary");
+	NetworkManager::updateFromConfig();
 
-	Log::d("calibration ended, starting up networking");
+	Log::i("NTP sync");
+	// SYNC with NTP server
+	NTP::sync();
+
+	Log::i("Update logging settings from config");
+	// Re-init logging from config
+	Log::updateFromConfig();
+
+	Log::i("Init seismometer");
+	Seismometer::init();
+
+
+
+
+
 
 	setupEthernet();
 	if(!NetworkManager::isConnectedToInternet(true)) {
@@ -330,8 +229,8 @@ void loop() {
 				greenLedStatus = !greenLedStatus;
 			}
 		}
-		Log::d("Still running: %s CHECK INTERNET INTERVAL: %lu STATUS: %s",
-			   getGalileoDate(), checkInternetConnectionInterval, connectedToInternet?"CONNECTED":"NOT CONNECTED");
+		Log::d("Still running, CHECK INTERNET INTERVAL: %lu STATUS: %s",
+			   checkInternetConnectionInterval, connectedToInternet?"CONNECTED":"NOT CONNECTED");
 		previousMillis = currentMillis;
 	}
 
@@ -354,7 +253,7 @@ void loop() {
 	if(numAlert >= reTareNum){
 		Log::i(" alert >40 recalibrating......");
 		accelero.calibrate();
-		forceInitEEPROM = true;
+		forceInitCalibration = true;
 		int cHour = (int)(NTP::getUNIXTime() % 86400L) / 3600;
 		checkCalibrationNeededNOSD(accelero, cHour);
 		numAlert = 0;
@@ -367,24 +266,10 @@ void loop() {
 	}
 
 	if (currentMillis - milldelayTime > 50UL /* checkSensoreInterval */ && zz < 3 ) { // read sensor values
-		if(!recordData){
-			// check mobile command
-			checkCommandPacket();
-			// read sensor values
-			checkSensore();
-		}else{
-			// record acc data for 1h
-			if (zz == 0){
-				startRecord = currentMillis;
-				Log::i("###############STARTING RECORD----------------------------------------");
-			}
-			debug_Axis();
-
-			if (currentMillis - startRecord >= 3600000UL && zz == 1/* 3600000UL */){ // AFTER TIME RECORD
-				zz = 2;
-				Log::i("###############STOPPING RECORD----------------------------------------");
-			}
-		}
+		// check mobile command
+		checkCommandPacket();
+		// read sensor values
+		checkSensore();
 		milldelayTime = currentMillis;
 	}
 

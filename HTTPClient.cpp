@@ -30,7 +30,6 @@ void HTTPClient::httpSendAlert1(struct RECORD *db, struct TDEF *td) {
 	Log::d("---- httpSendAlert1 ---------START-------");
 	Log::i("New Event, values (X-Y-Z):");
 	printRecord(db); // Debug print recorded axis values
-	Log::d("Date: %s", getGalileoDate());
 
 	std::map<std::string, std::string> postValues;
 	postValues["tsstart"] = db->ms;

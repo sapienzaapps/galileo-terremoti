@@ -19,16 +19,11 @@
 #include <BitsAndBytes.h>
 #include <Ethernet.h>
 #include <SPI.h>
-#include <EEPROM.h>
-#include <SD.h>
 #include <EthernetUdp.h>
 
 #endif
 
 #include "Config.h"
-
-char *getGalileoDate();
-void logAccValues(long _valx, long _valy, long _valz, byte zz);
 
 typedef enum _LogLevel {
 	LEVEL_DEBUG = 0,
@@ -51,6 +46,8 @@ public:
 
 private:
 	static void log(LogLevel, const char *, va_list argptr);
+	static std::string getDateTime();
+
 	static IPAddress syslogServer;
 	static bool syslogEnabled;
 	static EthernetUDP syslogUdp;

@@ -64,7 +64,7 @@ void setThresholdValues(AcceleroMMA7361 ac, int currentHour) {
 void checkCalibrationNeededNOSD(AcceleroMMA7361 ac, int currentHour) {
 
 	// do calibration every random amount of hours? or if it's the first time ever
-	if ((nextHour == currentHour) || (pthresx <= 0.00) || forceInitEEPROM) {
+	if ((nextHour == currentHour) || (pthresx <= 0.00) || forceInitCalibration) {
 		if (nextHour == currentHour)
 			Log::i("nextHour = currentHour on SD #-#-#-#-#-#-#-#-#-#: %i", currentHour);
 
@@ -79,7 +79,7 @@ void checkCalibrationNeededNOSD(AcceleroMMA7361 ac, int currentHour) {
 		Log::d("WRITE THRESHOLD on SD #-#-#-#-#-#-#-#-#-#");
 		setThresholdValues(ac, currentHour);
 		nextHour = ((currentHour + 1) % 24);
-		forceInitEEPROM = false;
+		forceInitCalibration = false;
 	}
 }
 

@@ -6,23 +6,6 @@
 extern byte errors_connection;
 
 // struct for time and axis variations logging
-struct RECORD {
-	unsigned long ts;
-	unsigned long ms;
-	long valx;
-	long valy;
-	long valz;
-	boolean overThreshold;
-};
-
-struct TDEF {
-	double pthresx;
-	double pthresy;
-	double pthresz;
-	double nthresx;
-	double nthresy;
-	double nthresz;
-};
 
 extern IPAddress ip;
 extern IPAddress dnsServer;

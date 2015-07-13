@@ -9,7 +9,6 @@ include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/cores/arduino/)
 include_directories($ENV{ARDUINOIDE}/libraries/Ethernet/src/)
 include_directories($ENV{ARDUINOIDE}/libraries/SD/src/)
 include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/libraries/SPI/src/)
-include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/libraries/EEPROM/src/)
 
 # Gen1 - used only for code completion - no need to change between gen1-gen2
 include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/variants/galileo_fab_d/)
@@ -42,8 +41,9 @@ set(SOURCE_FILES
 	NetworkManager.cpp
 	NetworkManager.h
 	LED.h
-	GalileoLED.cpp
-	GalileoLED.h
+	LED.cpp
+	Seismometer.cpp
+	Seismometer.h
 	)
 add_executable(galileo_terremoti ${SOURCE_FILES})
 

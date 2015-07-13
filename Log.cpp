@@ -1,55 +1,5 @@
 #include "Log.h"
 
-FILE *acc;
-static char date_log[30];
-
-char *getGalileoDate() {
-	char *cmdDate = "/bin/date \"+%F %T\"";
-	char buf[64];
-	//char *date = (char*)malloc(22*sizeof(char)); memory leak ****
-	memset(date_log, 0, 22); // zero memory buffer
-	strcpy(date_log, "");
-	FILE *ptr;
-
-	if ((ptr = popen(cmdDate, "r")) != NULL) {
-		while (fgets(buf, 64, ptr) != NULL) {
-			strcat(date_log, buf);
-			//Serial.print(buf);
-		}
-	}
-
-	(void) pclose(ptr);
-
-	//strcat(date_log, " > ");
-	//strcat(date_log, (char *)'\0');
-	date_log[strlen(date_log) - 1] = 0;
-	return date_log;
-}
-
-void logAccValues(long _valx, long _valy, long _valz, byte zz) { // function to log 1h of acceleration force
-	// FILE *acc;
-	// acc = fopen(logAcc_path, "a");
-	// if (acc == NULL) {
-	// printf("Error opening file!\n");
-	// exit(1);
-	// }
-	if (zz == 0) { // FIRST
-
-		acc = fopen(DEFAULT_ACC_PATH, "a");
-		if (acc == NULL) {
-			printf("Error opening file!\n");
-			exit(1);
-		}
-		fprintf(acc, "%s > %s\n ", getGalileoDate(), "#####Starting logging for 1h#####");
-	} else if (zz == 1) {// NORMAL
-		fprintf(acc, "%lu , %lu , %lu\n ", _valx, _valy, _valz);
-	} else if (zz == 2) { // LAST
-		fprintf(acc, "%s> %s\n ", getGalileoDate(), "#####Finished logging after 1h#####");
-		fclose(acc);
-	}
-	// fclose(acc);
-}
-
 IPAddress Log::syslogServer(0, 0, 0, 0);
 bool Log::syslogEnabled = false;
 EthernetUDP Log::syslogUdp;
@@ -109,9 +59,9 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 		levelC = 'E';
 	}
 	if (deviceid == "") {
-		snprintf(logentry, 1024, "[%s] [%c] [?] %s", getGalileoDate(), levelC, realmsg);
+		snprintf(logentry, 1024, "[%s] [%c] [?] %s", Log::getDateTime(), levelC, realmsg);
 	} else {
-		snprintf(logentry, 1024, "[%s] [%c] [%s] %s", getGalileoDate(), levelC, deviceid.c_str(), realmsg);
+		snprintf(logentry, 1024, "[%s] [%c] [%s] %s", Log::getDateTime(), levelC, deviceid.c_str(), realmsg);
 	}
 
 	if (Log::stdoutDebug) {
@@ -176,4 +126,21 @@ void Log::e(const char *msg, ...) {
 
 void Log::enableStdoutDebug(bool enable) {
 	Log::stdoutDebug = enable;
+}
+
+std::string Log::getDateTime() {
+	char *cmdDate = "/bin/date \"+%F %T\"";
+	char buf[512];
+	memset(buf, 0, 512);
+	std::string ret = "";
+
+	FILE *ptr;
+	if ((ptr = popen(cmdDate, "r")) != NULL) {
+		while (fgets(buf, 64, ptr) != NULL) {
+			ret = std::string(buf);
+		}
+	}
+
+	pclose(ptr);
+	return ret;
 }

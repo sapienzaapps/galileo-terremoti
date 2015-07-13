@@ -8,9 +8,10 @@
 #include <stdint.h>
 
 typedef enum {
-	LED_MODE_OUTPUT,
-	LED_MODE_INPUT
-} LedMode;
+	LED_RED,
+	LED_GREEN,
+	LED_YELLOW
+} LedColor;
 
 typedef enum {
 	LED_ON,
@@ -19,10 +20,14 @@ typedef enum {
 
 class LED {
 public:
-	static virtual void setEnabled(bool) = 0;
-	static virtual bool isEnabled() = 0;
-	static virtual void prepare(uint8_t, LedMode) = 0;
-	static virtual void set(uint8_t, LedStatus) = 0;
+	static void init(uint8_t greenLedPin, uint8_t yellowLedPin, uint8_t redLedPin);
+	static void set(LedColor led, bool isOn);
+	static void on(LedColor led);
+	static void off(LedColor led);
+private:
+	static uint8_t greenLedPin;
+	static uint8_t yellowLedPin;
+	static uint8_t redLedPin;
 };
 
 

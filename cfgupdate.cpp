@@ -30,23 +30,6 @@ IPAddress getFromString(char *ipAddr) {
 	return (uint32_t) (d1 * 16777216 + d2 * 65536 + d3 * 256 + d4);
 }
 
-std::map<std::string, std::string> &configSplit(const std::string &s, char delim,
-												std::map<std::string, std::string> &elems) {
-	std::stringstream ss(s);
-	std::string item;
-	while (std::getline(ss, item, delim)) {
-		std::size_t dppos = item.find(':');
-		elems[item.substr(0, dppos)] = item.substr(dppos + 1, std::string::npos);
-	}
-	return elems;
-}
-
-std::map<std::string, std::string> configSplit(const std::string &s, char delim) {
-	std::map<std::string, std::string> elems;
-	configSplit(s, delim, elems);
-	return elems;
-}
-
 // ask config to server - New Da finire
 boolean getConfigNew() {
 	Log::i("getConfigNew()------------------ START ----------------------");
