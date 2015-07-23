@@ -10,18 +10,9 @@
 To create a toolchain for Galileo:
 
 1. Download Galileo Arduino IDE from Intel website
-2. Extract archive
-3. Copy toolchain:
-```
-$ cd /where/you/extracted/the/archive/arduino-1.6.0+Intel/
-$ cd hardware/tools/i586/sysroots
-$ sudo mkdir -p /opt/clanton-tiny/1.4.2/sysroots
-$ sudo cp -R hardware/tools/i586/sysroots/i586-poky-linux-uclibc /opt/clanton-tiny/1.4.2/sysroots/
-$ sudo cp -R hardware/tools/i586/sysroots/x86_64-pokysdk-linux /opt/clanton-tiny/1.4.2/sysroots/
-$ sudo cp -R hardware/intel/i586-uclibc/ /opt/clanton-tiny/1.4.2/sysroots/i586-poky-linux-uclibc/arduino
-$ sudo cp -R hardware/intel/i586-uclibc/ /opt/clanton-tiny/1.4.2/sysroots/x86_64-pokysdk-linux/arduino
-```
-It copies cross devtools from Arduino IDE. If you don't have root access, you can place these files to `$HOME/.arduino-toolchain`
+2. Extract archive to /opt/ (so you have /opt/arduino-1.6.0+Intel/arduino executable)
+
+TODO: If you don't have root access, you can place these files to `$HOME/.arduino-toolchain`
 
 `CMakeToolchain.cmake` is based on Makefile at https://github.com/tokoro10g/galileo-makefile
 
