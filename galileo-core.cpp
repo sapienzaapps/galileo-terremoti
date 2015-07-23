@@ -106,12 +106,12 @@ void setup() {
 	// Download new config from server
 	Config::checkServerConfig();
 
-	Log::i("Update networking settings if necessary");
-	NetworkManager::updateFromConfig();
-
 	Log::i("NTP sync");
 	// SYNC with NTP server
-	NTP::sync();
+	bool d;
+	do {
+		d = NTP::sync();
+	} while(!d);
 
 	Log::i("Update logging settings from config");
 	// Re-init logging from config

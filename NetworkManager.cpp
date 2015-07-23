@@ -109,22 +109,7 @@ void NetworkManager::setupStatic(uint8_t *mac, IPAddress staticAddress, IPAddres
 }
 
 void NetworkManager::restart() {
-#ifdef __IS_GALILEO
-	// Workaround for Galileo (and other boards with Linux)
-	system("/etc/init.d/networking restart");
-	delay(1000);
-#endif
-	if (NetworkManager::isDhcpClient) {
-		NetworkManager::setupAsDHCPClient(NetworkManager::mac);
-	} else {
-		NetworkManager::setupStatic(
-				NetworkManager::mac,
-				NetworkManager::staticAddress,
-				NetworkManager::subnetMask,
-				NetworkManager::gateway,
-				NetworkManager::dnsHost
-		);
-	}
+	init();
 }
 
 void NetworkManager::forceRestart() {
@@ -133,6 +118,7 @@ void NetworkManager::forceRestart() {
 	do {
 		Log::i("Network reset #%i", retry);
 		NetworkManager::restart();
+		delay(1000);
 		connected = NetworkManager::isConnectedToInternet(true);
 		if (retry > 5) {
 			system("reboot");
@@ -155,4 +141,15 @@ void NetworkManager::init() {
 	//system("telnetd -l /bin/sh");
 	delay(1000);
 #endif
+	if (NetworkManager::isDhcpClient) {
+		NetworkManager::setupAsDHCPClient(NetworkManager::mac);
+	} else {
+		NetworkManager::setupStatic(
+				NetworkManager::mac,
+				NetworkManager::staticAddress,
+				NetworkManager::subnetMask,
+				NetworkManager::gateway,
+				NetworkManager::dnsHost
+		);
+	}
 }

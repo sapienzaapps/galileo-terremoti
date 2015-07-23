@@ -53,7 +53,7 @@ bool NTP::dataPacket() {
 		NTP::sendNTPpacket(NTP::ntpserver); // send an NTP packet to a time server
 
 		// wait to see if a reply is available
-		delay(500);
+		delay(2000);
 		unsigned long responseMill = millis();
 		// WAIT FOR SERVER RESPONCE
 		while (millis() - responseMill < NTP_RESPONSE_TIMEOUT_VALUE) {
@@ -140,4 +140,8 @@ void NTP::initNTP() {
 	} else {
 		Log::d("Errore NTPdataPacket() ");
 	}
+}
+
+bool NTP::sync() {
+	return dataPacket();
 }

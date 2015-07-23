@@ -165,6 +165,8 @@ bool Config::checkServerConfig() {
 			system("/tmp/script.sh");
 		}
 
+		// TODO: if network settings changed, save config and reboot
+
 		return true;
 	} else {
 		return false;
