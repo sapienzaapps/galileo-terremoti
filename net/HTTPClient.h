@@ -3,8 +3,8 @@
 
 #include <string>
 #include <map>
-#include <Arduino.h>
-#include <Ethernet.h>
+#include <EthernetClient.h>
+#include "../Seismometer.h"
 
 typedef enum {
 	HTTP_OK,
@@ -18,18 +18,18 @@ typedef enum {
 	HTTP_POST
 } HTTPMethod;
 
-typedef struct HTTPResponse {
+typedef struct {
 	HTTPError error;
 	unsigned short responseCode;
 	std::map<std::string, std::string> headers;
 	uint8_t *body;
-};
+} HTTPResponse;
 
 class HTTPClient {
 public:
 	static std::string getConfig();
 	static std::string getMACAddress();
-	static void httpSendAlert1(struct RECORD *db, struct TDEF *td);
+	static void httpSendAlert1(RECORD *db, THRESHOLDS *td);
 	static unsigned long getNextContact();
 	static void setBaseURL(std::string baseUrl);
 private:

@@ -4,8 +4,7 @@
 
 #include <string>
 #include <map>
-#include <Arduino.h>
-#include <Ethernet.h>
+#include "IPAddress.h"
 
 class NetworkManager {
 public:

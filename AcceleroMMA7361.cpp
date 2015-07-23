@@ -19,11 +19,12 @@
 // acceleroMMA7361.cpp - Library for retrieving data from the MMA7361 accelerometer.
 // For more information: variable declaration, changelog,... see AcceleroMMA7361.h
 
+#include <Arduino.h>
 #include "AcceleroMMA7361.h"
 #include "Log.h"
 
-double oneG = 1672;
-double oneGplusHalf = 1876;
+const double oneG = 1672;
+const double oneGplusHalf = 1876;
 
 /// constructor
 AcceleroMMA7361::AcceleroMMA7361() {}

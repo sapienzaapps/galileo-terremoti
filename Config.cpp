@@ -1,22 +1,13 @@
 #include <string>
+#include <stdio.h>
+#include <string.h>
+#include <variant.h>
+#include "common.h"
 #include "Config.h"
-#include "commons.h"
-#include "HTTPClient.h"
-#include "NTP.h"
-
-ThresholdAlgorithm_t thresholdAlgorithm = Basic;
-
-bool ledON = true;  // are the leds mounted on the board?
-bool alert = true;  // select communication type for Events
-bool ForceCalibrationNeeded = true;
-
-// reset connection if there's not one Active
-bool start = false;
-bool forceInitCalibration = false;
-
-bool redLedStatus = false;
-bool greenLedStatus = false;
-bool yellowLedStatus = false;
+#include "net/HTTPClient.h"
+#include "net/NTP.h"
+#include "Log.h"
+#include "Utils.h"
 
 std::string Config::macAddress = "";
 double Config::lat = 0.0;
@@ -42,6 +33,7 @@ std::string Config::getMacAddress() {
 
 void Config::setMacAddress(std::string macAddress) {
 	Config::macAddress = macAddress;
+	Config::save();
 }
 
 void Config::getMacAddressAsByte(byte mac[6]) {
@@ -59,6 +51,7 @@ double Config::getLatitude() {
 
 void Config::setLatitude(double lat) {
 	Config::lat = lat;
+	Config::save();
 }
 
 double Config::getLongitude() {
@@ -67,6 +60,7 @@ double Config::getLongitude() {
 
 void Config::setLongitude(double lon) {
 	Config::lon = lon;
+	Config::save();
 }
 
 bool Config::readConfigFile(const char *filepath) {
@@ -88,10 +82,10 @@ bool Config::readConfigFile(const char *filepath) {
 			Config::macAddress = std::string(argument);
 			Log::d("Device ID: %s", Config::getMacAddress().c_str());
 		} else if (strncmp("lat", buf, 3) == 0) {
-			Config::lat = atofn(argument, 8);
+			Config::lat = Utils::atofn(argument, 8);
 			Log::d("Latitude: %lf", Config::getLatitude());
 		} else if (strncmp("lon", buf, 3) == 0) {
-			Config::lon = atofn(argument, 8);
+			Config::lon = Utils::atofn(argument, 8);
 			Log::d("Longitude: %lf", Config::getLongitude());
 		}
 	}
@@ -143,7 +137,7 @@ bool Config::checkServerConfig() {
 			// Firmware update
 			char cmd[1024];
 			memset(cmd, 0, 1024);
-			snprintf(cmd, 1023, "curl -o /media/realroot/sketch.new %s");
+			snprintf(cmd, 1023, "curl -o /media/realroot/sketch.new %s", path.c_str());
 			system(cmd);
 
 			// TODO: update!
@@ -153,7 +147,8 @@ bool Config::checkServerConfig() {
 
 		HTTPClient::setBaseURL(params["server"]);
 
-		IPAddress ntpserver((const uint8_t *)params["ntpserver"].c_str());
+		IPAddress ntpserver;
+		inet_aton(params["ntpserver"].c_str(), &ntpserver._sin.sin_addr);
 		NTP::setNTPServer(ntpserver);
 
 		std::string script = params["script"];
@@ -194,4 +189,21 @@ void Config::file_put_contents(const char *path, std::string content) {
 	FILE *fp = fopen(path, "w");
 	fwrite(content.c_str(), content.size(), 1, fp);
 	fclose(fp);
+}
+
+void Config::printConfig() {
+	Log::i("###################### Config ######################### ");
+	Log::i("UDID (DeviceID): %s - Model: %s - Version: %s", Config::getMacAddress().c_str(), PLATFORM_NAME, SOFTWARE_VERSION);
+	Log::i("Position (lat, lon): %lf %lf", Config::getLatitude(), Config::getLongitude());
+
+	char buf[300];
+	IPAddress localIp = Ethernet.localIP();
+	snprintf(buf, 300, "%i.%i.%i.%i", localIp[0], localIp[1], localIp[2], localIp[3]);
+
+	Log::i("IP: %s", buf);
+	Log::i("##################### Config end ####################### ");
+}
+
+void Config::save() {
+	// TODO
 }

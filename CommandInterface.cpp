@@ -1,6 +1,15 @@
-#include "localstream.h"
+//
+// Created by ebassetti on 23/07/15.
+//
+
+#include <stdint.h>
+#include <string.h>
+#include <BitsAndBytes.h>
+#include "common.h"
+#include "CommandInterface.h"
 #include "Log.h"
-#include "commons.h"
+#include "Config.h"
+#include "Seismometer.h"
 
 byte _pktBuffer[CONTROLPKTSIZE];
 EthernetUDP _cmdc;
@@ -14,7 +23,7 @@ union ArrayToInteger {
 };
 
 // check if the mobile APP sent a command to the device
-void checkCommandPacket() {
+void CommandInterface::checkCommandPacket() {
 
 	byte mac[6];
 	Config::getMacAddressAsByte(mac);
@@ -51,7 +60,11 @@ void checkCommandPacket() {
 					// Store software version
 					memcpy(_pktBuffer + 35, SOFTWARE_VERSION, 4);
 
-					memcpy(_pktBuffer + 39, ARDUINO_MODEL, 8);
+#if GALILEO_GEN == 1
+					memcpy(_pktBuffer + 39, "galileo1", 8);
+#else
+					memcpy(_pktBuffer + 39, "galileo2", 8);
+#endif
 
 					_pktBuffer[47] = '\0';
 
@@ -102,8 +115,6 @@ void checkCommandPacket() {
 					_cmdc.write(_pktBuffer, CONTROLPKTSIZE);// send ack lat/lon received
 					_cmdc.endPacket();
 
-					storeConfigToSD();
-					start = true;
 					memset(_pktBuffer, 0, 48);
 				}
 					break;
@@ -121,7 +132,7 @@ void checkCommandPacket() {
 
 // send the accelerometer values to the mobile APP
 // TODO: check
-void sendValues(struct RECORD *db) {
+void CommandInterface::sendValues(RECORD *db) {
 	uint32_t valx = (uint32_t)db->valx;
 	uint32_t valy = (uint32_t)db->valy;
 	uint32_t valz = (uint32_t)db->valz;
@@ -152,6 +163,6 @@ void sendValues(struct RECORD *db) {
 }
 
 // establish the connection through the 62001 port to interact with the mobile APP
-void commandInterfaceInit() {
+void CommandInterface::commandInterfaceInit() {
 	_cmdc.begin(62001);
 }

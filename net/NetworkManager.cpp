@@ -1,6 +1,9 @@
-
+#include <stdio.h>
+#include <string.h>
+#include <Ethernet.h>
 #include "NetworkManager.h"
-#include "Log.h"
+#include "../Log.h"
+#include "../common.h"
 
 bool NetworkManager::isDhcpClient = true;
 uint8_t *NetworkManager::mac = NULL;
@@ -41,7 +44,7 @@ bool NetworkManager::isConnectedToInternet(bool force) {
 }
 
 void NetworkManager::setupAsDHCPClient(uint8_t *mac) {
-	boolean isDhcpWorking = false;
+	bool isDhcpWorking = false;
 	int retry = 0;
 	while (!isDhcpWorking && retry < 5) {
 		// Trying to get an IP address

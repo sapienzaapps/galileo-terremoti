@@ -1,3 +1,7 @@
+
+#include <stdio.h>
+#include <string.h>
+#include <variant.h>
 #include "Log.h"
 
 IPAddress Log::syslogServer(0, 0, 0, 0);
@@ -59,9 +63,9 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 		levelC = 'E';
 	}
 	if (deviceid == "") {
-		snprintf(logentry, 1024, "[%s] [%c] [?] %s", Log::getDateTime(), levelC, realmsg);
+		snprintf(logentry, 1024, "[%s] [%c] [?] %s", Log::getDateTime().c_str(), levelC, realmsg);
 	} else {
-		snprintf(logentry, 1024, "[%s] [%c] [%s] %s", Log::getDateTime(), levelC, deviceid.c_str(), realmsg);
+		snprintf(logentry, 1024, "[%s] [%c] [%s] %s", Log::getDateTime().c_str(), levelC, deviceid.c_str(), realmsg);
 	}
 
 	if (Log::stdoutDebug) {
@@ -129,13 +133,13 @@ void Log::enableStdoutDebug(bool enable) {
 }
 
 std::string Log::getDateTime() {
-	char *cmdDate = "/bin/date \"+%F %T\"";
+	std::string cmdDate("/bin/date \"+%F %T\"");
 	char buf[512];
 	memset(buf, 0, 512);
 	std::string ret = "";
 
 	FILE *ptr;
-	if ((ptr = popen(cmdDate, "r")) != NULL) {
+	if ((ptr = popen(cmdDate.c_str(), "r")) != NULL) {
 		while (fgets(buf, 64, ptr) != NULL) {
 			ret = std::string(buf);
 		}
@@ -143,4 +147,8 @@ std::string Log::getDateTime() {
 
 	pclose(ptr);
 	return ret;
+}
+
+void Log::updateFromConfig() {
+	// TODO
 }

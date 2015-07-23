@@ -1,6 +1,10 @@
+
+#include <stdio.h>
+#include <string.h>
+#include <EthernetClient.h>
 #include "HTTPClient.h"
-#include "Log.h"
-#include "commons.h"
+#include "../Log.h"
+#include "../common.h"
 
 unsigned long HTTPClient::nextContact = 5000;
 std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
@@ -12,7 +16,11 @@ std::string HTTPClient::getConfig() {
 	postValues["lat"] = Config::getLatitude();
 	postValues["lon"] = Config::getLongitude();
 	postValues["version"] = SOFTWARE_VERSION;
-	postValues["model"] = ARDUINO_MODEL;
+#if GALILEO_GEN == 1
+	postValues["model"] = "galileo1";
+#else
+	postValues["model"] = "galileo2";
+#endif
 
 	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "alive.php", postValues);
 	if (resp->error == HTTP_OK && resp->body != NULL) {
@@ -25,11 +33,11 @@ std::string HTTPClient::getConfig() {
 }
 
 // send the accelerometer values that got over the threshold
-void HTTPClient::httpSendAlert1(struct RECORD *db, struct TDEF *td) {
+void HTTPClient::httpSendAlert1(RECORD *db, THRESHOLDS *td) {
 	// New Event ----------------------------------------------------------
 	Log::d("---- httpSendAlert1 ---------START-------");
 	Log::i("New Event, values (X-Y-Z):");
-	printRecord(db); // Debug print recorded axis values
+	Log::i("%l - %l - %l", db->valx, db->valy, db->valz);
 
 	std::map<std::string, std::string> postValues;
 	postValues["tsstart"] = db->ms;
@@ -101,7 +109,7 @@ unsigned short HTTPClient::getResponseCode(char *line) {
 	// HTTP/1.1 200 Ok
 	char buf[4];
 	memcpy(buf, line + 9, 3);
-	buf[4] = 0;
+	buf[3] = 0;
 	return (unsigned short) atoi(buf);
 }
 
@@ -141,7 +149,7 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
 			}
 			client.println("Content-Type: application/x-www-form-urlencoded");
 
-			snprintf(linebuf, 1024, "Content-Length: %lu", reqBody.size());
+			snprintf(linebuf, 1024, "Content-Length: %u", reqBody.size());
 			client.println(linebuf);
 
 			client.println("");
@@ -211,10 +219,10 @@ void HTTPClient::freeHTTPResponse(HTTPResponse *resp) {
 // get data from server to buffer line per line
 int HTTPClient::getLine(EthernetClient c, uint8_t *buffer, size_t maxsize, int toRead) {
 	int i;
-	byte done = 0;
+	bool done = false;
 	memset(buffer, 0, maxsize);  // set the buffer to 0
 
-	for (i = 0; i < maxsize - 1 && done == 0; i++) {
+	for (i = 0; i < maxsize - 1 && !done; i++) {
 		buffer[i] = (uint8_t) c.read();
 
 		if (buffer[i] == '\r') {
@@ -231,7 +239,7 @@ int HTTPClient::getLine(EthernetClient c, uint8_t *buffer, size_t maxsize, int t
 		} else if (toRead > 1) {
 			toRead--;
 		} else {
-			done = 1;
+			done = true;
 		}
 	}
 	if (toRead == 1) {

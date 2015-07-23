@@ -6,39 +6,52 @@
 #define GALILEO_TERREMOTI_SEISMOMETER_H
 
 #include "AcceleroMMA7361.h"
+#include "Config.h"
 
-struct RECORD {
+typedef enum {
+	Basic, Fixed
+} ThresholdAlgorithm_t;
+
+typedef struct {
 	unsigned long ts;
 	unsigned long ms;
 	long valx;
 	long valy;
 	long valz;
 	bool overThreshold;
-};
+} RECORD;
 
-struct TDEF {
+typedef struct {
 	double pthresx;
 	double pthresy;
 	double pthresz;
 	double nthresx;
 	double nthresy;
 	double nthresz;
-};
+} THRESHOLDS;
 
 class Seismometer {
 public:
-	static void init();
-	static void tick();
-	static bool isInEvent();
+	Seismometer();
+	void init();
+	void tick();
+	bool isInEvent();
+	void showThresholdValues();
 
 private:
-	static AcceleroMMA7361 accelero;
-	static TDEF thresholds;
-	static bool inEvent;
-	static unsigned long lastEventWas;
+	ThresholdAlgorithm_t thresholdAlgorithm;
+	AcceleroMMA7361 accelero;
+	THRESHOLDS thresholds;
+	bool inEvent;
+	unsigned long lastEventWas;
+	long nextHour = 0;
 
-	static bool isOverThresholdBasic(struct RECORD *db, struct TDEF *td);
-	static bool isOverThresholdFixed(struct RECORD *db, struct TDEF *td);
+	static bool isOverThresholdBasic(RECORD *db, THRESHOLDS *td);
+	static bool isOverThresholdFixed(RECORD *db, THRESHOLDS *td);
+
+	void calibrateForHour(int currentHour);
+	void calibrateIfNeeded(bool force);
+	void calibrateIfNeeded();
 };
 
 

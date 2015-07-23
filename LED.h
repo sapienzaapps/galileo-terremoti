@@ -7,23 +7,13 @@
 
 #include <stdint.h>
 
-typedef enum {
-	LED_RED,
-	LED_GREEN,
-	LED_YELLOW
-} LedColor;
-
-typedef enum {
-	LED_ON,
-	LED_OFF
-} LedStatus;
-
 class LED {
 public:
 	static void init(uint8_t greenLedPin, uint8_t yellowLedPin, uint8_t redLedPin);
-	static void set(LedColor led, bool isOn);
-	static void on(LedColor led);
-	static void off(LedColor led);
+	static void green(bool);
+	static void red(bool);
+	static void yellow(bool);
+	static void startupBlink();
 private:
 	static uint8_t greenLedPin;
 	static uint8_t yellowLedPin;

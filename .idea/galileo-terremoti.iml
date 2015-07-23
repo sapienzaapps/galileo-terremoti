@@ -2,6 +2,96 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/IPAddress.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/IPAddress.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/Print.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/Print.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/RingBuffer.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/RingBuffer.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/Stream.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/Stream.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/TTYUART.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/TTYUART.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/Tone.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/Tone.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/UtilMisc.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/UtilMisc.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/UtilTime.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/UtilTime.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/WMath.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/WMath.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/WString.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/WString.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/fast_gpio_common.c">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/fast_gpio_common.c" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/fast_gpio_nc.c">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/fast_gpio_nc.c" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/fast_gpio_sc.c">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/fast_gpio_sc.c" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/i2c.c">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/i2c.c" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/interrupt.c">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/interrupt.c" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/main.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/main.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/mux.c">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/mux.c" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/pulseIn.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/pulseIn.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/sysfs.c">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/sysfs.c" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/trace.c">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/trace.c" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/wiring_analog.c">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/wiring_analog.c" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/wiring_digital.c">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/cores/arduino/wiring_digital.c" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/Dhcp.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/Dhcp.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/Dns.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/Dns.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/Ethernet.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/Ethernet.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/EthernetClient.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/EthernetClient.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/EthernetServer.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/EthernetServer.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/EthernetUdp.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/libraries/Ethernet/src/EthernetUdp.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/variants/galileo_fab_d/variant.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/variants/galileo_fab_d/variant.cpp" isTestSource="false" />
+    </content>
+    <content url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/variants/galileo_fab_g/variant.cpp">
+      <sourceFolder url="file:///opt/arduino-1.6.0+Intel/hardware/intel/i586-uclibc/variants/galileo_fab_g/variant.cpp" isTestSource="false" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

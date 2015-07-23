@@ -1,2 +1,7 @@
+.idea/workspace.xml
+.idea/tasks.xml
 build/
-buildcfg.h
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake

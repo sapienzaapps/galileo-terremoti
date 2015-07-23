@@ -5,60 +5,50 @@ project(galileo_terremoti)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/cores/arduino/)
-include_directories($ENV{ARDUINOIDE}/libraries/Ethernet/src/)
-include_directories($ENV{ARDUINOIDE}/libraries/SD/src/)
-include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/libraries/SPI/src/)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
 
-# Gen1 - used only for code completion - no need to change between gen1-gen2
-include_directories($ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/variants/galileo_fab_d/)
-# Gen2
-#include_directories(galileo_gen2 PUBLIC $ENV{ARDUINOIDE}/hardware/intel/i586-uclibc/variants/galileo_fab_g/)
+add_subdirectory(arduino)
+
+link_directories(build)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/build/")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/build/")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/build/")
 
 set(SOURCE_FILES
 	galileo-core.cpp
 	avg.h
-	commons.h
 	Config.h
 	Log.h
-	NTP.h
-	threshold.h
-	localstream.h
-	HTTPClient.h
-	cfgupdate.h
+	net/NTP.h
+	net/HTTPClient.h
 	AcceleroMMA7361.cpp
 	AcceleroMMA7361.h
-	buildcfg.h
 	avg.cpp
 	Log.cpp
 	Config.cpp
-	threshold.cpp
-	NTP.cpp
-	commons.cpp
-	cfgupdate.cpp
-	HTTPClient.cpp
-	localstream.cpp
-	NetworkManager.cpp
-	NetworkManager.h
+	net/NTP.cpp
+	net/HTTPClient.cpp
+	net/NetworkManager.cpp
+	net/NetworkManager.h
 	LED.h
 	LED.cpp
 	Seismometer.cpp
 	Seismometer.h
+	Utils.cpp
+	Utils.h
+	CommandInterface.cpp
+	CommandInterface.h
+	common.h
 	)
-add_executable(galileo_terremoti ${SOURCE_FILES})
 
-add_custom_target(galileo_gen1 COMMAND make gen1 -C ${PROJECT_SOURCE_DIR}
-	CLION_EXE_DIR=${PROJECT_BINARY_DIR}
-	SOURCES ${SOURCE_FILES})
+add_executable(galileo_gen1 ${SOURCE_FILES})
+target_compile_options(galileo_gen1 PUBLIC "-DGALILEO_GEN=1")
+target_include_directories(galileo_gen1 PUBLIC ${GALILEO_GEN1_INCLUDE})
+target_link_libraries(galileo_gen1 ArduinoGalileo1 ArduinoGalileo1Ethernet)
 
-add_custom_target(galileo_gen1upload COMMAND make gen1upload -C ${PROJECT_SOURCE_DIR}
-	CLION_EXE_DIR=${PROJECT_BINARY_DIR}
-	SOURCES ${SOURCE_FILES})
+add_executable(galileo_gen2 ${SOURCE_FILES})
+target_compile_options(galileo_gen2 PUBLIC "-DGALILEO_GEN=2")
+target_include_directories(galileo_gen2 PUBLIC ${GALILEO_GEN2_INCLUDE})
 
-add_custom_target(galileo_gen2 COMMAND make gen2 -C ${PROJECT_SOURCE_DIR}
-	CLION_EXE_DIR=${PROJECT_BINARY_DIR}
-	SOURCES ${SOURCE_FILES})
-
-add_custom_target(galileo_gen2upload COMMAND make gen2upload -C ${PROJECT_SOURCE_DIR}
-	CLION_EXE_DIR=${PROJECT_BINARY_DIR}
-	SOURCES ${SOURCE_FILES})
+add_custom_target(gen1image COMMAND genimage.sh ${PROJECT_SOURCE_DIR})

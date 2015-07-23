@@ -1,47 +1,37 @@
 # Requirements
 
-* Arduino IDE
-* make (optional)
+* Galileo toolchain (see below)
+* cmake
+* GNU/Linux
 
-# How to compile using Arduino IDE
+# Toolchains
+## Galileo
 
-If you have GNU/Linux or OSX (and `make`): just create a file named `buildcfg.h` by doing `make gen1prep` or `make gen2prep` and then launch Arduino Galileo IDE. You can change it later by re-issuing one of these commands.
+To create a toolchain for Galileo:
 
-Alternatively (eg. if you're on Windows or you don't have `make`), you can create that file manually with this content:
+1. Download Galileo Arduino IDE from Intel website
+2. Extract archive
+3. Copy toolchain:
+```
+$ cd /where/you/extracted/the/archive/arduino-1.6.0+Intel/
+$ cd hardware/tools/i586/sysroots
+$ sudo mkdir -p /opt/clanton-tiny/1.4.2/sysroots
+$ sudo cp -R hardware/tools/i586/sysroots/i586-poky-linux-uclibc /opt/clanton-tiny/1.4.2/sysroots/
+$ sudo cp -R hardware/tools/i586/sysroots/x86_64-pokysdk-linux /opt/clanton-tiny/1.4.2/sysroots/
+$ sudo cp -R hardware/intel/i586-uclibc/ /opt/clanton-tiny/1.4.2/sysroots/i586-poky-linux-uclibc/arduino
+$ sudo cp -R hardware/intel/i586-uclibc/ /opt/clanton-tiny/1.4.2/sysroots/x86_64-pokysdk-linux/arduino
+```
+It copies cross devtools from Arduino IDE. If you don't have root access, you can place these files to `$HOME/.arduino-toolchain`
 
-    #ifndef __BUILDCFG_H
-    #define __BUILDCFG_H
+`CMakeToolchain.cmake` is based on Makefile at https://github.com/tokoro10g/galileo-makefile
 
-    #define __IS_GALILEO
-    // If you have Gen2 Galileo please set GALILEO_GEN to 2
-    #define GALILEO_GEN 1
+# How to contribute
 
-    #endif
-
-# How to compile from command line (Linux-only)
-
-**IMPORTANT**: You should have `arduino` command (Arduino Galileo IDE) in your `$PATH`. If not, you can issue the following command (replace /arduino/ide/path/ with **absolute** path to Arduino IDE folder)
-
-    # export PATH=$PATH:/arduino/ide/path/
-
-Enter `make gen1` to make Arduino Galileo Gen1 sketch file, or `make gen2` to make Arduino Galileo Gen2 sketch file. Compilation output will be `build/galileo-terremoti.cpp.elf`.
-
-If you want upload sketch to Arduino Galileo, you can use `make gen1upload` or `make gen2upload`.
-Note that by default Arduino tools will try to upload to `/dev/ttyACM0`: if your Galileo is on a different port, set `$ARDUINODEV` environment variable.
-
-# How to compile using CLion (Linux-only)
-
-To use CLion you should have an environment variable named `$ARDUINOIDE` pointing to Arduino Galileo IDE root directory (eg. the directory which contains "arduino" IDE executable).
-
-For example:
-
-	# export ARDUINOIDE=/home/bob/arduino-galileo-ide/
-	# cd clion-1.0.4/bin/
-	# ./clion.sh
-
-(alternatively you can add `export` command to `.bashrc` or directly into `/etc/environment`)
+You can use any IDE or text editor. Just use `cmake -DCMAKE_TOOLCHAIN_FILE=CMakeToolchain.cmake` to compile.
 
 # How to make Arduino Galileo SD Image (Linux-only)
+
+TODO: update this doc
 
 Just use `make gen1image` or `make gen2image` to build and generate files for Arduino Galileo SD Card (based on GNU/Linux code provided by Intel).
 

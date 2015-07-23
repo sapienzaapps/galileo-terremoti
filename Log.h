@@ -1,8 +1,6 @@
 #ifndef galileo_log_h
 #define galileo_log_h
 
-#include "buildcfg.h"
-
 #include <math.h>
 #include <sys/sysinfo.h>
 #include <signal.h>
@@ -10,20 +8,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string>
-
-#ifdef __IS_GALILEO
-
-#include <Arduino.h>
-
-#include <pins_arduino.h>
-#include <BitsAndBytes.h>
-#include <Ethernet.h>
-#include <SPI.h>
 #include <EthernetUdp.h>
-
-#endif
-
-#include "Config.h"
 
 typedef enum _LogLevel {
 	LEVEL_DEBUG = 0,
@@ -43,6 +28,7 @@ public:
 	static void enableSerialDebug(bool);
 	static void enableStdoutDebug(bool);
 	static void setDeviceId(std::string);
+	static void updateFromConfig();
 
 private:
 	static void log(LogLevel, const char *, va_list argptr);
