@@ -50,5 +50,6 @@ target_link_libraries(galileo_gen1 ArduinoGalileo1 ArduinoGalileo1Ethernet)
 add_executable(galileo_gen2 ${SOURCE_FILES})
 target_compile_options(galileo_gen2 PUBLIC "-DGALILEO_GEN=2")
 target_include_directories(galileo_gen2 PUBLIC ${GALILEO_GEN2_INCLUDE})
+target_link_libraries(galileo_gen2 ArduinoGalileo2 ArduinoGalileo2Ethernet)
 
 add_custom_target(gen1image COMMAND genimage.sh ${PROJECT_SOURCE_DIR})
