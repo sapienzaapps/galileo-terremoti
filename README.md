@@ -16,17 +16,30 @@ TODO: If you don't have root access, you can place these files to `$HOME/.arduin
 
 `CMakeToolchain.cmake` is based on Makefile at https://github.com/tokoro10g/galileo-makefile
 
-# How to contribute
+# How to build Arduino gen1/gen2 image from command line
 
-You can use any IDE or text editor. Just use `cmake -DCMAKE_TOOLCHAIN_FILE=CMakeToolchain.cmake` to compile.
+Just use `cmake -DCMAKE_TOOLCHAIN_FILE=CMakeToolchain.cmake` and then `make`
 
-# How to make Arduino Galileo SD Image (Linux-only)
+# How to build Arduino gen1/gen2 image from CLion
+
+Open File menu -> Settings -> Build, Execution, Deployment -> CMake -> enter `-DCMAKE_TOOLCHAIN_FILE=CMakeToolchain.cmake`
+as CMake option.
+
+You'll need a reload of cmake cache: open File menu -> Reload CMake Project. If doesn't work, remove cache directory under
+`$HOME/.clion10/system/cmake/generated/` and click "Reload CMake project" again
+
+# How to build Arduino Galileo SD Image (Linux-only)
 
 TODO: update this doc
 
-Just use `make gen1image` or `make gen2image` to build and generate files for Arduino Galileo SD Card (based on GNU/Linux code provided by Intel).
+Just use `make gen1image` or `make gen2image` to build and generate files for Arduino Galileo SD Card (based on GNU/Linux
+code provided by Intel).
 
 Files will be placed on `build/image-full-galileo/` (copy contents to an empty FAT32-formatted SD Card).
+
+# How to contribute
+
+You can use any IDE or text editor. Just use `cmake -DCMAKE_TOOLCHAIN_FILE=CMakeToolchain.cmake` to compile.
 
 # Working procedure
 
