@@ -3,7 +3,7 @@
 
 #include <sstream>
 #include <EthernetUdp.h>
-#include "IPAddress.h"
+#include <IPAddress.h>
 
 class NTP {
 public:

@@ -3,7 +3,6 @@
 #include <Ethernet.h>
 #include "NetworkManager.h"
 #include "../Log.h"
-#include "../common.h"
 
 bool NetworkManager::isDhcpClient = true;
 uint8_t *NetworkManager::mac = NULL;
