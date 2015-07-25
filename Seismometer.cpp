@@ -11,7 +11,6 @@
 #include "LED.h"
 #include "CommandInterface.h"
 #include "Utils.h"
-#include <Arduino.h>
 
 #define CALIBRATIONITER 1000
 #define ORANGEZONE 6

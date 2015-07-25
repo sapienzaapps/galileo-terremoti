@@ -1,7 +1,6 @@
 
 #include <Arduino.h>
 #include "LED.h"
-#include "common.h"
 
 uint8_t LED::greenLedPin;
 uint8_t LED::yellowLedPin;

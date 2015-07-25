@@ -8,8 +8,6 @@
 #include "common.h"
 #include "CommandInterface.h"
 #include "Log.h"
-#include "Config.h"
-#include "Seismometer.h"
 
 byte _pktBuffer[CONTROLPKTSIZE];
 EthernetUDP _cmdc;

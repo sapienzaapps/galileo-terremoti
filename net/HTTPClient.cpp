@@ -218,7 +218,7 @@ void HTTPClient::freeHTTPResponse(HTTPResponse *resp) {
 
 // get data from server to buffer line per line
 int HTTPClient::getLine(EthernetClient c, uint8_t *buffer, size_t maxsize, int toRead) {
-	int i;
+	unsigned int i;
 	bool done = false;
 	memset(buffer, 0, maxsize);  // set the buffer to 0
 

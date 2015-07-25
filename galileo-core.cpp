@@ -3,15 +3,16 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <UtilTime.h>
 
 #include "common.h"
 #include "Config.h"
 #include "Log.h"
-#include "Seismometer.h"
 #include "LED.h"
 #include "Utils.h"
 #include "net/NTP.h"
 #include "net/NetworkManager.h"
+#include "CommandInterface.h"
 
 Seismometer seismometer;
 
@@ -54,11 +55,17 @@ void setup() {
 	NTP::sync();
 
 	Log::i("Starting UDP local command interface");
-	// TODO: start command interface
+	CommandInterface::commandInterfaceInit();
 
 	if(!Config::hasPosition()) {
 		Log::i("Getting position information");
-		// TODO: get position if not avail / or wait for location from App if not avail
+		// TODO: Get position if not avail
+		// Wait for location from App if not avail
+		Log::i("Position not available, waiting for position from App");
+		do {
+			CommandInterface::checkCommandPacket();
+			delay(200);
+		} while(!Config::hasPosition());
 	} else {
 		Log::i("GPS coords: %f %f", Config::getLatitude(), Config::getLongitude());
 	}
