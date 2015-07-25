@@ -9,122 +9,116 @@
 #include "CommandInterface.h"
 #include "Log.h"
 
-byte _pktBuffer[CONTROLPKTSIZE];
-EthernetUDP _cmdc;
-uint32_t _udpDest = (uint32_t) 0;
-IPAddress _udpTemp(0, 0, 0, 0);
+EthernetUDP CommandInterface::cmdc;
+IPAddress CommandInterface::udpDest = (in_addr_t) 0;
 
+bool CommandInterface::readPacket(PACKET* pkt) {
+	byte mac[6];
+	Config::getMacAddressAsByte(mac);
 
-union ArrayToInteger {
-	byte array[4];
-	uint32_t integer;
-};
+	byte pktBuffer[PACKET_SIZE];
 
-// check if the mobile APP sent a command to the device
-void CommandInterface::checkCommandPacket() {
+	if (cmdc.parsePacket() > 0) {  // if it received a packet
+		memset(pktBuffer, 0, 48);
+		int cread = cmdc.read(pktBuffer, PACKET_SIZE);
+
+		if(cread == PACKET_SIZE
+				&& memcmp("INGV\0", pktBuffer, 5) == 0
+				&& (pktBuffer[5] == PKTTYPE_DISCOVERY || memcmp(pktBuffer + 6, mac, 6) == 0)) {
+
+			pkt->type = (PacketType) pktBuffer[5];
+			pkt->source = (uint32_t) pktBuffer[12] << 24
+						  | (uint32_t) pktBuffer[13] << 16
+						  | (uint32_t) pktBuffer[14] << 8
+						  | pktBuffer[15];
+			if (pkt->type == PKTTYPE_SENDGPS) {
+				memcpy(&(pkt->latitude), pktBuffer + 16, 4);
+				memcpy(&(pkt->longitude), pktBuffer + 20, 4);
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+void CommandInterface::sendPacket(PACKET pkt) {
+	byte pktbuf[PACKET_SIZE];
+	memset(pktbuf, 0, PACKET_SIZE);
+
+	memcpy(pktbuf, "INGV\0", 5);
+	pktbuf[5] = pkt.type;
 
 	byte mac[6];
 	Config::getMacAddressAsByte(mac);
 
-	if (_cmdc.parsePacket() > 0) {  // if it received a packet
-		memset(_pktBuffer, 0, 48);
-		_cmdc.read(_pktBuffer, CONTROLPKTSIZE);
-		// if its a packet from the mobile APP (contains the packet ID: INGV):
-		// if the device must be discovered or has already been discovered
-		if (memcmp("INGV\0", _pktBuffer, 5) == 0 &&
-			(_pktBuffer[5] == 1 || memcmp(_pktBuffer + 6, mac, 6) == 0)) {
+	memcpy(pktbuf + 6, mac, 6);
 
-			Log::d("%s", _pktBuffer);
-
-			byte command = _pktBuffer[5];
-
-			/* CONVERTING IP ADDRESS FROM CHAR TO BYTE */
-			uint32_t IPinteger =
-					(uint32_t) _pktBuffer[12] << 24
-					| (uint32_t) _pktBuffer[13] << 16
-					| (uint32_t) _pktBuffer[14] << 8
-					| _pktBuffer[15];
-			_udpTemp = IPinteger;
-
-			switch (command) {
-				case 1: // Discovery
-				{
-					Log::d("DISCOVERY");
-					_pktBuffer[5] = 1;
-
-					// store the MAC address of the device inside the packet to let the APP know
-					memcpy(_pktBuffer + 6, mac, 6);
-
-					// Store software version
-					memcpy(_pktBuffer + 35, SOFTWARE_VERSION, 4);
-
+	if(pkt.type == PKTTYPE_DISCOVERY_REPLY) {
+		memcpy(pktbuf + 16, SOFTWARE_VERSION, 4);
 #if GALILEO_GEN == 1
-					memcpy(_pktBuffer + 39, "galileo1", 8);
+		memcpy(pktbuf + 20, "galileo1", 8);
 #else
-					memcpy(_pktBuffer + 39, "galileo2", 8);
+		memcpy(pktbuf + 20, "galileo2", 8);
 #endif
+	}
+	cmdc.beginPacket(pkt.source, CMD_INTERFACE_PORT);
+	cmdc.write(pktbuf, PACKET_SIZE);
+	cmdc.endPacket();
+}
 
-					_pktBuffer[47] = '\0';
+// check if the mobile APP sent a command to the device
+void CommandInterface::checkCommandPacket() {
 
-					_cmdc.beginPacket(_udpTemp, 62001);
-					_cmdc.write(_pktBuffer, CONTROLPKTSIZE + 4);
-					_cmdc.endPacket();
-				}
-					break;
-				case 2: // Ping
-				{
-					Log::d("PING");  // start sending packets to the mobile APP
-					// Reply
-					_pktBuffer[5] = 3;
-					_cmdc.beginPacket(_udpTemp, 62001);
-					_cmdc.write(_pktBuffer, CONTROLPKTSIZE);
-					_cmdc.endPacket();
-					Log::d("PONG");
-				}
-					break;
-				case 4: // Start
-				{
-					Log::d("START");  // start the socket connection with the mobile APP
-					_udpDest = IPinteger;
-				}
-					break;
-				case 5: // Stop
-				{
-					Log::d("STOP");  // close the socket connection with the mobile APP
-					_udpDest = (uint32_t) 0;
-				}
-					break;
-				case 6: // Setted
-				{
-					// Reply
-					_pktBuffer[46] = '\0';
-					char *argument = (char *) _pktBuffer + 16;
+	PACKET pkt;
+	if(!CommandInterface::readPacket(&pkt)) {
+		return;
+	}
 
-					Config::setLongitude(atof(argument));
-
-					argument = (char *) _pktBuffer + 26;
-					Config::setLatitude(atof(argument));
-
-					Log::d("Location received - latitude: %lf - longitude: %lf", Config::getLatitude(),
-						   Config::getLongitude());
-
-					_pktBuffer[5] = 6;
-					_cmdc.beginPacket(_udpTemp, 62001);
-					_cmdc.write(_pktBuffer, CONTROLPKTSIZE);// send ack lat/lon received
-					_cmdc.endPacket();
-
-					memset(_pktBuffer, 0, 48);
-				}
-					break;
-				default:
-				{
-					Log::e("Unknown command");
-				}
-					break;
-			}
-		} else {
-			Log::e("Invalid packet magic");
+	switch (pkt.type) {
+		case PKTTYPE_DISCOVERY: // Discovery
+		{
+			Log::d("DISCOVERY");
+			pkt.type = PKTTYPE_DISCOVERY_REPLY;
+			sendPacket(pkt);
 		}
+			break;
+		case PKYTYPE_PING: // Ping
+		{
+			Log::d("PING");
+			pkt.type = PKYTYPE_PONG;
+			sendPacket(pkt);
+		}
+			break;
+		case PKTTYPE_START: // Start
+		{
+			Log::d("START");
+			udpDest = pkt.source;
+			pkt.type = PKTTYPE_OK;
+			sendPacket(pkt);
+		}
+			break;
+		case PKTTYPE_STOP: // Stop
+		{
+			Log::d("STOP");
+			udpDest = (in_addr_t) 0;
+			pkt.type = PKTTYPE_OK;
+			sendPacket(pkt);
+		}
+			break;
+		case PKTTYPE_SENDGPS: // GPS Location
+		{
+			// Reply
+			Config::setLongitude(pkt.latitude);
+			Config::setLatitude(pkt.longitude);
+
+			Log::d("Location received - latitude: %lf - longitude: %lf", pkt.latitude, pkt.longitude);
+
+			pkt.type = PKTTYPE_OK;
+			sendPacket(pkt);
+		}
+			break;
+		default:
+			break;
 	}
 }
 
@@ -134,33 +128,21 @@ void CommandInterface::sendValues(RECORD *db) {
 	uint32_t valx = (uint32_t)db->valx;
 	uint32_t valy = (uint32_t)db->valy;
 	uint32_t valz = (uint32_t)db->valz;
-	if (_udpDest != 0) {  // if a socket connection with the mobile APP has been established
-		_cmdc.beginPacket(_udpDest, 62002);
-		ArrayToInteger cv;
-		cv.integer = valx;
-		_pktBuffer[0] = cv.array[0];
-		_pktBuffer[1] = cv.array[1];
-		_pktBuffer[2] = cv.array[2];
-		_pktBuffer[3] = cv.array[3];
+	if (udpDest._sin.sin_addr.s_addr == (in_addr_t)0) {  // if a socket connection with the mobile APP has been established
+		byte pktBuffer[PACKET_SIZE];
 
-		cv.integer = valy;
-		_pktBuffer[4] = cv.array[0];
-		_pktBuffer[5] = cv.array[1];
-		_pktBuffer[6] = cv.array[2];
-		_pktBuffer[7] = cv.array[3];
+		cmdc.beginPacket(udpDest, CMD_INTERFACE_PORT+1);
 
-		cv.integer = valz;
-		_pktBuffer[8] = cv.array[0];
-		_pktBuffer[9] = cv.array[1];
-		_pktBuffer[10] = cv.array[2];
-		_pktBuffer[11] = cv.array[3];
+		memcpy(pktBuffer, &valx, 4);
+		memcpy(pktBuffer+4, &valy, 4);
+		memcpy(pktBuffer+8, &valz, 4);
 
-		_cmdc.write(_pktBuffer, 12);
-		_cmdc.endPacket();
+		cmdc.write(pktBuffer, 12);
+		cmdc.endPacket();
 	}
 }
 
-// establish the connection through the 62001 port to interact with the mobile APP
+// establish the connection through the CMD_INTERFACE_PORT port to interact with the mobile APP
 void CommandInterface::commandInterfaceInit() {
-	_cmdc.begin(62001);
+	cmdc.begin(CMD_INTERFACE_PORT);
 }
