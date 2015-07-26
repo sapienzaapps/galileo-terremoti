@@ -5,7 +5,9 @@
 #ifndef GALILEO_TERREMOTI_COMMON_H
 #define GALILEO_TERREMOTI_COMMON_H
 
-#include <BitsAndBytes.h>
+#include <stdint.h>
+
+typedef uint8_t byte;
 
 #define DEFAULT_LOG_PATH "/media/realroot/sketch.log"
 #define DEFAULT_CONFIG_PATH "/media/realroot/seismoconfig.txt"
@@ -17,7 +19,6 @@
 #define LED_RED_PIN 12
 #define LED_GREEN_PIN 10
 
-// TODO: uppercase
 #define NTP_SYNC_INTERVAL 60*60*1000
 #define CHECK_NETWORK_INTERVAL 6*30*1000  // when to check for Internet connection availability
 #define CHECK_CONFIG_INTERVAL 15*60*1000  // when to check for Internet connection availability
