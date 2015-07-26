@@ -140,7 +140,7 @@ bool Config::checkServerConfig() {
 			snprintf(cmd, 1023, "curl -o /media/realroot/sketch.new %s", path.c_str());
 			system(cmd);
 
-			// TODO: update!
+			// TODO: update! Check if current sketch file is locked and not writable
 			system("reboot");
 			exit(0);
 		}

@@ -37,6 +37,8 @@ public:
 	void tick();
 	bool isInEvent();
 	void showThresholdValues();
+	void calibrateIfNeeded(bool force);
+	void calibrateIfNeeded();
 
 private:
 	ThresholdAlgorithm_t thresholdAlgorithm;
@@ -50,8 +52,6 @@ private:
 	static bool isOverThresholdFixed(RECORD *db, THRESHOLDS *td);
 
 	void calibrateForHour(int currentHour);
-	void calibrateIfNeeded(bool force);
-	void calibrateIfNeeded();
 };
 
 

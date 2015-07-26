@@ -79,8 +79,35 @@ void setup() {
 	LED::startupBlink();
 }
 
-void loop() {
+unsigned long netLastMs = 0;
+unsigned long ntpLastMs = 0;
+unsigned long cfgLastMs = 0;
+unsigned long seismoLastMs = 0;
 
+void loop() {
+	if(millis() - netLastMs >= CHECK_NETWORK_INTERVAL) {
+		if(!NetworkManager::isConnectedToInternet(true)) {
+			NetworkManager::forceRestart();
+		}
+		netLastMs = millis();
+	}
+
+	if(millis() - cfgLastMs >= CHECK_CONFIG_INTERVAL) {
+		Config::checkServerConfig();
+		cfgLastMs = millis();
+	}
+
+	if(millis() - ntpLastMs >= NTP_SYNC_INTERVAL) {
+		while(!NTP::sync());
+		ntpLastMs = millis();
+	}
+
+	seismometer.calibrateIfNeeded();
+
+	if(millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
+		seismometer.tick();
+		seismoLastMs = millis();
+	}
 }
 
 #endif

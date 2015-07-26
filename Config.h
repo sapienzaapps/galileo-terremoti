@@ -9,13 +9,6 @@
 #include "common.h"
 #include "Seismometer.h"
 
-// TODO: uppercase
-#define NTPInterval 60*60*1000
-#define checkInternetConnectionInterval 6*30*1000  // when to check for Internet connection availability
-#define checkConfigInterval 15*60*1000  // when to check for Internet connection availability
-#define HTTP_RESPONSE_TIMEOUT_VALUE 5000
-#define NTP_RESPONSE_TIMEOUT_VALUE 5000
-
 class Config {
 public:
 	static void init();
