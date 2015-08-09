@@ -18,6 +18,7 @@ uint32_t Config::staticMask = 0;
 uint32_t Config::staticGw = 0;
 uint32_t Config::staticDns = 0;
 uint32_t Config::ntpServer = 0;
+uint32_t Config::syslogServer = 0;
 
 bool Config::hasMACAddress() {
 	return !Config::macAddress.empty();
@@ -93,6 +94,28 @@ bool Config::readConfigFile(const char *filepath) {
 	return true;
 }
 
+void Config::save() {
+	FILE *fp = fopen(DEFAULT_CONFIG_PATH, "r");
+	if (fp == NULL) {
+		Log::e("Error opening config file for writing");
+		return;
+	}
+
+	char buf[200+1];
+	memset(buf, 0, 200+1);
+
+	snprintf(buf, 200, "deviceid:%s\n", Config::macAddress.c_str());
+	fwrite(buf, 1, strlen(buf), fp);
+
+	snprintf(buf, 200, "lat:%lf\n", Config::lat);
+	fwrite(buf, 1, strlen(buf), fp);
+
+	snprintf(buf, 200, "lon:%lf\n", Config::lon);
+	fwrite(buf, 1, strlen(buf), fp);
+
+	fclose(fp);
+}
+
 void Config::init() {
 	bool cfgOk = readConfigFile(DEFAULT_CONFIG_PATH);
 	if(!cfgOk) {
@@ -159,9 +182,6 @@ bool Config::checkServerConfig() {
 			system("chmod +x /tmp/script.sh");
 			system("/tmp/script.sh");
 		}
-
-		// TODO: if network settings changed, save config and reboot
-
 		return true;
 	} else {
 		return false;
@@ -204,6 +224,6 @@ void Config::printConfig() {
 	Log::i("##################### Config end ####################### ");
 }
 
-void Config::save() {
-	// TODO
+uint32_t Config::getSyslogServer() {
+	return syslogServer;
 }

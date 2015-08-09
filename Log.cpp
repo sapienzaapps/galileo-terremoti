@@ -3,6 +3,7 @@
 #include <string.h>
 #include <variant.h>
 #include "Log.h"
+#include "Config.h"
 
 IPAddress Log::syslogServer(0, 0, 0, 0);
 bool Log::syslogEnabled = false;
@@ -150,5 +151,6 @@ std::string Log::getDateTime() {
 }
 
 void Log::updateFromConfig() {
-	// TODO
+	syslogServer = Config::getSyslogServer();
+	syslogEnabled = Config::getSyslogServer() != (uint32_t)0;
 }

@@ -21,9 +21,12 @@ void loop();
 
 int main() {
 	setup();
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
 	while(1) {
 		loop();
 	}
+#pragma clang diagnostic pop
 	return EXIT_SUCCESS;
 }
 

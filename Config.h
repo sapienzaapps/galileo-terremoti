@@ -26,6 +26,7 @@ public:
 	static void setMacAddress(std::string macAddress);
 	static void setLatitude(double lat);
 	static void setLongitude(double lon);
+	static uint32_t getSyslogServer();
 
 private:
 	static void save();
@@ -44,6 +45,7 @@ private:
 	static uint32_t staticGw;
 	static uint32_t staticDns;
 	static uint32_t ntpServer;
+	static uint32_t syslogServer;
 };
 
 #endif 
