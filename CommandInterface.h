@@ -5,7 +5,7 @@
 #ifndef GALILEO_TERREMOTI_COMMANDINTERFACE_H
 #define GALILEO_TERREMOTI_COMMANDINTERFACE_H
 
-#include <EthernetUdp.h>
+#include "net/Udp.h"
 #include "Seismometer.h"
 
 #define CMD_INTERFACE_PORT 62001
@@ -42,7 +42,7 @@ typedef enum {
 
 typedef struct _PACKET {
 	PacketType type;
-	IPAddress source;
+	IPaddr source;
 
 	float latitude;
 	float longitude;
@@ -52,12 +52,12 @@ class CommandInterface {
 public:
 	static void checkCommandPacket();
 	static void sendValues(RECORD *db);
-	static void commandInterfaceInit();
+	static bool commandInterfaceInit();
 private:
 	static bool readPacket(PACKET*);
 	static void sendPacket(PACKET);
-	static EthernetUDP cmdc;
-	static IPAddress udpDest;
+	static Udp cmdc;
+	static IPaddr udpDest;
 };
 
 

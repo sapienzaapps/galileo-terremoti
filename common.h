@@ -5,6 +5,11 @@
 #ifndef GALILEO_TERREMOTI_COMMON_H
 #define GALILEO_TERREMOTI_COMMON_H
 
+#ifdef __IS_GALILEO
+#include <Arduino.h>
+#endif
+
+#include <unistd.h>
 #include <stdint.h>
 
 typedef uint8_t byte;

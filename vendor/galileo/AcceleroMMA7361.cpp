@@ -21,7 +21,7 @@
 
 #include <Arduino.h>
 #include "AcceleroMMA7361.h"
-#include "Log.h"
+#include "../../Log.h"
 
 const double oneG = 1672;
 const double oneGplusHalf = 1876;

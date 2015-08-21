@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <UtilTime.h>
 
 #include "common.h"
 #include "Config.h"
@@ -90,7 +89,7 @@ unsigned long seismoLastMs = 0;
 void loop() {
 	if(millis() - netLastMs >= CHECK_NETWORK_INTERVAL) {
 		if(!NetworkManager::isConnectedToInternet(true)) {
-			NetworkManager::forceRestart();
+			//NetworkManager::forceRestart();
 		}
 		netLastMs = millis();
 	}

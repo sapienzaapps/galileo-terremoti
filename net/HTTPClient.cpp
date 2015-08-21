@@ -1,10 +1,10 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <EthernetClient.h>
 #include "HTTPClient.h"
-#include "../Log.h"
 #include "../common.h"
+#include "../Log.h"
+#include "../Utils.h"
 
 unsigned long HTTPClient::nextContact = 5000;
 std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
@@ -13,8 +13,8 @@ std::string HTTPClient::getConfig() {
 	std::string cfg;
 	std::map<std::string, std::string> postValues;
 	postValues["deviceid"] = Config::getMacAddress();
-	postValues["lat"] = Config::getLatitude();
-	postValues["lon"] = Config::getLongitude();
+	postValues["lat"] = Utils::doubleToString(Config::getLatitude());
+	postValues["lon"] = Utils::doubleToString(Config::getLongitude());
 	postValues["version"] = SOFTWARE_VERSION;
 #if GALILEO_GEN == 1
 	postValues["model"] = "galileo1";
@@ -117,12 +117,12 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
 									  std::map<std::string, std::string> postValues) {
 	HTTPResponse *resp = new HTTPResponse();
 
-	EthernetClient client;
+	Tcp client;
 	char serverName[100];
 	unsigned short serverPort = 80;
 	size_t pathOffset = hostFromURL(URL.c_str(), serverName, &serverPort);
 
-	if (client.connect(serverName, serverPort)) {
+	if (client.connectTo(std::string(serverName), serverPort)) {
 		char linebuf[1024];
 
 		snprintf(linebuf, 1024, "%s %s HTTP/1.1", (method == HTTP_GET ? "GET" : "POST"), URL.c_str() + pathOffset);
@@ -149,11 +149,12 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
 			}
 			client.println("Content-Type: application/x-www-form-urlencoded");
 
-			snprintf(linebuf, 1024, "Content-Length: %u", reqBody.size());
+			unsigned long contentLength = reqBody.size();
+			snprintf(linebuf, 1024, "Content-Length: %lu", contentLength);
 			client.println(linebuf);
 
 			client.println("");
-			client.write(reqBody.c_str());
+			client.print(reqBody.c_str());
 		}
 
 		// Request sent, wait for reply
@@ -190,7 +191,7 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
 					size_t bodySize = (size_t) atol(resp->headers["Content-Length"].c_str());
 					resp->body = (uint8_t *) malloc(bodySize);
 
-					client.read(resp->body, bodySize);
+					client.readall(resp->body, bodySize);
 				}
 			} else {
 				resp->error = HTTP_MALFORMED_REPLY;
@@ -217,19 +218,17 @@ void HTTPClient::freeHTTPResponse(HTTPResponse *resp) {
 }
 
 // get data from server to buffer line per line
-int HTTPClient::getLine(EthernetClient c, uint8_t *buffer, size_t maxsize, int toRead) {
+int HTTPClient::getLine(Tcp c, uint8_t *buffer, size_t maxsize, int toRead) {
 	unsigned int i;
 	bool done = false;
 	memset(buffer, 0, maxsize);  // set the buffer to 0
 
 	for (i = 0; i < maxsize - 1 && !done; i++) {
-		buffer[i] = (uint8_t) c.read();
+		buffer[i] = (uint8_t) c.readchar();
 
 		if (buffer[i] == '\r') {
 			i--;
-		}
-
-		if (buffer[i] == '\n' || buffer[i] == -1) {  // if there is nothing more to read
+		} else if (buffer[i] == '\n' || buffer[i] == -1) {  // if there is nothing more to read
 			done = 1;
 			buffer[i] = 0;
 		}
@@ -249,7 +248,7 @@ int HTTPClient::getLine(EthernetClient c, uint8_t *buffer, size_t maxsize, int t
 	}
 }
 
-int HTTPClient::getLine(EthernetClient c, uint8_t *buffer, size_t maxsize) {
+int HTTPClient::getLine(Tcp c, uint8_t *buffer, size_t maxsize) {
 	return getLine(c, buffer, maxsize, -1);
 }
 

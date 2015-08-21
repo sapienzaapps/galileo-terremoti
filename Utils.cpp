@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <cmath>
+#include <sstream>
+#include "common.h"
 #include "Utils.h"
 
 unsigned long Utils::freeRam() {
@@ -51,14 +53,46 @@ double Utils::stddev(int *buf, int size, float avg) {
 	return sqrt(sum / (size - 1));
 }
 
-// workaround for Galileo
-#ifdef GALILEO_GEN
-unsigned long Utils::fixword(byte b1, byte b2) {
-	return ((b1 << 8) | b2);
+void Utils::delay(unsigned int ms) {
+	usleep(ms * 1000);
 }
-#else
-#include <WMath.h>
-unsigned long Utils::fixword(byte b1, byte b2) {
-	return makeWord(b1, b2);
+
+uint32_t Utils::millis() {
+	struct timespec ts;
+	unsigned theTick = 0U;
+	clock_gettime( CLOCK_REALTIME, &ts );
+	theTick  = ts.tv_nsec / 1000000;
+	theTick += ts.tv_sec * 1000;
+	return theTick;
+}
+
+uint64_t Utils::hton64(byte* bignum) {
+	uint64_t aux = 0;
+	uint8_t *p = (uint8_t*)bignum;
+	int i;
+
+	/* we get the ntp in network byte order, so we must
+	 * convert it to host byte order. */
+	for (i = 0; i < 4; i++) {
+		aux <<= 8;
+		aux |= *p++;
+	} /* for */
+	return aux;
+}
+
+
+#ifndef __IS_GALILEO
+void delay(unsigned int ms) {
+	Utils::delay(ms);
+}
+
+uint32_t millis() {
+	return Utils::millis();
 }
 #endif
+
+std::string Utils::doubleToString(double d) {
+	std::ostringstream strs;
+	strs << d;
+	return strs.str();
+}

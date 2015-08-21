@@ -3,7 +3,7 @@
 
 #include <string>
 #include <map>
-#include <EthernetClient.h>
+#include "Tcp.h"
 #include "../Seismometer.h"
 
 typedef enum {
@@ -40,8 +40,8 @@ private:
 	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);
 	static size_t hostFromURL(const char *url, char *hostname, unsigned short *port);
 	static unsigned short getResponseCode(char *line);
-	static int getLine(EthernetClient c, uint8_t *buffer, size_t maxsize, int toRead);
-	static int getLine(EthernetClient c, uint8_t *buffer, size_t maxsize);
+	static int getLine(Tcp c, uint8_t *buffer, size_t maxsize, int toRead);
+	static int getLine(Tcp c, uint8_t *buffer, size_t maxsize);
 };
 
 #endif

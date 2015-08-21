@@ -43,10 +43,11 @@
 #define AcceleroMMA7361_h
 
 #include <stdint.h>
+#include "../../Accelerometer.h"
 
 #define EXTERNAL 0
 
-class AcceleroMMA7361 {
+class AcceleroMMA7361 : public Accelerometer {
 public:
 	AcceleroMMA7361();
 	void begin(uint8_t xPin, uint8_t yPin, uint8_t zPin);

@@ -1,13 +1,15 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <variant.h>
+#include <time.h>
+// #include <Serial.h>
+#include "common.h"
 #include "Log.h"
 #include "Config.h"
 
-IPAddress Log::syslogServer(0, 0, 0, 0);
+IPaddr Log::syslogServer(0, 0, 0, 0);
 bool Log::syslogEnabled = false;
-EthernetUDP Log::syslogUdp;
+Udp Log::syslogUdp;
 FILE *Log::logFile = NULL;
 bool Log::serialDebug = true;
 LogLevel Log::logLevel = LEVEL_INFO;
@@ -18,11 +20,12 @@ void Log::setDeviceId(std::string deviceid) {
 	Log::deviceid = deviceid;
 }
 
-void Log::setSyslogServer(IPAddress server) {
+void Log::setSyslogServer(IPaddr server) {
 	Log::syslogServer = server;
 	Log::syslogEnabled = true;
+	Log::syslogUdp.connectTo(Log::syslogServer, 514);
 	// TODO: choose a special value to disable... maybe 0?
-	Log::syslogUdp.begin(514);
+	//Log::syslogUdp.begin(514);
 }
 
 void Log::setLogFile(const char *filepath) {
@@ -32,15 +35,15 @@ void Log::setLogFile(const char *filepath) {
 
 	Log::logFile = fopen(filepath, "w");
 	if (Log::logFile == NULL) {
-		Serial.println("Error opening log file\n");
+		//Serial.println("Error opening log file\n");
 	}
 }
 
 void Log::enableSerialDebug(bool serialDebug) {
 	if (!Log::serialDebug && serialDebug) {
-		Serial.begin(9600);
+		//Serial.begin(9600);
 	} else if (Log::serialDebug && !serialDebug) {
-		Serial.end();
+		//Serial.end();
 	}
 	Log::serialDebug = serialDebug;
 }
@@ -74,7 +77,7 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 	}
 
 	if (Log::serialDebug) {
-		Serial.println(logentry);
+		//Serial.println(logentry);
 	}
 
 	if (Log::syslogEnabled) {
@@ -92,9 +95,7 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 		char pkt[1024];
 		snprintf(pkt, 1024, "<%i>%s", priority, logentry);
 
-		Log::syslogUdp.beginPacket(Log::syslogServer, 514);
-		Log::syslogUdp.write((const uint8_t *) pkt, strlen(pkt));
-		Log::syslogUdp.endPacket();
+		Log::syslogUdp.send(pkt, strlen(pkt), Log::syslogServer, 514);
 	}
 
 	if (Log::logFile != NULL) {
@@ -133,21 +134,16 @@ void Log::enableStdoutDebug(bool enable) {
 	Log::stdoutDebug = enable;
 }
 
+/**
+ * TODO: recuperare da intero
+ */
 std::string Log::getDateTime() {
-	std::string cmdDate("/bin/date \"+%F %T\"");
+
 	char buf[512];
-	memset(buf, 0, 512);
-	std::string ret = "";
+	time_t now = time(NULL);
+	strftime(buf, 512, "%F %T", gmtime(&now));
 
-	FILE *ptr;
-	if ((ptr = popen(cmdDate.c_str(), "r")) != NULL) {
-		while (fgets(buf, 64, ptr) != NULL) {
-			ret = std::string(buf);
-		}
-	}
-
-	pclose(ptr);
-	return ret;
+	return std::string(buf);
 }
 
 void Log::updateFromConfig() {

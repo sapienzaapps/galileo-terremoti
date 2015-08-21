@@ -1,5 +1,5 @@
-#include "avg.h"
 
+#include "avg.h"
 
 int currsizeX = 0;
 int currsizeY = 0;

@@ -8,7 +8,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string>
-#include <EthernetUdp.h>
+#include "net/IPaddr.h"
+#include "net/Udp.h"
 
 typedef enum _LogLevel {
 	LEVEL_DEBUG = 0,
@@ -23,7 +24,7 @@ public:
 	static void e(const char *, ...);
 
 	static void setLogLevel(LogLevel);
-	static void setSyslogServer(IPAddress);
+	static void setSyslogServer(IPaddr);
 	static void setLogFile(const char *);
 	static void enableSerialDebug(bool);
 	static void enableStdoutDebug(bool);
@@ -34,9 +35,9 @@ private:
 	static void log(LogLevel, const char *, va_list argptr);
 	static std::string getDateTime();
 
-	static IPAddress syslogServer;
+	static IPaddr syslogServer;
 	static bool syslogEnabled;
-	static EthernetUDP syslogUdp;
+	static Udp syslogUdp;
 	static const char *logFilePath;
 	static FILE *logFile;
 	static bool serialDebug;

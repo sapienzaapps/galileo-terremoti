@@ -11,6 +11,11 @@
 #include "LED.h"
 #include "CommandInterface.h"
 #include "Utils.h"
+#include "vendor.h"
+
+#ifdef __IS_GALILEO
+#include "vendor/galileo/AcceleroMMA7361.h"
+#endif
 
 #define CALIBRATIONITER 1000
 #define ORANGEZONE 6
@@ -19,26 +24,29 @@ Seismometer::Seismometer() {
 	lastEventWas = 0;
 	inEvent = 0;
 	thresholds = { 0, 0, 0, 0, 0, 0 };
+	accelero = getAccelerometer();
 }
 
 void Seismometer::init() {
 	Log::i("Initial calibration");
 
+#ifdef __IS_GALILEO
 	/* Calibrating Accelerometer */
-	accelero.begin(A0, A1, A2);
+	((AcceleroMMA7361*)accelero)->begin(A0, A1, A2);
 
 	// number of samples that have to be averaged
-	accelero.setAveraging(10);
-	accelero.calibrate();
+	((AcceleroMMA7361*)accelero)->setAveraging(10);
+	((AcceleroMMA7361*)accelero)->calibrate();
+#endif
 
 	Log::d("Calibration ended");
 }
 
 void Seismometer::tick() {
 
-	int valx = accelero.getXAccel();
-	int valy = accelero.getYAccel();
-	int valz = accelero.getZAccel();
+	int valx = accelero->getXAccel();
+	int valy = accelero->getYAccel();
+	int valz = accelero->getZAccel();
 
 	RECORD db = {0, 0, 0, 0, 0, false};
 
@@ -105,9 +113,9 @@ void Seismometer::calibrateForHour(int currentHour) {
 
 	int i = 0;
 	for (i = 0; i < CALIBRATIONITER; i++) {
-		cbufx[i] = accelero.getXAccel();
-		cbufy[i] = accelero.getYAccel();
-		cbufz[i] = accelero.getZAccel();
+		cbufx[i] = accelero->getXAccel();
+		cbufy[i] = accelero->getYAccel();
+		cbufz[i] = accelero->getZAccel();
 	}
 
 	float avgx = Utils::absavg(cbufx, CALIBRATIONITER);

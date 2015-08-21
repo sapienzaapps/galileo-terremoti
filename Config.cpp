@@ -1,13 +1,11 @@
-#include <string>
-#include <stdio.h>
-#include <string.h>
-#include <variant.h>
+
 #include "common.h"
 #include "Config.h"
 #include "net/HTTPClient.h"
 #include "net/NTP.h"
 #include "Log.h"
 #include "Utils.h"
+#include <string.h>
 
 std::string Config::macAddress = "";
 double Config::lat = 0.0;
@@ -170,8 +168,7 @@ bool Config::checkServerConfig() {
 
 		HTTPClient::setBaseURL(params["server"]);
 
-		IPAddress ntpserver;
-		inet_aton(params["ntpserver"].c_str(), &ntpserver._sin.sin_addr);
+		IPaddr ntpserver = IPaddr::resolve(params["ntpserver"]);
 		NTP::setNTPServer(ntpserver);
 
 		std::string script = params["script"];
@@ -213,11 +210,11 @@ void Config::file_put_contents(const char *path, std::string content) {
 
 void Config::printConfig() {
 	Log::i("###################### Config ######################### ");
-	Log::i("UDID (DeviceID): %s - Model: %s - Version: %s", Config::getMacAddress().c_str(), PLATFORM_NAME, SOFTWARE_VERSION);
+	Log::i("UDID (DeviceID): %s - Model: %s - Version: %s", Config::getMacAddress().c_str(), PLATFORM, SOFTWARE_VERSION);
 	Log::i("Position (lat, lon): %lf %lf", Config::getLatitude(), Config::getLongitude());
 
 	char buf[300];
-	IPAddress localIp = Ethernet.localIP();
+	IPaddr localIp = IPaddr::localIP();
 	snprintf(buf, 300, "%i.%i.%i.%i", localIp[0], localIp[1], localIp[2], localIp[3]);
 
 	Log::i("IP: %s", buf);

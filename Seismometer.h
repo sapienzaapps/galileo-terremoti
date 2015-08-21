@@ -5,7 +5,7 @@
 #ifndef GALILEO_TERREMOTI_SEISMOMETER_H
 #define GALILEO_TERREMOTI_SEISMOMETER_H
 
-#include "AcceleroMMA7361.h"
+#include "Accelerometer.h"
 #include "Config.h"
 
 typedef enum {
@@ -42,7 +42,7 @@ public:
 
 private:
 	ThresholdAlgorithm_t thresholdAlgorithm;
-	AcceleroMMA7361 accelero;
+	Accelerometer *accelero;
 	THRESHOLDS thresholds;
 	bool inEvent;
 	unsigned long lastEventWas;

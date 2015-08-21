@@ -1,24 +1,23 @@
+
 #include <stdio.h>
 #include <string.h>
-#include <UtilTime.h>
 #include "NTP.h"
 #include "../common.h"
-#include "../Config.h"
 #include "../Log.h"
-#include "NetworkManager.h"
 #include "../Utils.h"
 
 // NTP time stamp is in the first 48 bytes of the message
 #define NTP_PACKET_SIZE 48
+#define JAN_1970        2208988800L
 
 unsigned long NTP::unixTimeTS = 0;
 unsigned long NTP::unixTimeUpdate = 0;
 
-IPAddress NTP::ntpserver(88, 149, 128, 123);
-EthernetUDP NTP::udpSocket;
+IPaddr NTP::ntpserver(88, 149, 128, 123);
+Udp NTP::udpSocket;
 
 // send an NTP request to the time server at the given address
-void NTP::sendNTPpacket(IPAddress &address) {
+void NTP::sendNTPpacket(IPaddr address) {
 	byte packetBuffer[NTP_PACKET_SIZE];
 
 	// set all bytes in the buffer to 0
@@ -39,9 +38,7 @@ void NTP::sendNTPpacket(IPAddress &address) {
 
 	// all NTP fields have been given values, now
 	// you can send a packet requesting a timestamp:
-	NTP::udpSocket.beginPacket(address, 123); //NTP requests are to port 123
-	NTP::udpSocket.write(packetBuffer, NTP_PACKET_SIZE);
-	NTP::udpSocket.endPacket();
+	NTP::udpSocket.send(packetBuffer, (size_t)NTP_PACKET_SIZE, address, 123);
 }
 
 // Set date and time to NTP's retrieved one
@@ -73,22 +70,23 @@ unsigned long int NTP::getUNIXTimeMS() {
 	return (((NTP::unixTimeTS) + (diff /= 1000) + (diff % 1000 >= 0 ? 1 : 0)));
 }
 
-void NTP::setNTPServer(IPAddress ntpserver) {
+void NTP::setNTPServer(IPaddr ntpserver) {
 	NTP::ntpserver = ntpserver;
 }
 
-void NTP::initNTP() {
-	udpSocket.begin(63554);
-	delay(1000);
-	if (NTP::sync()) {
-		Log::d("NTP updated: %lu", NTP::getUNIXTime());
-	} else {
-		Log::d("Errore NTPdataPacket() ");
-	}
-}
+//void NTP::initNTP() {
+//	//udpSocket.begin(63554);
+//	//delay(1000);
+//	if (NTP::sync()) {
+//		Log::d("NTP updated: %lu", NTP::getUNIXTime());
+//	} else {
+//		Log::d("Errore NTPdataPacket() ");
+//	}
+//}
 
 bool NTP::sync() {
 	bool ret = false;
+	if(NTP::ntpserver == 0) return false;
 	// If current time is lower than ~ "2015-07-23 12:45:00" then we force NTP sync
 	//
 	// This function will loop when no NTP sync occurs and:
@@ -98,56 +96,32 @@ bool NTP::sync() {
 	//
 	// Let's hope for first condition :-)
 	do {
-		if (NetworkManager::isConnectedToInternet()) {
-			// send an NTP packet to a time server
-			NTP::sendNTPpacket(NTP::ntpserver);
+		// send an NTP packet to a time server
+		NTP::sendNTPpacket(NTP::ntpserver);
 
-			// wait to see if a reply is available
-			delay(2000);
-			unsigned long responseMill = millis();
+		// wait to see if a reply is available
+		delay(2000);
+		unsigned long responseMill = millis();
 
-			// WAIT FOR SERVER RESPONSE
-			while (!ret && millis() - responseMill < NTP_RESPONSE_TIMEOUT_VALUE) {
-				if (NTP::udpSocket.parsePacket() >= NTP_PACKET_SIZE) {
-					byte packetBuffer[NTP_PACKET_SIZE];
+		// WAIT FOR SERVER RESPONSE
+		while (!ret && millis() - responseMill < NTP_RESPONSE_TIMEOUT_VALUE) {
+			byte packetBuffer[NTP_PACKET_SIZE];
+			int r = NTP::udpSocket.receive(packetBuffer, (size_t)NTP_PACKET_SIZE, NULL, NULL);
 
-					// We've received a packet, read the data from it
-					NTP::udpSocket.read(packetBuffer, NTP_PACKET_SIZE);  // read the packet into the buffer
+			if (r >= NTP_PACKET_SIZE) {
+				uint64_t ntptime = Utils::hton64(packetBuffer+40);
+				time_t epoch = ntptime - JAN_1970;
 
-					//the timestamp starts at byte 40 of the received packet and is four bytes,
-					// or two words, long. First, esxtract the two words:
-					unsigned long highWord = Utils::fixword(packetBuffer[40], packetBuffer[41]);
-					unsigned long lowWord = Utils::fixword(packetBuffer[42], packetBuffer[43]);
+				NTP::unixTimeTS = (epoch); //* 1000UL;
+				NTP::unixTimeUpdate = millis();
 
-					// combine the four bytes (two words) into a long integer
-					// this is NTP time (seconds since Jan 1 1900):
-					unsigned long secsSince1900 = highWord << 16 | lowWord;
-					Log::d("Seconds since Jan 1 1900 = %ld", secsSince1900);
-
-					// now convert NTP time into everyday time:
-					// Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
-					const unsigned long seventyYears = 2208988800UL;
-
-					// subtract seventy years:
-					unsigned long epoch = secsSince1900 - seventyYears;
-
-					NTP::unixTimeTS = (epoch); //* 1000UL;
-					NTP::unixTimeUpdate = millis();
-
-					// print Unix time:
-					Log::d("Unix time = %i", epoch);
-					delay(50);
-					NTP::execSystemTimeUpdate(epoch);
-					ret = true;
-				} else {
-					Log::e("ERROR NTP PACKET NOT RECEIVED");
-				}
-			}
-		} else {
-			// Internet not connected while try to sync with NTP
-			Log::e("ERROR INTERNET NOT PRESENT IN: NTPdataPacket()");
-			if(NTP::unixTimeTS < 1437648361) {
-				sleep(2000);
+				// print Unix time:
+				Log::d("Unix time = %i", epoch);
+				delay(50);
+				NTP::execSystemTimeUpdate(epoch);
+				ret = true;
+			} else {
+				Log::e("ERROR NTP PACKET NOT RECEIVED");
 			}
 		}
 	} while(NTP::unixTimeTS < 1437648361);
