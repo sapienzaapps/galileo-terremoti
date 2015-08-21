@@ -11,7 +11,7 @@ TARGET_NAME     = i586-poky-linux-uclibc
 NATIVE_NAME     = x86_64-pokysdk-linux
 GCC_VERSION     = 4.7.2
 
-SDK_ROOT        = /opt/arduino-1.6.0+Intel/
+SDK_ROOT       ?= /opt/arduino-1.6.0+Intel/
 SYSROOT_TARGET  = $(SDK_ROOT)/hardware/tools/i586/sysroots/$(TARGET_NAME)/
 SYSROOT_NATIVE  = $(SDK_ROOT)/hardware/tools/i586/sysroots/$(NATIVE_NAME)/
 

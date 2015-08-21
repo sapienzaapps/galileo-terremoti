@@ -25,9 +25,17 @@ Seismometer::Seismometer() {
 	inEvent = 0;
 	thresholds = { 0, 0, 0, 0, 0, 0 };
 	accelero = getAccelerometer();
+	if(accelero == NULL) {
+		Log::e("Accelerometer object is NULL");
+	}
 }
 
 void Seismometer::init() {
+
+	if(accelero == NULL) {
+		return;
+	}
+
 	Log::i("Initial calibration");
 
 #ifdef __IS_GALILEO
@@ -43,6 +51,10 @@ void Seismometer::init() {
 }
 
 void Seismometer::tick() {
+
+	if(accelero == NULL) {
+		return;
+	}
 
 	int valx = accelero->getXAccel();
 	int valy = accelero->getYAccel();
@@ -105,6 +117,11 @@ bool Seismometer::isInEvent() {
 }
 
 void Seismometer::calibrateForHour(int currentHour) {
+
+	if(accelero == NULL) {
+		return;
+	}
+
 	int cbufx[CALIBRATIONITER];
 	int cbufy[CALIBRATIONITER];
 	int cbufz[CALIBRATIONITER];

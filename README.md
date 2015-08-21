@@ -1,8 +1,9 @@
 # Requirements
 
-* Galileo toolchain (see below)
-* cmake
 * GNU/Linux
+* GNU make
+* Galileo toolchain (if you plan to compile for Arduino)
+* GCC compiler (if you plan to compile for linux-x86)
 
 # Toolchains
 ## Galileo
@@ -14,19 +15,15 @@ To create a toolchain for Galileo:
 
 TODO: If you don't have root access, you can place these files to `$HOME/.arduino-toolchain`
 
-`CMakeToolchain.cmake` is based on Makefile at https://github.com/tokoro10g/galileo-makefile
+# How to build from command line
 
-# How to build Arduino gen1/gen2 image from command line
+You should issue `make` command into project root directory. You should use these options to compile a particular version:
 
-Just use `cmake -DCMAKE_TOOLCHAIN_FILE=CMakeToolchain.cmake` and then `make`
-
-# How to build Arduino gen1/gen2 image from CLion
-
-Open File menu -> Settings -> Build, Execution, Deployment -> CMake -> enter `-DCMAKE_TOOLCHAIN_FILE=CMakeToolchain.cmake`
-as CMake option.
-
-You'll need a reload of cmake cache: open File menu -> Reload CMake Project. If doesn't work, remove cache directory under
-`$HOME/.clion10/system/cmake/generated/` and click "Reload CMake project" again
+* **PLATFORM** : can be `linux-x86` (default) or `galileo`
+* **VARIANT** : platform variant; for "galileo" variants are:
+	* **galileo_fab_d** : Galileo Gen 1
+	* **galileo_fab_g** : Galileo Gen 1
+* **SDK_ROOT** : SDK root path (see "Toolchains") if it's not in `/opt`
 
 # How to build Arduino Galileo SD Image (Linux-only)
 
@@ -37,11 +34,22 @@ code provided by Intel).
 
 Files will be placed on `build/image-full-galileo/` (copy contents to an empty FAT32-formatted SD Card).
 
-# How to contribute
+# How to add a new platform
 
-You can use any IDE or text editor. Just use `cmake -DCMAKE_TOOLCHAIN_FILE=CMakeToolchain.cmake` to compile.
+Project code is written as much generic as possible. Platform-specific code is placed into vendor/ directory.
+Specific code includes: LED control, 3-axis sensor code, etc.
+
+You should implement these classes as a .cpp file into platform specific directory (example: `vendor/linux-x86/LED.cpp`):
+* LED class
+* vendor.cpp
+
+You'll find definitions into .h files in project root directory. Also you may need to create a child class of Accelerometer.h
+
+See `linux-x86` and `galileo` for more infos.
 
 # Working procedure
+
+TODO: update doc here and expand
 
 ## Boot
 
