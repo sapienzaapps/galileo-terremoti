@@ -7,4 +7,4 @@ VENDOR_OBJECTS := $(VENDOR_MODULES:%=${OBJDIR}/${PLATFORM}_%.o)
 vendor:: $(VENDOR_OBJECTS)
 
 ${OBJDIR}/${PLATFORM}_%.o: vendor/${PLATFORM}/%.cpp
-	$(CPP) $(CPPFLAGS) -c -o $@ $<
+	$(CPP) $(CPPFLAGS) ${MAINFLAGS} -c -o $@ $<

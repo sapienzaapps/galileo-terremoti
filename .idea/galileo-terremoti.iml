@@ -35,10 +35,10 @@
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/AcceleroMMA7361.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/AcceleroMMA7361.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/LED.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/vendor.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/DummyAccelerometer.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/DummyAccelerometer.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/LED.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/vendor.cpp" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

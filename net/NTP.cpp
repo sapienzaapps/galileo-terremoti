@@ -10,14 +10,14 @@
 #define NTP_PACKET_SIZE 48
 #define JAN_1970        2208988800L
 
-unsigned long NTP::unixTimeTS = 0;
+time_t NTP::unixTimeTS = 0;
 unsigned long NTP::unixTimeUpdate = 0;
 
 IPaddr NTP::ntpserver(88, 149, 128, 123);
 Udp NTP::udpSocket;
 
 // send an NTP request to the time server at the given address
-void NTP::sendNTPpacket(IPaddr address) {
+bool NTP::sendNTPpacket(IPaddr address) {
 	byte packetBuffer[NTP_PACKET_SIZE];
 
 	// set all bytes in the buffer to 0
@@ -38,11 +38,18 @@ void NTP::sendNTPpacket(IPaddr address) {
 
 	// all NTP fields have been given values, now
 	// you can send a packet requesting a timestamp:
-	NTP::udpSocket.send(packetBuffer, (size_t)NTP_PACKET_SIZE, address, 123);
+	ssize_t s = NTP::udpSocket.send(packetBuffer, (size_t)NTP_PACKET_SIZE, address, 123);
+	return s > 0;
+}
+
+std::string trim(std::string& str, char c) {
+	size_t first = str.find_first_not_of(c);
+	size_t last = str.find_last_not_of(c);
+	return str.substr(first, (last-first+1));
 }
 
 // Set date and time to NTP's retrieved one
-void NTP::execSystemTimeUpdate(unsigned long epoch) {
+void NTP::execSystemTimeUpdate(time_t epoch) {
 	char command[100];
 	snprintf(command, 100, "/bin/date -s @%lu", epoch);
 
@@ -52,7 +59,10 @@ void NTP::execSystemTimeUpdate(unsigned long epoch) {
 	Log::d("COMANDO: %s", command);
 	if ((ptr = popen(command, "r")) != NULL) {
 		while (fgets(buf, 64, ptr) != NULL) {
-			Log::d(buf);
+			std::string sbuf = std::string(buf);
+			std::string nbuf = trim(sbuf, '\r');
+			std::string vbuf = trim(nbuf, '\n');
+			Log::d(trim(vbuf, ' ').c_str());
 		}
 		pclose(ptr);
 	} else {
@@ -74,15 +84,9 @@ void NTP::setNTPServer(IPaddr ntpserver) {
 	NTP::ntpserver = ntpserver;
 }
 
-//void NTP::initNTP() {
-//	//udpSocket.begin(63554);
-//	//delay(1000);
-//	if (NTP::sync()) {
-//		Log::d("NTP updated: %lu", NTP::getUNIXTime());
-//	} else {
-//		Log::d("Errore NTPdataPacket() ");
-//	}
-//}
+void NTP::init() {
+	udpSocket.listen(63451);
+}
 
 bool NTP::sync() {
 	bool ret = false;
@@ -100,19 +104,19 @@ bool NTP::sync() {
 		NTP::sendNTPpacket(NTP::ntpserver);
 
 		// wait to see if a reply is available
-		delay(2000);
+		delay(500);
 		unsigned long responseMill = millis();
 
 		// WAIT FOR SERVER RESPONSE
 		while (!ret && millis() - responseMill < NTP_RESPONSE_TIMEOUT_VALUE) {
 			byte packetBuffer[NTP_PACKET_SIZE];
-			int r = NTP::udpSocket.receive(packetBuffer, (size_t)NTP_PACKET_SIZE, NULL, NULL);
+			ssize_t r = NTP::udpSocket.receive(packetBuffer, (size_t)NTP_PACKET_SIZE, NULL, NULL);
 
 			if (r >= NTP_PACKET_SIZE) {
 				uint64_t ntptime = Utils::hton64(packetBuffer+40);
 				time_t epoch = ntptime - JAN_1970;
 
-				NTP::unixTimeTS = (epoch); //* 1000UL;
+				NTP::unixTimeTS = epoch; //* 1000UL;
 				NTP::unixTimeUpdate = millis();
 
 				// print Unix time:
@@ -120,9 +124,10 @@ bool NTP::sync() {
 				delay(50);
 				NTP::execSystemTimeUpdate(epoch);
 				ret = true;
-			} else {
-				Log::e("ERROR NTP PACKET NOT RECEIVED");
 			}
+		}
+		if(!ret) {
+			Log::e("ERROR NTP PACKET NOT RECEIVED: %s", NTP::ntpserver.asString().c_str());
 		}
 	} while(NTP::unixTimeTS < 1437648361);
 	return ret;

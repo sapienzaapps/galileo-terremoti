@@ -6,4 +6,4 @@ NET_OBJECTS := $(NET_MODULES:%=${OBJDIR}/net_%.o)
 net:: $(NET_OBJECTS)
 
 ${OBJDIR}/net_%.o: net/%.cpp
-	$(CPP) $(CPPFLAGS) -c -o $@ $<
+	$(CPP) $(CPPFLAGS) ${MAINFLAGS} -c -o $@ $<

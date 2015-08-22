@@ -13,13 +13,13 @@ VENDOR_OBJECTS   := $(VENDOR_MODULES:%=${OBJDIR}/${PLATFORM}_%.o)
 vendor:: $(VENDOR_OBJECTS) $(GALILEO_OBJECTS) $(VARIANT_OBJECTS)
 
 ${OBJDIR}/${PLATFORM}_%.o: vendor/${PLATFORM}/%.cpp
-	$(CPP) $(CPPFLAGS) -c -o $@ $<
+	$(CPP) $(CPPFLAGS) ${MAINFLAGS} -c -o $@ $<
 
 ${OBJDIR}/$(PLATFORM)_$(VARIANT)_%.o: $(SDK_ROOT)/hardware/intel/i586-uclibc/variants/$(VARIANT)/%.cpp
-	$(CPP) $(CPPFLAGS) -c -o $@ $<
+	$(CPP) $(CPPFLAGS) ${MAINFLAGS} -c -o $@ $<
 
 ${OBJDIR}/cores_$(VARIANT)_%.o: $(SDK_ROOT)/hardware/intel/i586-uclibc/cores/arduino/%.cpp
-	$(CPP) $(CPPFLAGS) -c -o $@ $<
+	$(CPP) $(CPPFLAGS) ${MAINFLAGS} -c -o $@ $<
 
 ${OBJDIR}/cores_$(VARIANT)_%.o: $(SDK_ROOT)/hardware/intel/i586-uclibc/cores/arduino/%.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) ${MAINFLAGS} -c -o $@ $<

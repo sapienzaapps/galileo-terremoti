@@ -3,7 +3,7 @@ include build-cfg.mk
 
 OUTDIR=$(shell pwd)/build/out_$(PLATFORM)$(VARIANT)
 OBJDIR=$(shell pwd)/build/tmp_$(PLATFORM)$(VARIANT)
-MAINFLAGS=-DPLATFORM=\"${PLATFORM}\" -Wno-unknown-pragmas -g -O3
+MAINFLAGS=-DPLATFORM=\"${PLATFORM}\" -Wno-unknown-pragmas -g
 
 include vendor/${PLATFORM}/toolchain.mk
 

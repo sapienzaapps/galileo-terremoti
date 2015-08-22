@@ -4,7 +4,21 @@
 
 #include "../../vendor.h"
 #include "AcceleroMMA7361.h"
+#include "../../Log.h"
+#include <Arduino.h>
 
 Accelerometer* getAccelerometer() {
-	return new AcceleroMMA7361();
+	AcceleroMMA7361* accel = new AcceleroMMA7361();
+
+	/* Calibrating Accelerometer */
+	accel->begin(A0, A1, A2);
+
+	Log::i("Initial calibration");
+	// number of samples that have to be averaged
+	accel->setAveraging(10);
+	accel->calibrate();
+
+	Log::d("Calibration ended");
+
+	return accel;
 }

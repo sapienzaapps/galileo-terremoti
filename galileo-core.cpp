@@ -13,7 +13,7 @@
 #include "net/NetworkManager.h"
 #include "CommandInterface.h"
 
-Seismometer seismometer;
+Seismometer *seismometer;
 
 void setup();
 void loop();
@@ -32,7 +32,8 @@ int main() {
 void setup() {
 	LED::init(LED_GREEN_PIN, LED_YELLOW_PIN, LED_RED_PIN);
 	Log::setLogFile(DEFAULT_LOG_PATH);
-	Log::setLogLevel(LEVEL_INFO);
+	Log::enableStdoutDebug(true);
+	Log::setLogLevel(LEVEL_DEBUG);
 
 	Log::i("Starting.........");
 
@@ -52,8 +53,11 @@ void setup() {
 	// Re-init logging from config
 	Log::updateFromConfig();
 
+	// TEMP Config::setMacAddress("123456123456");
+
 	Log::i("NTP sync");
 	// NTP SYNC with NTP server
+	NTP::init();
 	NTP::sync();
 
 	Log::i("Starting UDP local command interface");
@@ -73,7 +77,8 @@ void setup() {
 	}
 
 	Log::i("Init seismometer");
-	seismometer.init();
+	seismometer = new Seismometer();
+	seismometer->init();
 
 	Log::d("Free RAM: %lu", Utils::freeRam());
 	Log::d("INIZIALIZATION COMPLETE!");
@@ -104,10 +109,10 @@ void loop() {
 		ntpLastMs = millis();
 	}
 
-	seismometer.calibrateIfNeeded();
+	seismometer->calibrateIfNeeded();
 
 	if(millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
-		seismometer.tick();
+		seismometer->tick();
 		seismoLastMs = millis();
 	}
 }

@@ -52,7 +52,8 @@ set(SOURCE_FILES
 		vendor/linux-x86/DummyAccelerometer.cpp
 		vendor/linux-x86/DummyAccelerometer.h
 		vendor/linux-x86/LED.cpp
-		vendor/galileo/vendor.cpp vendor.h)
+		vendor/linux-x86/vendor.cpp
+		vendor.h)
 
 add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
 #target_compile_options(galileo_gen1 PUBLIC "-DGALILEO_GEN=1")
@@ -78,4 +79,8 @@ add_custom_target(galileo1 ALL
 
 add_custom_target(galileo2 ALL
 		COMMAND make PLATFORM="galileo" VARIANT="galileo_fab_g" -C ${PROJECT_SOURCE_DIR}
+		SOURCES ${SOURCE_FILES})
+
+add_custom_target(clear ALL
+		COMMAND make clean -C ${PROJECT_SOURCE_DIR}
 		SOURCES ${SOURCE_FILES})

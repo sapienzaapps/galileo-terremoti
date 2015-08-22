@@ -13,10 +13,6 @@
 #include "Utils.h"
 #include "vendor.h"
 
-#ifdef __IS_GALILEO
-#include "vendor/galileo/AcceleroMMA7361.h"
-#endif
-
 #define CALIBRATIONITER 1000
 #define ORANGEZONE 6
 
@@ -31,23 +27,9 @@ Seismometer::Seismometer() {
 }
 
 void Seismometer::init() {
-
 	if(accelero == NULL) {
 		return;
 	}
-
-	Log::i("Initial calibration");
-
-#ifdef __IS_GALILEO
-	/* Calibrating Accelerometer */
-	((AcceleroMMA7361*)accelero)->begin(A0, A1, A2);
-
-	// number of samples that have to be averaged
-	((AcceleroMMA7361*)accelero)->setAveraging(10);
-	((AcceleroMMA7361*)accelero)->calibrate();
-#endif
-
-	Log::d("Calibration ended");
 }
 
 void Seismometer::tick() {

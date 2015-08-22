@@ -6,7 +6,7 @@
 
 class NTP {
 public:
-//	static void initNTP();
+	static void init();
 	static void setNTPServer(IPaddr ntpserver);
 	static unsigned long getUNIXTime();
 	static unsigned long int getUNIXTimeMS();
@@ -15,11 +15,11 @@ public:
 private:
 	static IPaddr ntpserver;
 	static Udp udpSocket;
-	static unsigned long unixTimeTS;
+	static time_t unixTimeTS;
 	static unsigned long unixTimeUpdate;
 
-	static void execSystemTimeUpdate(unsigned long epoch);
-	static void sendNTPpacket(IPaddr address);
+	static void execSystemTimeUpdate(time_t epoch);
+	static bool sendNTPpacket(IPaddr address);
 };
 
 #endif
