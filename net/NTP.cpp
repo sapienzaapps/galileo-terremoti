@@ -42,12 +42,6 @@ bool NTP::sendNTPpacket(IPaddr address) {
 	return s > 0;
 }
 
-std::string trim(std::string& str, char c) {
-	size_t first = str.find_first_not_of(c);
-	size_t last = str.find_last_not_of(c);
-	return str.substr(first, (last-first+1));
-}
-
 // Set date and time to NTP's retrieved one
 void NTP::execSystemTimeUpdate(time_t epoch) {
 	char command[100];
@@ -60,9 +54,9 @@ void NTP::execSystemTimeUpdate(time_t epoch) {
 	if ((ptr = popen(command, "r")) != NULL) {
 		while (fgets(buf, 64, ptr) != NULL) {
 			std::string sbuf = std::string(buf);
-			std::string nbuf = trim(sbuf, '\r');
-			std::string vbuf = trim(nbuf, '\n');
-			Log::d(trim(vbuf, ' ').c_str());
+			std::string nbuf = Utils::trim(sbuf, '\r');
+			std::string vbuf = Utils::trim(nbuf, '\n');
+			Log::d(Utils::trim(vbuf, ' ').c_str());
 		}
 		pclose(ptr);
 	} else {

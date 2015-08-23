@@ -7,7 +7,8 @@
 #include "../Utils.h"
 
 unsigned long HTTPClient::nextContact = 5000;
-std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
+//std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
+std::string HTTPClient::baseUrl = "http://localhost/~ebassetti/SeismoCloudApiTest/";
 
 std::string HTTPClient::getConfig() {
 	std::string cfg;
@@ -145,7 +146,9 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 				reqBody.append(i->first);
 				reqBody.append("=");
 				reqBody.append(i->second);
+				reqBody.append("&");
 			}
+			reqBody = Utils::trim(reqBody, '&');
 			client.println("Content-Type: application/x-www-form-urlencoded");
 
 			unsigned long contentLength = reqBody.size();
@@ -188,8 +191,8 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 				resp->body = NULL;
 				if (resp->headers.count("Content-Length") == 1) {
 					size_t bodySize = (size_t) atol(resp->headers["Content-Length"].c_str());
-					resp->body = (uint8_t *) malloc(bodySize);
-
+					resp->body = (uint8_t *) malloc(bodySize+1);
+					memset(resp->body, 0, bodySize+1);
 					client.readall(resp->body, bodySize);
 				}
 			} else {

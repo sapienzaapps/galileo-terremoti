@@ -66,20 +66,24 @@ bool Config::readConfigFile(const char *filepath) {
 	}
 
 	char buf[100 + 1];
-	char *argument;
+	char *arg;
 	while (fgets(buf, 100, fp) != NULL) {
-		argument = strchr(buf, ':');
-		if (argument == NULL) continue;
-		argument++;
+		arg = strchr(buf, ':');
+		if (arg == NULL) continue;
+		arg++;
+		std::string argument = std::string(arg);
+		argument = Utils::trim(argument, ' ');
+		argument = Utils::trim(argument, '\n');
+		argument = Utils::trim(argument, '\r');
 		if (strncmp("deviceid", buf, 8) == 0) {
-			if (strlen(argument) < 12) continue;
-			Config::macAddress = std::string(argument);
+			if (argument.size() < 12) continue;
+			Config::macAddress = argument;
 			Log::d("Device ID: %s", Config::getMacAddress().c_str());
 		} else if (strncmp("lat", buf, 3) == 0) {
-			Config::lat = Utils::atofn(argument, 8);
+			Config::lat = Utils::atofn(argument.c_str(), 8);
 			Log::d("Latitude: %lf", Config::getLatitude());
 		} else if (strncmp("lon", buf, 3) == 0) {
-			Config::lon = Utils::atofn(argument, 8);
+			Config::lon = Utils::atofn(argument.c_str(), 8);
 			Log::d("Longitude: %lf", Config::getLongitude());
 		}
 	}
@@ -155,9 +159,10 @@ bool Config::checkServerConfig() {
 
 		std::string script = params["script"];
 		if (!script.empty()) {
-			Log::d("Script Creation (len: %i path: %s...", script.size(), "/tmp/script.sh");
+			Log::i("Script Creation (len: %i path: %s...", script.size(), "/tmp/script.sh");
 			file_put_contents("/tmp/script.sh", script);
-			Log::d("Script created, executing...");
+			Log::d("Script: %s", script.c_str());
+			Log::i("Script created, executing...");
 			system("chmod +x /tmp/script.sh");
 			system("/tmp/script.sh");
 		}

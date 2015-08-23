@@ -24,8 +24,13 @@ bool Utils::fileExists(const char *filename) {
 	return access(filename, F_OK) != -1;
 }
 
-double Utils::atofn(char *buf, size_t max)  {
-	size_t bufLen = strlen(buf);
+double Utils::atofn(const char *str, size_t max)  {
+	size_t bufLen = strlen(str);
+	char buf[bufLen+1];
+	buf[bufLen] = 0;
+
+	memcpy(buf, str, bufLen);
+
 	max = (max <= bufLen ? max : bufLen);
 	char termination = buf[max];
 	buf[max] = 0;
@@ -94,6 +99,19 @@ float Utils::reverseFloat(const float inFloat) {
 	return retVal;
 }
 
+std::string Utils::trim(std::string& str, char c) {
+	size_t first = str.find_first_not_of(c);
+	size_t last = str.find_last_not_of(c);
+	return str.substr(first, (last-first+1));
+}
+
+std::string Utils::doubleToString(double d) {
+	std::ostringstream strs;
+	strs << d;
+	return strs.str();
+}
+
+
 
 #ifndef __IS_GALILEO
 void delay(unsigned int ms) {
@@ -104,9 +122,3 @@ uint32_t millis() {
 	return Utils::millis();
 }
 #endif
-
-std::string Utils::doubleToString(double d) {
-	std::ostringstream strs;
-	strs << d;
-	return strs.str();
-}
