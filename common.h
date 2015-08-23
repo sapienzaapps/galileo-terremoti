@@ -9,6 +9,10 @@
 #include <Arduino.h>
 #endif
 
+#ifndef PLATFORM
+#define PLATFORM "unknown"
+#endif
+
 #include <unistd.h>
 #include <stdint.h>
 #include <vendor_specific.h>

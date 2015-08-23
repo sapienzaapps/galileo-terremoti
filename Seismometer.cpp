@@ -27,7 +27,9 @@ Seismometer::Seismometer() {
 		Log::e("Accelerometer object is NULL");
 	}
 
+#ifdef SAVE_THRESHOLD
 	createDBifNeeded();
+#endif
 }
 
 void Seismometer::init() {
@@ -55,8 +57,10 @@ void Seismometer::tick() {
 	db.valz = getAvgZ(valz);
 	db.overThreshold = false;
 
+#ifdef SAVE_THRESHOLD
 	// Load threshold if needed
 	loadThresholdIfNeeded();
+#endif
 
 	switch(thresholdAlgorithm) {
 		case Fixed:
@@ -145,7 +149,11 @@ void Seismometer::calibrateIfNeeded() {
 
 void Seismometer::calibrate(bool force) {
 	// do calibration every random amount of hours? or if it's the first time ever
+
+#ifdef SAVE_THRESHOLD
 	loadThresholdIfNeeded();
+#endif
+
 	HOUR currentHour = (HOUR)NTP::getHour();
 	if ((nextHour == currentHour) || (thresholds.pthresx <= 0.00) || force) {
 		if (nextHour == currentHour) {
@@ -160,7 +168,9 @@ void Seismometer::calibrate(bool force) {
 		Log::i("Calibration ended");
 		logThresholdValues();
 
+#ifdef SAVE_THRESHOLD
 		saveCalibration(currentHour);
+#endif
 
 		nextHour = ((currentHour + (HOUR)1) % (HOUR)24);
 	}
@@ -170,6 +180,8 @@ void Seismometer::logThresholdValues() {
 	Log::i("Positive thresholds X:%lf Y:%lf Z:%lf", thresholds.pthresx, thresholds.pthresy, thresholds.pthresz);
 	Log::i("Negative thresholds X:%lf Y:%lf Z:%lf", thresholds.nthresx, thresholds.nthresy, thresholds.nthresz);
 }
+
+#ifdef SAVE_THRESHOLD
 
 // TODO: save timestamp to recalibrate every X days or random
 void Seismometer::saveCalibration(HOUR currentHour) {
@@ -234,3 +246,4 @@ void Seismometer::createDBifNeeded() {
 	}
 	fclose(fp);
 }
+#endif

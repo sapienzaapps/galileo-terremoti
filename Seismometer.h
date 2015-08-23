@@ -8,6 +8,8 @@
 #include "Accelerometer.h"
 #include "Config.h"
 
+// #define SAVE_THRESHOLD
+
 typedef uint8_t HOUR;
 
 typedef enum {
@@ -55,9 +57,12 @@ private:
 
 	void logThresholdValues();
 	void calibrateForHour(HOUR currentHour);
+
+#ifdef SAVE_THRESHOLD
 	void saveCalibration(HOUR currentHour);
 	void loadThresholdIfNeeded();
 	void createDBifNeeded();
+#endif
 };
 
 
