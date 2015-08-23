@@ -2,6 +2,7 @@
 // Created by enrico on 12/07/15.
 //
 
+#include <string.h>
 #include "common.h"
 #include "Seismometer.h"
 #include "Log.h"
@@ -21,9 +22,12 @@ Seismometer::Seismometer() {
 	inEvent = 0;
 	thresholds = { 0, 0, 0, 0, 0, 0 };
 	accelero = getAccelerometer();
+	thresholdHour = 30; // invalid hour, so loadThresholdIfNeeded is forced to load values from storage
 	if(accelero == NULL) {
 		Log::e("Accelerometer object is NULL");
 	}
+
+	createDBifNeeded();
 }
 
 void Seismometer::init() {
@@ -51,6 +55,8 @@ void Seismometer::tick() {
 	db.valz = getAvgZ(valz);
 	db.overThreshold = false;
 
+	// Load threshold if needed
+	loadThresholdIfNeeded();
 
 	switch(thresholdAlgorithm) {
 		case Fixed:
@@ -98,7 +104,7 @@ bool Seismometer::isInEvent() {
 	return inEvent;
 }
 
-void Seismometer::calibrateForHour(int currentHour) {
+void Seismometer::calibrateForHour(HOUR currentHour) {
 
 	if(accelero == NULL) {
 		return;
@@ -134,29 +140,97 @@ void Seismometer::calibrateForHour(int currentHour) {
 }
 
 void Seismometer::calibrateIfNeeded() {
-	this->calibrateIfNeeded(false);
+	this->calibrate(false);
 }
 
-void Seismometer::calibrateIfNeeded(bool force) {
+void Seismometer::calibrate(bool force) {
 	// do calibration every random amount of hours? or if it's the first time ever
-	int currentHour = NTP::getHour();
+	loadThresholdIfNeeded();
+	HOUR currentHour = (HOUR)NTP::getHour();
 	if ((nextHour == currentHour) || (thresholds.pthresx <= 0.00) || force) {
 		if (nextHour == currentHour) {
-			Log::i("nextHour = currentHour on SD #-#-#-#-#-#-#-#-#-#: %i", currentHour);
+			Log::i("Calibration started due to time constraint: hour %i", currentHour);
+		} else if (thresholds.pthresx <= 0) {
+			Log::i("Calibration started due to invalid threshold values");
+		} else {
+			Log::i("Calibration force start");
 		}
 
-		if (thresholds.pthresx <= 0) {
-			Log::i("pthresx <= 0 on NOSD #-#-#-#-#-#-#-#-#-#");
-		}
-
-		Log::d("WRITE THRESHOLDS on SD #-#-#-#-#-#-#-#-#-#");
 		calibrateForHour(currentHour);
-		nextHour = ((currentHour + 1) % 24);
+		Log::i("Calibration ended");
+		logThresholdValues();
+
+		saveCalibration(currentHour);
+
+		nextHour = ((currentHour + (HOUR)1) % (HOUR)24);
 	}
 }
 
-void Seismometer::showThresholdValues() {
-	Log::i("Calibration on SD ended");
+void Seismometer::logThresholdValues() {
 	Log::i("Positive thresholds X:%lf Y:%lf Z:%lf", thresholds.pthresx, thresholds.pthresy, thresholds.pthresz);
 	Log::i("Negative thresholds X:%lf Y:%lf Z:%lf", thresholds.nthresx, thresholds.nthresy, thresholds.nthresz);
+}
+
+// TODO: save timestamp to recalibrate every X days or random
+void Seismometer::saveCalibration(HOUR currentHour) {
+	FILE *fp = fopen(CALIBRATION_FILE, "rb+");
+	if(fp == NULL) {
+		Log::e("Error during calibration database opening on save routine");
+		return;
+	}
+	fseek(fp, currentHour * 6 * sizeof(double), SEEK_SET);
+
+	fwrite(&thresholds.pthresx, sizeof(double), 1, fp);
+	fwrite(&thresholds.pthresy, sizeof(double), 1, fp);
+	fwrite(&thresholds.pthresz, sizeof(double), 1, fp);
+	fwrite(&thresholds.nthresx, sizeof(double), 1, fp);
+	fwrite(&thresholds.nthresy, sizeof(double), 1, fp);
+	fwrite(&thresholds.nthresz, sizeof(double), 1, fp);
+
+	Log::d("Threshold values saved");
+
+	fflush(fp);
+	fclose(fp);
+}
+
+void Seismometer::loadThresholdIfNeeded() {
+	HOUR currentHour = (HOUR)NTP::getHour();
+	if(thresholdHour != currentHour) {
+		FILE *fp = fopen(CALIBRATION_FILE, "rb");
+		if(fp == NULL) {
+			Log::e("Error during calibration database opening on read routine");
+			return;
+		}
+		fseek(fp, currentHour * 6 * sizeof(double), SEEK_SET);
+
+		fread(&thresholds.pthresx, sizeof(double), 1, fp);
+		fread(&thresholds.pthresy, sizeof(double), 1, fp);
+		fread(&thresholds.pthresz, sizeof(double), 1, fp);
+		fread(&thresholds.nthresx, sizeof(double), 1, fp);
+		fread(&thresholds.nthresy, sizeof(double), 1, fp);
+		fread(&thresholds.nthresz, sizeof(double), 1, fp);
+
+		logThresholdValues();
+
+		fclose(fp);
+		thresholdHour = currentHour;
+	}
+}
+
+void Seismometer::createDBifNeeded() {
+	FILE *fp = fopen(CALIBRATION_FILE, "r");
+	if(fp == NULL) {
+		fp = fopen(CALIBRATION_FILE, "wb");
+		if(fp == NULL) {
+			Log::e("Cannot create calibration database file");
+			return;
+		}
+		size_t rowSize = 6 * sizeof(double);
+		uint8_t row[rowSize];
+		memset(row, 0, rowSize);
+		for(int i = 0; i < 24; i++) {
+			fwrite(&row, rowSize, 1, fp);
+		}
+	}
+	fclose(fp);
 }

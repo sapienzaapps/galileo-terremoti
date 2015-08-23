@@ -8,6 +8,8 @@
 #include "Accelerometer.h"
 #include "Config.h"
 
+typedef uint8_t HOUR;
+
 typedef enum {
 	Basic, Fixed
 } ThresholdAlgorithm_t;
@@ -36,22 +38,26 @@ public:
 	void init();
 	void tick();
 	bool isInEvent();
-	void showThresholdValues();
-	void calibrateIfNeeded(bool force);
+	void calibrate(bool force);
 	void calibrateIfNeeded();
 
 private:
 	ThresholdAlgorithm_t thresholdAlgorithm;
 	Accelerometer *accelero;
 	THRESHOLDS thresholds;
+	HOUR thresholdHour;
 	bool inEvent;
 	unsigned long lastEventWas;
-	long nextHour = 0;
+	HOUR nextHour = 0;
 
 	static bool isOverThresholdBasic(RECORD *db, THRESHOLDS *td);
 	static bool isOverThresholdFixed(RECORD *db, THRESHOLDS *td);
 
-	void calibrateForHour(int currentHour);
+	void logThresholdValues();
+	void calibrateForHour(HOUR currentHour);
+	void saveCalibration(HOUR currentHour);
+	void loadThresholdIfNeeded();
+	void createDBifNeeded();
 };
 
 

@@ -24,6 +24,9 @@ int main() {
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 	while(1) {
 		loop();
+#ifndef __IS_GALILEO
+		delay(50);
+#endif
 	}
 #pragma clang diagnostic pop
 	return EXIT_SUCCESS;
