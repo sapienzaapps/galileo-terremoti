@@ -1,4 +1,4 @@
-
+#include <vendor_specific.h>
 #include "NetworkManager.h"
 #include "../Log.h"
 #ifdef __IS_GALILEO
@@ -16,7 +16,7 @@ bool NetworkManager::isConnectedToInternet(bool force) {
 	if (!NetworkManager::connectionChecked || force) {
 		NetworkManager::connectionAvailable = false;
 
-		int ping = system("bin/busybox ping -w 2 8.8.8.8");
+		int ping = system(CMD_PING);
 
 		int pingWifexited = WIFEXITED(ping);
 		if (pingWifexited) {

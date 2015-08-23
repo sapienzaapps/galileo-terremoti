@@ -53,7 +53,7 @@ void setup() {
 	// Re-init logging from config
 	Log::updateFromConfig();
 
-	// TEMP Config::setMacAddress("123456123456");
+	Config::setMacAddress("123456123456");
 
 	Log::i("NTP sync");
 	// NTP SYNC with NTP server

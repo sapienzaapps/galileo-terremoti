@@ -19,6 +19,7 @@ public:
 	static uint32_t millis();
 	static uint64_t hton64(byte* bignum);
 	static std::string doubleToString(double);
+	static float reverseFloat(const float inFloat);
 };
 
 #ifndef __IS_GALILEO

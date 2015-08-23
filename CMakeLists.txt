@@ -52,8 +52,10 @@ set(SOURCE_FILES
 		vendor/linux-x86/DummyAccelerometer.cpp
 		vendor/linux-x86/DummyAccelerometer.h
 		vendor/linux-x86/LED.cpp
-		vendor/linux-x86/vendor.cpp
-		vendor.h)
+		vendor/linux-x86/generic.cpp
+		generic.h
+		vendor/linux-x86/vendor_specific.h
+)
 
 add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
 #target_compile_options(galileo_gen1 PUBLIC "-DGALILEO_GEN=1")
@@ -67,7 +69,7 @@ add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
 
 #add_custom_target(gen1image COMMAND genimage.sh ${PROJECT_SOURCE_DIR})
 
-#include_directories(vendor/linux-x86/)
+include_directories(vendor/linux-x86/)
 
 add_custom_target(generic_x86 ALL
 		COMMAND make PLATFORM="linux-x86" -C ${PROJECT_SOURCE_DIR}

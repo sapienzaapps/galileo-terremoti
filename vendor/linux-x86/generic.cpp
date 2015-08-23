@@ -2,7 +2,7 @@
 // Created by ebassetti on 21/08/15.
 //
 
-#include "../../vendor.h"
+#include "../../generic.h"
 #include "DummyAccelerometer.h"
 
 Accelerometer* getAccelerometer() {

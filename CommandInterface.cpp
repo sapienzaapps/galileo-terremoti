@@ -4,9 +4,11 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <netinet/in.h>
 #include "common.h"
 #include "CommandInterface.h"
 #include "Log.h"
+#include "Utils.h"
 
 Udp CommandInterface::cmdc;
 IPaddr CommandInterface::udpDest(0);
@@ -31,8 +33,13 @@ bool CommandInterface::readPacket(PACKET* pkt) {
 			pkt->source = src;
 
 			if (pkt->type == PKTTYPE_SENDGPS) {
-				memcpy(&(pkt->latitude), pktBuffer + 16, 4);
-				memcpy(&(pkt->longitude), pktBuffer + 20, 4);
+				float latitude, longitude;
+
+				memcpy(&latitude, pktBuffer + 16, 4);
+				memcpy(&longitude, pktBuffer + 20, 4);
+
+				pkt->latitude = Utils::reverseFloat(latitude);
+				pkt->longitude = Utils::reverseFloat(longitude);
 			}
 			return true;
 		}

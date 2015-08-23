@@ -11,11 +11,10 @@
 
 #include <unistd.h>
 #include <stdint.h>
+#include <vendor_specific.h>
 
 typedef uint8_t byte;
 
-#define DEFAULT_LOG_PATH "/media/realroot/sketch.log"
-#define DEFAULT_CONFIG_PATH "/media/realroot/seismoconfig.txt"
 #define GFORCE 9.81
 
 #define SOFTWARE_VERSION "2.00"

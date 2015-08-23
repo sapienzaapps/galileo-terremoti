@@ -113,8 +113,7 @@ unsigned short HTTPClient::getResponseCode(char *line) {
 	return (unsigned short) atoi(buf);
 }
 
-HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
-									  std::map<std::string, std::string> postValues) {
+HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues) {
 	HTTPResponse *resp = new HTTPResponse();
 
 	Tcp client;
@@ -166,7 +165,7 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
 			memset(rBuffer, 0, 300 + 1);
 			int s = getLine(client, (uint8_t *) rBuffer, 300);
 
-			Log::i("buffer response[%i]: %s", s, rBuffer);
+			Log::d("buffer response[%i]: %s", s, rBuffer);
 
 			if (strncmp(rBuffer, "HTTP/1.1", 8) == 0) {
 				resp->error = HTTP_OK;
@@ -253,5 +252,9 @@ int HTTPClient::getLine(Tcp c, uint8_t *buffer, size_t maxsize) {
 }
 
 void HTTPClient::setBaseURL(std::string baseUrl) {
+	size_t len = baseUrl.size();
+	if(baseUrl[len-1] != '/') {
+		baseUrl.append("/");
+	}
 	HTTPClient::baseUrl = baseUrl;
 }

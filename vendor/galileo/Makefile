@@ -6,7 +6,7 @@ GALILEO_MODULES  := UtilTime wiring_analog wiring_digital trace sysfs mux TTYUAR
 	fast_gpio_common fast_gpio_nc WMath
 GALILEO_OBJECTS  := $(GALILEO_MODULES:%=${OBJDIR}/cores_$(VARIANT)_%.o)
 
-VENDOR_MODULES   := LED AcceleroMMA7361 vendor
+VENDOR_MODULES   := LED AcceleroMMA7361 generic
 VENDOR_SOURCES   := $(VENDOR_MODULES:%=vendor/${PLATFORM}/%.cpp)
 VENDOR_OBJECTS   := $(VENDOR_MODULES:%=${OBJDIR}/${PLATFORM}_%.o)
 

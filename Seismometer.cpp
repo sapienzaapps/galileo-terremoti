@@ -11,7 +11,7 @@
 #include "LED.h"
 #include "CommandInterface.h"
 #include "Utils.h"
-#include "vendor.h"
+#include "generic.h"
 
 #define CALIBRATIONITER 1000
 #define ORANGEZONE 6

@@ -2,7 +2,7 @@
 // Created by ebassetti on 21/08/15.
 //
 
-#include "../../vendor.h"
+#include "../../generic.h"
 #include "AcceleroMMA7361.h"
 #include "../../Log.h"
 #include <Arduino.h>

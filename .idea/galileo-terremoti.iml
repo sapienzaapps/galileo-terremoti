@@ -19,6 +19,7 @@
       <sourceFolder url="file://$MODULE_DIR$/avg.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/common.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/galileo-core.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/generic.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/HTTPClient.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/HTTPClient.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/IPaddr.cpp" isTestSource="false" />
@@ -31,20 +32,21 @@
       <sourceFolder url="file://$MODULE_DIR$/net/Tcp.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/Udp.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/Udp.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/vendor.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/AcceleroMMA7361.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/AcceleroMMA7361.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/LED.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/DummyAccelerometer.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/DummyAccelerometer.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/LED.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/vendor.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/generic.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/vendor_specific.h" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
+          <root url="file://$MODULE_DIR$/vendor/linux-x86" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed" />
@@ -53,6 +55,7 @@
           <root url="file:///usr/local/include" />
         </CLASSES>
         <SOURCES>
+          <root url="file://$MODULE_DIR$/vendor/linux-x86" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed" />
@@ -60,6 +63,13 @@
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include/sanitizer" />
           <root url="file:///usr/local/include" />
         </SOURCES>
+        <excluded>
+          <root url="file://$MODULE_DIR$/vendor/linux-x86/generic.cpp" />
+          <root url="file://$MODULE_DIR$/vendor/linux-x86/LED.cpp" />
+          <root url="file://$MODULE_DIR$/vendor/linux-x86/DummyAccelerometer.cpp" />
+          <root url="file://$MODULE_DIR$/vendor/linux-x86/vendor_specific.h" />
+          <root url="file://$MODULE_DIR$/vendor/linux-x86/DummyAccelerometer.h" />
+        </excluded>
       </library>
     </orderEntry>
   </component>

@@ -16,8 +16,6 @@ public:
 	static double getLatitude();
 	static double getLongitude();
 	static bool hasPosition();
-	static bool isDHCPClientEnabled();
-	static void getStaticNetCfg(uint32_t *staticIp, uint32_t *staticMask, uint32_t *staticGw, uint32_t *staticDns);
 	static uint32_t getNTPServer();
 	static bool checkServerConfig();
 	static void printConfig();
@@ -37,11 +35,6 @@ private:
 	static double lat;
 	static double lon;
 	static std::string macAddress;
-	static bool dhcpClientEnabled;
-	static uint32_t staticIp;
-	static uint32_t staticMask;
-	static uint32_t staticGw;
-	static uint32_t staticDns;
 	static uint32_t ntpServer;
 	static uint32_t syslogServer;
 };
