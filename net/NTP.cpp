@@ -83,6 +83,7 @@ void NTP::init() {
 }
 
 bool NTP::sync() {
+	Log::d("NTP sync with %s", NTP::ntpserver.asString().c_str());
 	bool ret = false;
 	if(NTP::ntpserver == 0) return false;
 	// If current time is lower than ~ "2015-07-23 12:45:00" then we force NTP sync

@@ -3,6 +3,7 @@
 //
 
 #include "IPaddr.h"
+#include "../Log.h"
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
@@ -41,11 +42,13 @@ IPaddr IPaddr::resolve(std::string hostname) {
 	struct hostent *dnsLookup = gethostbyname(hostname.c_str());
 	if(dnsLookup == NULL) {
 		printf("Unable to resolve %s\n", hostname.c_str());
-		return false;
+		return 0;
 	}
 	uint32_t s_addr;
-	memcpy(&s_addr, dnsLookup->h_addr, dnsLookup->h_length);
-	return IPaddr(htonl(s_addr));
+	memcpy(&s_addr, dnsLookup->h_addr, (unsigned int)dnsLookup->h_length);
+	IPaddr retip = IPaddr(htonl(s_addr));
+	Log::d("DNS resolve %s -> %s", hostname.c_str(), retip.asString().c_str());
+	return retip;
 }
 
 IPaddr IPaddr::localIP() {
