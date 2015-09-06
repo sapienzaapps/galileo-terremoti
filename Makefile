@@ -12,7 +12,7 @@ MODULES := avg CommandInterface Config Log Seismometer Utils galileo-core
 SOURCES := $(MODULES:%=%.cpp)
 OBJECTS := $(MODULES:%=${OBJDIR}/%.o)
 
-all: clean vendor net ${OUTDIR}/sketch.elf
+all: vendor net ${OUTDIR}/sketch.elf
 
 vendor::
 

@@ -17,12 +17,14 @@ SYSROOT_NATIVE  = $(SDK_ROOT)/hardware/tools/i586/sysroots/$(NATIVE_NAME)/
 
 TARGET_ARCH   = -m32 -march=i586 --sysroot=$(SYSROOT_TARGET)
 INCLUDE_DIRS  = -I $(SYSROOT_TARGET)/usr/include \
-				-I $(SYSROOT_TARGET)/usr/include/c++ \
+				-I $(SYSROOT_TARGET)/usr/include/c++/ \
+				-I $(SYSROOT_TARGET)/usr/include/c++/$(TARGET_NAME) \
 				-I $(SDK_ROOT)/hardware/intel/i586-uclibc/cores/arduino/ \
 				-I $(SDK_ROOT)/hardware/intel/i586-uclibc/variants/$(VARIANT)/ \
-				-I $(SYSROOT_NATIVE)/usr/lib/$(TARGET_NAME)/gcc/$(TARGET_NAME)/$(GCC_VERSION)/include
-LIBRARY_DIRS  = -L $(SYSROOT_TARGET)/lib \
-				-L $(SYSROOT_TARGET)/usr/lib \
+				-I $(SYSROOT_NATIVE)/usr/lib/$(TARGET_NAME)/gcc/$(TARGET_NAME)/$(GCC_VERSION)/include \
+				-I vendor/${PLATFORM}
+LIBRARY_DIRS  = -L $(SYSROOT_TARGET)/lib/ \
+				-L $(SYSROOT_TARGET)/usr/lib/ \
 				-L $(SYSROOT_TARGET)/usr/lib/$(TARGET_NAME)/$(GCC_VERSION)
 COMPILE_OPTS  = -Os -pipe -g -feliminate-unused-debug-types -fpermissive -Wall -w -fno-exceptions \
 	-ffunction-sections -fdata-sections -MMD -D__ARDUINO_X86__ -Xassembler -mquark-strip-lock=yes $(INCLUDE_DIRS)
