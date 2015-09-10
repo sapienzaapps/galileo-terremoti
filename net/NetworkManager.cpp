@@ -38,9 +38,9 @@ void NetworkManager::init() {
 #ifdef __IS_GALILEO
 	Log::i("Fix Galileo bugs");
 	// Workaround for Galileo (and other boards with Linux)
-	system("/etc/init.d/networking restart");
+	//system("/etc/init.d/networking restart");
 	// Remove for production use
-	//system("telnetd -l /bin/sh");
+	system("telnetd -l /bin/sh");
 	delay(1000);
 #endif
 }

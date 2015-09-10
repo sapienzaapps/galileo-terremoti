@@ -135,6 +135,9 @@ bool Config::checkServerConfig() {
 	std::string cfg = HTTPClient::getConfig();
 	if(!cfg.empty()) {
 		std::map<std::string, std::string> params = configSplit(cfg, '|');
+		if(params.size() == 0) {
+			return false;
+		}
 
 		std::string path = params["path"];
 		if(!path.empty()) {
@@ -177,15 +180,25 @@ std::map<std::string, std::string> &Config::configSplit(const std::string &s, ch
 	std::stringstream ss(s);
 	std::string item;
 	while (std::getline(ss, item, delim)) {
+		Log::d("Splitting line: %s", item.c_str());
 		std::size_t dppos = item.find(':');
+		if(dppos == std::string::npos) {
+			Log::d("Find result in NPOS");
+			continue;
+		}
 		elems[item.substr(0, dppos)] = item.substr(dppos + 1, std::string::npos);
 	}
 	return elems;
 }
 
 std::map<std::string, std::string> Config::configSplit(const std::string &s, char delim) {
+	Log::d("Splitting %s", s.c_str());
 	std::map<std::string, std::string> elems;
-	configSplit(s, delim, elems);
+	try {
+		configSplit(s, delim, elems);
+	} catch(std::exception e) {
+		Log::e("Config splitting exception: %s", e.what());
+	}
 	return elems;
 }
 

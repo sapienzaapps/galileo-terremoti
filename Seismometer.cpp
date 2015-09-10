@@ -82,7 +82,7 @@ void Seismometer::tick() {
 		LED::red(true);
 
 		inEvent = true;
-		lastEventWas = millis();
+		lastEventWas = Utils::millis();
 
 		HTTPClient::httpSendAlert1(&db, &thresholds);
 

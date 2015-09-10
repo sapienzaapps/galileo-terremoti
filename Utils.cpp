@@ -10,6 +10,7 @@
 #include <sstream>
 #include "common.h"
 #include "Utils.h"
+#include "Log.h"
 
 unsigned long Utils::freeRam() {
 	struct sysinfo sys_info;
@@ -110,15 +111,3 @@ std::string Utils::doubleToString(double d) {
 	strs << d;
 	return strs.str();
 }
-
-
-
-#ifndef __IS_GALILEO
-void delay(unsigned int ms) {
-	Utils::delay(ms);
-}
-
-uint32_t millis() {
-	return Utils::millis();
-}
-#endif

@@ -7,8 +7,7 @@
 #include "../Utils.h"
 
 unsigned long HTTPClient::nextContact = 5000;
-//std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
-std::string HTTPClient::baseUrl = "http://localhost/~ebassetti/SeismoCloudApiTest/";
+std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
 
 std::string HTTPClient::getConfig() {
 	std::string cfg;
@@ -24,6 +23,7 @@ std::string HTTPClient::getConfig() {
 #endif
 
 	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "alive.php", postValues);
+	Log::d("Response received, code: %i", resp->responseCode);
 	if (resp->error == HTTP_OK && resp->body != NULL) {
 		cfg = std::string((char *) resp->body);
 	} else {
@@ -123,6 +123,7 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 	size_t pathOffset = hostFromURL(URL.c_str(), serverName, &serverPort);
 
 	if (client.connectTo(std::string(serverName), serverPort)) {
+		Log::d("Connect to server OK");
 		char linebuf[1024];
 
 		snprintf(linebuf, 1024, "%s %s HTTP/1.1", (method == HTTP_GET ? "GET" : "POST"), URL.c_str() + pathOffset);
@@ -159,9 +160,11 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 			client.print(reqBody.c_str());
 		}
 
+		Log::d("HTTP Request to %s:%i sent", serverName, serverPort);
+
 		// Request sent, wait for reply
-		unsigned long reqTime = millis();
-		while (!client.available() && (millis() - reqTime < HTTP_RESPONSE_TIMEOUT_VALUE)) { ; }
+		unsigned long reqTime = Utils::millis();
+		while (!client.available() && (Utils::millis() - reqTime < HTTP_RESPONSE_TIMEOUT_VALUE)) { ; }
 
 		if (client.available()) {
 			char rBuffer[300 + 1];
@@ -196,14 +199,18 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 					client.readall(resp->body, bodySize);
 				}
 			} else {
+				Log::e("HTTP malformed reply");
 				resp->error = HTTP_MALFORMED_REPLY;
 			}
 		} else {
+			Log::e("HTTP request timeout");
 			resp->error = HTTP_REQUEST_TIMEOUT;
 		}
 	} else {
+		Log::e("HTTP connection timeout");
 		resp->error = HTTP_CONNECTION_TIMEOUT;
 	}
+	Log::d("Stopping tcp client");
 	client.stop();
 	// TODO: better handling?
 	while (client.connected()) {

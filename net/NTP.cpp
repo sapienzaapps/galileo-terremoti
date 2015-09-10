@@ -65,12 +65,12 @@ void NTP::execSystemTimeUpdate(time_t epoch) {
 }
 
 unsigned long NTP::getUNIXTime() {
-	unsigned long diff = millis() - NTP::unixTimeUpdate;
+	unsigned long diff = Utils::millis() - NTP::unixTimeUpdate;
 	return (NTP::unixTimeTS + (diff / 1000));
 }
 
 unsigned long int NTP::getUNIXTimeMS() {
-	unsigned long diff = millis() - NTP::unixTimeUpdate;
+	unsigned long diff = Utils::millis() - NTP::unixTimeUpdate;
 	return (((NTP::unixTimeTS) + (diff /= 1000) + (diff % 1000 >= 0 ? 1 : 0)));
 }
 
@@ -99,11 +99,11 @@ bool NTP::sync() {
 		NTP::sendNTPpacket(NTP::ntpserver);
 
 		// wait to see if a reply is available
-		delay(500);
-		unsigned long responseMill = millis();
+		Utils::delay(500);
+		unsigned long responseMill = Utils::millis();
 
 		// WAIT FOR SERVER RESPONSE
-		while (!ret && millis() - responseMill < NTP_RESPONSE_TIMEOUT_VALUE) {
+		while (!ret && Utils::millis() - responseMill < NTP_RESPONSE_TIMEOUT_VALUE) {
 			byte packetBuffer[NTP_PACKET_SIZE];
 			ssize_t r = NTP::udpSocket.receive(packetBuffer, (size_t)NTP_PACKET_SIZE, NULL, NULL);
 
@@ -112,11 +112,11 @@ bool NTP::sync() {
 				time_t epoch = ntptime - JAN_1970;
 
 				NTP::unixTimeTS = epoch; //* 1000UL;
-				NTP::unixTimeUpdate = millis();
+				NTP::unixTimeUpdate = Utils::millis();
 
 				// print Unix time:
 				Log::d("Unix time = %i", epoch);
-				delay(50);
+				Utils::delay(50);
 				NTP::execSystemTimeUpdate(epoch);
 				ret = true;
 			}

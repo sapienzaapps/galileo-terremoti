@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PROJECTDIR=$1
+SKETCHPATH=$1
+if [ "$1" == "" ]; then
+	echo "Usage: $0 <sketch-file>"
+fi
 
 WHOAMI=`whoami`
 SUDO=`which sudo`
@@ -21,13 +24,25 @@ elif [ "$SUDO" != "" ]; then
 fi
 
 if [ $PASS -eq 0 ]; then
-	echo Either root permissions or sudo is required
+	echo "Either root permissions or sudo is required"
 	exit 1
 fi
 
+echo "Cleaning up environment..."
 mkdir -p /tmp/arduinoimg
+rm -rf build/image-full-galileo/
+
+echo "Copying necessary files..."
 cp -r image-full-galileo build/
+
+echo "Modifying image filesystem..."
 $MOUNTCMD -t ext2 -o loop build/image-full-galileo/image-full-galileo-clanton.ext3 /tmp/arduinoimg
-$CP build/galileo-terremoti.cpp.elf /tmp/arduinoimg/sketch/sketch.elf
+$CP $SKETCHPATH /tmp/arduinoimg/sketch/sketch.elf
 $UMOUNTCMD -f /tmp/arduinoimg
+
+echo "Final cleanup..."
 rmdir /tmp/arduinoimg
+
+echo "**********"
+echo "Image created at build/image-full-galileo/"
+echo "**********"

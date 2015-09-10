@@ -25,7 +25,7 @@ int main() {
 	while(1) {
 		loop();
 #ifndef __IS_GALILEO
-		delay(50);
+		Utils::delay(50);
 #endif
 	}
 #pragma clang diagnostic pop
@@ -37,6 +37,9 @@ void setup() {
 	Log::setLogFile(DEFAULT_LOG_PATH);
 	Log::enableStdoutDebug(true);
 	Log::setLogLevel(LEVEL_DEBUG);
+
+	// TODO: remove
+	Log::setSyslogServer(IPaddr(192, 168, 1, 149));
 
 	Log::i("Starting.........");
 
@@ -50,12 +53,16 @@ void setup() {
 
 	Log::i("Check new config");
 	// Download new config from server
-	Config::checkServerConfig();
+	while(!Config::checkServerConfig()) {
+		Log::e("Error checking server config");
+		Utils::delay(5*1000);
+	}
 
 	Log::i("Update logging settings from config");
 	// Re-init logging from config
 	Log::updateFromConfig();
 
+	// TODO: remove
 	Config::setMacAddress("123456123456");
 
 	Log::i("NTP sync");
@@ -73,7 +80,7 @@ void setup() {
 		Log::i("Position not available, waiting for position from App");
 		do {
 			CommandInterface::checkCommandPacket();
-			delay(200);
+			Utils::delay(200);
 		} while(!Config::hasPosition());
 	} else {
 		Log::i("GPS coords: %f %f", Config::getLatitude(), Config::getLongitude());
@@ -95,28 +102,28 @@ unsigned long cfgLastMs = 0;
 unsigned long seismoLastMs = 0;
 
 void loop() {
-	if(millis() - netLastMs >= CHECK_NETWORK_INTERVAL) {
+	if(Utils::millis() - netLastMs >= CHECK_NETWORK_INTERVAL) {
 		if(!NetworkManager::isConnectedToInternet(true)) {
 			//NetworkManager::forceRestart();
 		}
-		netLastMs = millis();
+		netLastMs = Utils::millis();
 	}
 
-	if(millis() - cfgLastMs >= CHECK_CONFIG_INTERVAL) {
+	if(Utils::millis() - cfgLastMs >= CHECK_CONFIG_INTERVAL) {
 		Config::checkServerConfig();
-		cfgLastMs = millis();
+		cfgLastMs = Utils::millis();
 	}
 
-	if(millis() - ntpLastMs >= NTP_SYNC_INTERVAL) {
+	if(Utils::millis() - ntpLastMs >= NTP_SYNC_INTERVAL) {
 		while(!NTP::sync());
-		ntpLastMs = millis();
+		ntpLastMs = Utils::millis();
 	}
 
 	seismometer->calibrateIfNeeded();
 
-	if(millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
+	if(Utils::millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
 		seismometer->tick();
-		seismoLastMs = millis();
+		seismoLastMs = Utils::millis();
 	}
 }
 

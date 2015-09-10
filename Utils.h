@@ -23,9 +23,4 @@ public:
 	static std::string trim(std::string& str, char c);
 };
 
-#ifndef __IS_GALILEO
-void delay(unsigned int ms);
-uint32_t millis();
-#endif
-
 #endif //GALILEO_TERREMOTI_UTILS_H

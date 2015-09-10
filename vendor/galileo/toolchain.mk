@@ -26,7 +26,7 @@ INCLUDE_DIRS  = -I $(SYSROOT_TARGET)/usr/include \
 LIBRARY_DIRS  = -L $(SYSROOT_TARGET)/lib/ \
 				-L $(SYSROOT_TARGET)/usr/lib/ \
 				-L $(SYSROOT_TARGET)/usr/lib/$(TARGET_NAME)/$(GCC_VERSION)
-COMPILE_OPTS  = -Os -pipe -g -feliminate-unused-debug-types -fpermissive -Wall -w -fno-exceptions \
+COMPILE_OPTS  = -Os -pipe -g -feliminate-unused-debug-types -fpermissive -Wall -w -fexceptions \
 	-ffunction-sections -fdata-sections -MMD -D__ARDUINO_X86__ -Xassembler -mquark-strip-lock=yes $(INCLUDE_DIRS)
 
 

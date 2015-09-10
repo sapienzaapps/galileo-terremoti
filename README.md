@@ -22,7 +22,7 @@ You should issue `make` command into project root directory. You should use thes
 * **PLATFORM** : can be `linux-x86` (default) or `galileo`
 * **VARIANT** : platform variant; for "galileo" variants are:
 	* **galileo_fab_d** : Galileo Gen 1
-	* **galileo_fab_g** : Galileo Gen 1
+	* **galileo_fab_g** : Galileo Gen 2
 * **SDK_ROOT** : SDK root path (see "Toolchains") if it's not in `/opt`
 
 # How to build Arduino Galileo SD Image (Linux-only)
