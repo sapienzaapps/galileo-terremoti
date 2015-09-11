@@ -25,9 +25,7 @@ bool CommandInterface::readPacket(PACKET* pkt) {
 	ssize_t cread = cmdc.receive(pktBuffer, (size_t)PACKET_SIZE, &src, &port);
 	if (cread > 0) {  // if it received a packet
 
-		if(cread == PACKET_SIZE
-				&& memcmp("INGV\0", pktBuffer, 5) == 0
-				&& (pktBuffer[5] == PKTTYPE_DISCOVERY || memcmp(pktBuffer + 6, mac, 6) == 0)) {
+		if(cread == PACKET_SIZE && memcmp("INGV\0", pktBuffer, 5) == 0) {
 
 			pkt->type = (PacketType) pktBuffer[5];
 			pkt->source = src;
@@ -35,8 +33,8 @@ bool CommandInterface::readPacket(PACKET* pkt) {
 			if (pkt->type == PKTTYPE_SENDGPS) {
 				float latitude, longitude;
 
-				memcpy(&latitude, pktBuffer + 16, 4);
-				memcpy(&longitude, pktBuffer + 20, 4);
+				memcpy(&latitude, pktBuffer + 6, 4);
+				memcpy(&longitude, pktBuffer + 10, 4);
 
 				pkt->latitude = Utils::reverseFloat(latitude);
 				pkt->longitude = Utils::reverseFloat(longitude);
@@ -54,17 +52,22 @@ void CommandInterface::sendPacket(PACKET pkt) {
 	memcpy(pktbuf, "INGV\0", 5);
 	pktbuf[5] = pkt.type;
 
-	byte mac[6];
-	Config::getMacAddressAsByte(mac);
-
-	memcpy(pktbuf + 6, mac, 6);
-
 	if(pkt.type == PKTTYPE_DISCOVERY_REPLY) {
-		memcpy(pktbuf + 16, SOFTWARE_VERSION, 4);
+
+		byte mac[6];
+		Config::getMacAddressAsByte(mac);
+
+		memcpy(pktbuf + 6, mac, 6);
+
+		memcpy(pktbuf + 12, SOFTWARE_VERSION, 4);
 #if GALILEO_GEN == 1
-		memcpy(pktbuf + 20, "galileo1", 8);
+		memcpy(pktbuf + 16, "galileo1", 8);
 #else
-		memcpy(pktbuf + 20, "galileo2", 8);
+#if GALILEO_GEN == 2
+		memcpy(pktbuf + 16, "galileo2", 8);
+#else
+		memcpy(pktbuf + 16, PLATFORM, 8);
+#endif
 #endif
 	}
 

@@ -6,6 +6,12 @@
 # galileo_fab_g - Galileo Gen 2
 
 VARIANT        ?= galileo_fab_d
+
+GALILEO_GEN=1
+ifeq (${VARIANT}, galileo_fab_g)
+GALILEO_GEN=2
+endif
+
 DISTRO          = clanton-tiny
 TARGET_NAME     = i586-poky-linux-uclibc
 NATIVE_NAME     = x86_64-pokysdk-linux
@@ -29,10 +35,9 @@ LIBRARY_DIRS  = -L $(SYSROOT_TARGET)/lib/ \
 COMPILE_OPTS  = -Os -pipe -g -feliminate-unused-debug-types -fpermissive -Wall -w -fexceptions \
 	-ffunction-sections -fdata-sections -MMD -D__ARDUINO_X86__ -Xassembler -mquark-strip-lock=yes $(INCLUDE_DIRS)
 
-
 TOOLDIR     = $(SYSROOT_NATIVE)/usr/bin/$(TARGET_NAME)
 CC          = $(TOOLDIR)/i586-poky-linux-uclibc-gcc
 CPP         = $(TOOLDIR)/i586-poky-linux-uclibc-g++
-CFLAGS      = $(COMPILE_OPTS) -std=c++11 -D__IS_GALILEO=1
-CPPFLAGS    = $(COMPILE_OPTS) -std=c++11 -D__IS_GALILEO=1
+CFLAGS      = $(COMPILE_OPTS) -std=c++11 -D__IS_GALILEO=1 -DGALILEO_GEN=${GALILEO_GEN}
+CPPFLAGS    = $(COMPILE_OPTS) -std=c++11 -D__IS_GALILEO=1 -DGALILEO_GEN=${GALILEO_GEN}
 LFLAGS      = -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed $(LIBRARY_DIRS) -lstdc++ -lpthread

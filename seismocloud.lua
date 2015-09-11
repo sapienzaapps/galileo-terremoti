@@ -48,7 +48,7 @@ end
 
 
 function seismoproto.dissector(buffer, pinfo, tree)
-	pinfo.cols.protocolo = "SEISMOPROTO"
+	pinfo.cols.protocol = "SEISMOPROTO"
 	if buffer(0, 4):uint() == 0x494e4756 then -- INGV in hex
 		local i = 0
 		local subtree = tree:add(seismoproto, buffer(), "SeismoCloud Protocol Data")
@@ -77,13 +77,10 @@ function seismoproto.dissector(buffer, pinfo, tree)
 		subtree:add(buffer(i, 1), i .. ": " .. command .. " command")
 		i = i + 1
 
-		subtree:add(buffer(i, 6), i .. ": Destination MAC Address: " .. mac2string(buffer, i));
-		i = i + 6
+		if cmdbyte == 2 then -- DISCOVERY_REPLY
+			subtree:add(buffer(i, 6), i .. ": MAC Address: " .. mac2string(buffer, i));
+			i = i + 6
 
-		subtree:add(buffer(i, 6), i .. ": Source MAC Address: " .. mac2string(buffer, i));
-		i = i + 6
-
-		if cmdbyte == 1 then -- DISCOVERY
 			subtree:add(buffer(i, 4), i .. ": Version")
 			i = i + 4
 

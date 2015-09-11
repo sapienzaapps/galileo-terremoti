@@ -14,18 +14,17 @@
 /**
  * Packet definition:
  *
- * Offset Size  Only when   Description
+ * Offset Size  Only when         Description
  * ==========================================
- * 0      5                  Magic-bytes "INGV\0"
- * 5      1                  Command (see enum below)
- * 6      6                  Destination MAC address (zero'ed if discovery)
- * 12     4                  Source IP Address
+ * 0      5                       Magic-bytes "INGV\0"
+ * 5      1                       Command (see enum below)
  *
- * 16     4      DISCOVERY   Version string (not zero terminated)
- * 20     8      DISCOVERY   Model ("galileo1", "galileo2", "simulator") not zero terminated
+ * 6      6      DISCOVERY_REPLY  MAC address (zero'ed if discovery)
+ * 12     4      DISCOVERY_REPLY  Version string (not zero terminated)
+ * 16     8      DISCOVERY_REPLY  Model ("galileo1", "galileo2", "simulator") not zero terminated
  *
- * 16     4      SENDGPS     Latitude (IEEE 754)
- * 20     4      SENDGPS     Longitude (IEEE 754)
+ * 6      4      SENDGPS          Latitude (IEEE 754)
+ * 10     4      SENDGPS          Longitude (IEEE 754)
  *
  */
 
