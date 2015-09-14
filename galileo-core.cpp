@@ -38,10 +38,13 @@ void setup() {
 	Log::enableStdoutDebug(true);
 	Log::setLogLevel(LEVEL_DEBUG);
 
-	// TODO: remove
-	Log::setSyslogServer(IPaddr(192, 168, 1, 149));
-
 	Log::i("Starting.........");
+
+	Log::i("Software version: %s", SOFTWARE_VERSION);
+	Log::i("Platform name: %s", PLATFORM);
+#ifdef __IS_GALILEO
+	Log::i("Galileo Gen: %i", GALILEO_GEN);
+#endif
 
 	Log::i("Loading config");
 	// Load saved config - if not available, load defaults
@@ -50,6 +53,18 @@ void setup() {
 	Log::i("Network init");
 	// Network init
 	NetworkManager::init();
+
+	if(!Config::hasMACAddress()) {
+		std::string macAddress = Utils::getInterfaceMAC();
+		if(!macAddress.empty()) {
+			Log::i("Using default MAC Address: %s", macAddress.c_str());
+			Config::setMacAddress(macAddress);
+		} else {
+			Log::e("Cannot detect MAC Address");
+		}
+	} else {
+		Log::i("Configured MAC Address: %s", Config::getMacAddress().c_str());
+	}
 
 	Log::i("Check new config");
 	// Download new config from server
@@ -61,9 +76,6 @@ void setup() {
 	Log::i("Update logging settings from config");
 	// Re-init logging from config
 	Log::updateFromConfig();
-
-	// TODO: remove
-	Config::setMacAddress("123456123456");
 
 	Log::i("NTP sync");
 	// NTP SYNC with NTP server
@@ -102,6 +114,8 @@ unsigned long cfgLastMs = 0;
 unsigned long seismoLastMs = 0;
 
 void loop() {
+	CommandInterface::checkCommandPacket();
+
 	if(Utils::millis() - netLastMs >= CHECK_NETWORK_INTERVAL) {
 		if(!NetworkManager::isConnectedToInternet(true)) {
 			//NetworkManager::forceRestart();

@@ -14,9 +14,6 @@ Udp CommandInterface::cmdc;
 IPaddr CommandInterface::udpDest(0);
 
 bool CommandInterface::readPacket(PACKET* pkt) {
-	byte mac[6];
-	Config::getMacAddressAsByte(mac);
-
 	byte pktBuffer[PACKET_SIZE];
 
 	memset(pktBuffer, 0, 48);
@@ -31,10 +28,12 @@ bool CommandInterface::readPacket(PACKET* pkt) {
 			pkt->source = src;
 
 			if (pkt->type == PKTTYPE_SENDGPS) {
+				memcpy(pkt->mac, pktBuffer + 6, 6);
+
 				float latitude, longitude;
 
-				memcpy(&latitude, pktBuffer + 6, 4);
-				memcpy(&longitude, pktBuffer + 10, 4);
+				memcpy(&latitude, pktBuffer + 12, 4);
+				memcpy(&longitude, pktBuffer + 16, 4);
 
 				pkt->latitude = Utils::reverseFloat(latitude);
 				pkt->longitude = Utils::reverseFloat(longitude);
@@ -115,6 +114,10 @@ void CommandInterface::checkCommandPacket() {
 			break;
 		case PKTTYPE_SENDGPS: // GPS Location
 		{
+			byte myMac[6];
+			Config::getMacAddressAsByte(myMac);
+			if(memcmp(myMac, pkt.mac, 6) != 0) return;
+
 			// Reply
 			Config::setLongitude(pkt.latitude);
 			Config::setLatitude(pkt.longitude);

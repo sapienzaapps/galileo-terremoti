@@ -19,12 +19,13 @@
  * 0      5                       Magic-bytes "INGV\0"
  * 5      1                       Command (see enum below)
  *
- * 6      6      DISCOVERY_REPLY  MAC address (zero'ed if discovery)
+ * 6      6      DISCOVERY_REPLY  MAC address
  * 12     4      DISCOVERY_REPLY  Version string (not zero terminated)
  * 16     8      DISCOVERY_REPLY  Model ("galileo1", "galileo2", "simulator") not zero terminated
  *
- * 6      4      SENDGPS          Latitude (IEEE 754)
- * 10     4      SENDGPS          Longitude (IEEE 754)
+ * 6      6      SENDGPS          MAC address
+ * 12     4      SENDGPS          Latitude (IEEE 754)
+ * 16     4      SENDGPS          Longitude (IEEE 754)
  *
  */
 
@@ -45,6 +46,7 @@ typedef struct _PACKET {
 
 	float latitude;
 	float longitude;
+	byte mac[6];
 } PACKET;
 
 class CommandInterface {

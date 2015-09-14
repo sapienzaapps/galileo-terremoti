@@ -87,6 +87,9 @@ function seismoproto.dissector(buffer, pinfo, tree)
 			subtree:add(buffer(i, 8), i .. ": Model")
 			i = i + 8
 		elseif cmdbyte == 7 then
+			subtree:add(buffer(i, 6), i .. ": Dest. MAC Address: " .. mac2string(buffer, i));
+			i = i + 6
+
 			local lat = buffer(i, 1):uint() * 16777216
 				+ buffer(i+1, 1):uint() * 65536
 				+ buffer(i+2, 1):uint() * 256

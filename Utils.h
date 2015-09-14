@@ -21,6 +21,7 @@ public:
 	static std::string doubleToString(double);
 	static float reverseFloat(const float inFloat);
 	static std::string trim(std::string& str, char c);
+	static std::string getInterfaceMAC();
 };
 
 #endif //GALILEO_TERREMOTI_UTILS_H

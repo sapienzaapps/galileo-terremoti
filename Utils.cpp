@@ -8,9 +8,11 @@
 #include <stdlib.h>
 #include <cmath>
 #include <sstream>
+#include <netinet/in.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
 #include "common.h"
 #include "Utils.h"
-#include "Log.h"
 
 unsigned long Utils::freeRam() {
 	struct sysinfo sys_info;
@@ -110,4 +112,54 @@ std::string Utils::doubleToString(double d) {
 	std::ostringstream strs;
 	strs << d;
 	return strs.str();
+}
+
+std::string Utils::getInterfaceMAC() {
+	struct ifreq ifr;
+	struct ifconf ifc;
+	char buf[1024];
+	int success = 0;
+
+	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+	if (sock == -1) {
+		return std::string("");
+	}
+
+	ifc.ifc_len = sizeof(buf);
+	ifc.ifc_buf = buf;
+	if (ioctl(sock, SIOCGIFCONF, &ifc) == -1) {
+		return std::string("");
+	}
+
+	struct ifreq* it = ifc.ifc_req;
+	const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
+
+	for (; it != end; ++it) {
+		strcpy(ifr.ifr_name, it->ifr_name);
+		if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {
+			if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
+				if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
+					success = 1;
+					break;
+				}
+			}
+		} else {
+			return std::string("");
+		}
+	}
+
+	unsigned char mac_address[6];
+
+	if (success) {
+		memcpy(mac_address, ifr.ifr_hwaddr.sa_data, 6);
+		char buf1[100];
+		memset(buf1, 0, 50);
+		snprintf(buf1, 50, "%02x%02x%02x%02x%02x%02x",
+				 mac_address[0], mac_address[1], mac_address[2],
+				 mac_address[3], mac_address[4], mac_address[5]
+		);
+		return std::string(buf1);
+	} else {
+		return std::string("");
+	}
 }
