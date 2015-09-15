@@ -21,11 +21,15 @@ void Log::setDeviceId(std::string deviceid) {
 }
 
 void Log::setSyslogServer(IPaddr server) {
-	Log::syslogServer = server;
-	Log::syslogEnabled = true;
-	Log::syslogUdp.connectTo(Log::syslogServer, 514);
-	// TODO: choose a special value to disable... maybe 0?
-	//Log::syslogUdp.begin(514);
+	if(server == 0) {
+		Log::syslogEnabled = false;
+	} else {
+		Log::syslogServer = server;
+		Log::syslogEnabled = true;
+		Log::syslogUdp.connectTo(Log::syslogServer, 514);
+		// TODO: choose a special value to disable... maybe 0?
+		//Log::syslogUdp.begin(514);
+	}
 }
 
 void Log::setLogFile(const char *filepath) {
@@ -149,4 +153,8 @@ std::string Log::getDateTime() {
 void Log::updateFromConfig() {
 	syslogServer = Config::getSyslogServer();
 	syslogEnabled = Config::getSyslogServer() != (uint32_t)0;
+}
+
+IPaddr Log::getSyslogServer() {
+	return Log::syslogServer;
 }

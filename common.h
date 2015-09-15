@@ -5,6 +5,8 @@
 #ifndef GALILEO_TERREMOTI_COMMON_H
 #define GALILEO_TERREMOTI_COMMON_H
 
+#define MINVAL(a,b) ((a) < (b) ? (a) : (b))
+
 #ifdef __IS_GALILEO
 #include <Arduino.h>
 #endif

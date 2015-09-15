@@ -8,3 +8,7 @@
 Accelerometer* getAccelerometer() {
 	return new DummyAccelerometer();
 }
+
+std::string getPlatformName() {
+	return "Linux Generic";
+}

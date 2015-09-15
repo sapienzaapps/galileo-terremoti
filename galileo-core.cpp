@@ -99,7 +99,7 @@ void setup() {
 	}
 
 	Log::i("Init seismometer");
-	seismometer = new Seismometer();
+	seismometer = Seismometer::getInstance();
 	seismometer->init();
 
 	Log::d("Free RAM: %lu", Utils::freeRam());

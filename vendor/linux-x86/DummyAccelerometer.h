@@ -14,6 +14,7 @@ public:
 	virtual long getXAccel();
 	virtual long getYAccel();
 	virtual long getZAccel();
+	virtual std::string getAccelerometerName();
 };
 
 

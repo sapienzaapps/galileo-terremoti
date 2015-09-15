@@ -273,3 +273,7 @@ double square(double x) { return x * x; }
 double AcceleroMMA7361::getTotalVector() {
 	return sqrt(square(_mapMMA7361G(getXRaw())) + square(_mapMMA7361G(getYRaw())) + square(_mapMMA7361G(getZRaw())));
 }
+
+std::string AcceleroMMA7361::getAccelerometerName() {
+	return std::string("MMA7361");
+}

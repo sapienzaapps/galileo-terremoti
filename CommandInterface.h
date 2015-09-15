@@ -9,7 +9,7 @@
 #include "Seismometer.h"
 
 #define CMD_INTERFACE_PORT 62001
-#define PACKET_SIZE 48
+#define PACKET_SIZE 252
 
 /**
  * Packet definition:
@@ -27,6 +27,22 @@
  * 12     4      SENDGPS          Latitude (IEEE 754)
  * 16     4      SENDGPS          Longitude (IEEE 754)
  *
+ * 6      4      SETSYSLOG        Syslog server
+ *
+ * 6      6      GETINFO_REPLY    MAC Address
+ * 12     4      GETINFO_REPLY    Syslog server
+ * 16    12      GETINFO_REPLY    Thresholds (X, Y, Z)
+ * 28     4      GETINFO_REPLY    Uptime (seconds)
+ * 32     4      GETINFO_REPLY    UNIX time
+ * 36     4      GETINFO_REPLY    Software version
+ * 40     4      GETINFO_REPLY    Free RAM
+ * 44     4      GETINFO_REPLY    Latency
+ * 48     4      GETINFO_REPLY    NTP Server
+ * 52     -      GETINFO_REPLY    HTTP base address (MAX: 170 chars including ZERO)
+ * -      -      GETINFO_REPLY    Platform name (+ variant if any) (MAX: 20 chars including ZERO)
+ * -      -      GETINFO_REPLY    Accelerometer name (MAX: 10 chars including ZERO)
+ * String max size (sum): 200
+ *
  */
 
 typedef enum {
@@ -37,16 +53,33 @@ typedef enum {
 	PKTTYPE_START = 5,
 	PKTTYPE_STOP = 6,
 	PKTTYPE_SENDGPS = 7,
-	PKTTYPE_OK = 8
+	PKTTYPE_OK = 8,
+	PKTTYPE_SETSYSLOG = 9,
+	PKTTYPE_REBOOT = 10,
+	PKTTYPE_GETINFO = 11,
+	PKTTYPE_GETINFO_REPLY = 12
 } PacketType;
 
 typedef struct _PACKET {
 	PacketType type;
 	IPaddr source;
 
+	IPaddr syslogServer;
+
 	float latitude;
 	float longitude;
 	byte mac[6];
+
+	THRESHOLDS thresholds;
+	uint32_t uptime;
+	uint32_t unixts;
+	uint8_t softwareVersion[4+1];
+	uint32_t freeRam;
+	float latency;
+	IPaddr ntpServer;
+	std::string httpBaseAddress;
+	std::string platformName;
+	std::string accelerometerName;
 } PACKET;
 
 class CommandInterface {

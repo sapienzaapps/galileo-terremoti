@@ -69,6 +69,7 @@ public:
 	void setARefVoltage(double _refV);
 	void setAveraging(int avg);
 	int getOrientation();
+	std::string getAccelerometerName();
 
 private:
 	long _mapMMA7361V(long value);

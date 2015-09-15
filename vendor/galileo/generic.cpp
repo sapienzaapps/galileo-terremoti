@@ -22,3 +22,11 @@ Accelerometer* getAccelerometer() {
 
 	return accel;
 }
+
+std::string getPlatformName() {
+#if GALILEO_GEN == 1
+	return std::string("Intel Galileo Gen1");
+#else
+	return std::string("Intel Galileo Gen2");
+#endif
+}

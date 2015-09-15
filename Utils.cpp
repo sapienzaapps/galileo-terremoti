@@ -14,6 +14,8 @@
 #include "common.h"
 #include "Utils.h"
 
+
+
 unsigned long Utils::freeRam() {
 	struct sysinfo sys_info;
 	if (sysinfo(&sys_info) == 0) {
@@ -161,5 +163,14 @@ std::string Utils::getInterfaceMAC() {
 		return std::string(buf1);
 	} else {
 		return std::string("");
+	}
+}
+
+uint32_t Utils::uptime() {
+	struct sysinfo sys_info;
+	if (sysinfo(&sys_info) == 0) {
+		return (uint32_t)sys_info.uptime;
+	} else {
+		return 0;
 	}
 }

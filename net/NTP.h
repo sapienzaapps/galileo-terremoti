@@ -12,6 +12,8 @@ public:
 	static unsigned long int getUNIXTimeMS();
 	static bool sync();
 	static int getHour();
+	static IPaddr getNTPServer();
+
 private:
 	static IPaddr ntpserver;
 	static Udp udpSocket;

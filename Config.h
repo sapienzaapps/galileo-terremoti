@@ -23,9 +23,9 @@ public:
 	static void setLatitude(double lat);
 	static void setLongitude(double lon);
 	static uint32_t getSyslogServer();
+	static void save();
 
 private:
-	static void save();
 	static void loadDefault();
 	static bool readConfigFile(const char *filepath);
 	static std::map<std::string, std::string> &configSplit(const std::string &s, char delim, std::map<std::string, std::string> &elems);

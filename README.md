@@ -48,6 +48,14 @@ Also you may need to create a child class of Accelerometer.h and a vendor_specif
 
 See `linux-x86` and `galileo` for more infos.
 
+# Platform specific informations
+
+## Linux
+
+In order to test latency you need to run `sketch.elf` as root OR grant `CAP_NET_RAW` capability with a command like:
+
+    $ sudo setcap cap_net_raw=ep build/out_linux-x86/sketch.elf
+
 # Working procedure
 
 TODO: update doc here and expand

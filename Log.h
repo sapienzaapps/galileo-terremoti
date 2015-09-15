@@ -23,6 +23,7 @@ public:
 	static void i(const char *, ...);
 	static void e(const char *, ...);
 
+	static IPaddr getSyslogServer();
 	static void setLogLevel(LogLevel);
 	static void setSyslogServer(IPaddr);
 	static void setLogFile(const char *);

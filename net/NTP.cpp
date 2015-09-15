@@ -134,3 +134,7 @@ int NTP::getHour() {
 	struct tm *tm_struct = localtime(&rawtime);
 	return tm_struct->tm_hour;
 }
+
+IPaddr NTP::getNTPServer() {
+	return ntpserver;
+}

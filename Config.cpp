@@ -147,8 +147,13 @@ bool Config::checkServerConfig() {
 			snprintf(cmd, 1023, "curl -o /media/realroot/sketch.new %s", path.c_str());
 			system(cmd);
 
-			// TODO: update! Check if current sketch file is locked and not writable
-			system("reboot");
+			FILE *fp = fopen("/sketch/update.sh", "w");
+			memset(cmd, 0, 1024);
+			snprintf(cmd, 1023, "#!/bin/bash\nkillall sketch.elf && mv /sketch/sketch.new /sketch/sketch.elf && reboot");
+			fwrite(cmd, strlen(cmd), 1, fp);
+			fclose(fp);
+
+			system("/bin/bash /sketch/update.sh");
 			exit(0);
 		}
 

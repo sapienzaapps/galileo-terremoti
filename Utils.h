@@ -22,6 +22,7 @@ public:
 	static float reverseFloat(const float inFloat);
 	static std::string trim(std::string& str, char c);
 	static std::string getInterfaceMAC();
+	static uint32_t uptime();
 };
 
 #endif //GALILEO_TERREMOTI_UTILS_H

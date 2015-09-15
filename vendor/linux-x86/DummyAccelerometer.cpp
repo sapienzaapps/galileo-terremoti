@@ -18,3 +18,7 @@ long DummyAccelerometer::getZAccel() {
 
 DummyAccelerometer::DummyAccelerometer() {
 }
+
+std::string DummyAccelerometer::getAccelerometerName() {
+	return std::string("Dummy");
+}

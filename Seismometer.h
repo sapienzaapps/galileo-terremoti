@@ -36,14 +36,18 @@ typedef struct {
 
 class Seismometer {
 public:
-	Seismometer();
 	void init();
 	void tick();
 	bool isInEvent();
 	void calibrate(bool force);
 	void calibrateIfNeeded();
+	THRESHOLDS getThresholds();
+	std::string getAccelerometerName();
+
+	static Seismometer* getInstance();
 
 private:
+	Seismometer();
 	ThresholdAlgorithm_t thresholdAlgorithm;
 	Accelerometer *accelero;
 	THRESHOLDS thresholds;
@@ -54,6 +58,8 @@ private:
 
 	static bool isOverThresholdBasic(RECORD *db, THRESHOLDS *td);
 	static bool isOverThresholdFixed(RECORD *db, THRESHOLDS *td);
+
+	static Seismometer* instance;
 
 	void logThresholdValues();
 	void calibrateForHour(HOUR currentHour);

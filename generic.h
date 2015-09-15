@@ -8,5 +8,6 @@
 #include "Accelerometer.h"
 
 Accelerometer* getAccelerometer();
+std::string getPlatformName();
 
 #endif //GALILEO_TERREMOTI_VENDOR_H

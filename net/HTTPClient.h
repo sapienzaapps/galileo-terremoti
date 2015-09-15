@@ -32,6 +32,7 @@ public:
 	static void httpSendAlert1(RECORD *db, THRESHOLDS *td);
 	static unsigned long getNextContact();
 	static void setBaseURL(std::string baseUrl);
+	static std::string getBaseURL();
 private:
 	static unsigned long nextContact;
 	static std::string baseUrl;

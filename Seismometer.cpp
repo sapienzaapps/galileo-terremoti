@@ -2,7 +2,6 @@
 // Created by enrico on 12/07/15.
 //
 
-#include <string.h>
 #include "common.h"
 #include "Seismometer.h"
 #include "Log.h"
@@ -17,6 +16,8 @@
 #define CALIBRATIONITER 1000
 #define ORANGEZONE 6
 
+Seismometer* Seismometer::instance = NULL;
+
 Seismometer::Seismometer() {
 	lastEventWas = 0;
 	inEvent = 0;
@@ -26,6 +27,7 @@ Seismometer::Seismometer() {
 	if(accelero == NULL) {
 		Log::e("Accelerometer object is NULL");
 	}
+	thresholdAlgorithm = Basic;
 
 #ifdef SAVE_THRESHOLD
 	createDBifNeeded();
@@ -182,7 +184,6 @@ void Seismometer::logThresholdValues() {
 }
 
 #ifdef SAVE_THRESHOLD
-
 // TODO: save timestamp to recalibrate every X days or random
 void Seismometer::saveCalibration(HOUR currentHour) {
 	FILE *fp = fopen(CALIBRATION_FILE, "rb+");
@@ -247,3 +248,18 @@ void Seismometer::createDBifNeeded() {
 	fclose(fp);
 }
 #endif
+
+THRESHOLDS Seismometer::getThresholds(){
+ return thresholds;
+}
+
+Seismometer* Seismometer::getInstance() {
+	if(Seismometer::instance == NULL) {
+		Seismometer::instance = new Seismometer();
+	}
+	return Seismometer::instance;
+}
+
+std::string Seismometer::getAccelerometerName() {
+	return accelero->getAccelerometerName();
+}

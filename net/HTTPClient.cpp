@@ -268,3 +268,7 @@ void HTTPClient::setBaseURL(std::string baseUrl) {
 	}
 	HTTPClient::baseUrl = baseUrl;
 }
+
+std::string HTTPClient::getBaseURL() {
+	return baseUrl;
+}

@@ -72,7 +72,15 @@ function seismoproto.dissector(buffer, pinfo, tree)
 		elseif cmdbyte == 7 then
 			command = "SENDGPS"
 		elseif cmdbyte == 8 then
-			command = "OK"
+            command = "OK"
+        elseif cmdbyte == 9 then
+            command = "SETSYSLOG"
+        elseif cmdbyte == 10 then
+            command = "REBOOT"
+        elseif cmdbyte == 11 then
+            command = "GETINFO"
+        elseif cmdbyte == 12 then
+			command = "GETINFO_REPLY"
 		end
 		subtree:add(buffer(i, 1), i .. ": " .. command .. " command")
 		i = i + 1
@@ -103,6 +111,69 @@ function seismoproto.dissector(buffer, pinfo, tree)
 				+ buffer(i+3, 1):uint();
 			subtree:add(buffer(i, 4), i .. ": GPS Longitude: " .. hex2float(lon))
 			i = i + 4
+        elseif cmdbyte == 12 then
+            subtree:add(buffer(i, 6), i .. ": Dest. MAC Address: " .. mac2string(buffer, i));
+            i = i + 6
+
+            subtree:add(buffer(i, 4), i .. ": SYSLOG server");
+            i = i + 4
+
+            subtree:add(buffer(i, 4), i .. ": X threshold");
+            i = i + 4
+
+            subtree:add(buffer(i, 4), i .. ": Y threshold");
+            i = i + 4
+
+            subtree:add(buffer(i, 4), i .. ": Z threshold");
+            i = i + 4
+
+            subtree:add(buffer(i, 4), i .. ": Uptime: " .. buffer(i, 4):uint());
+            i = i + 4
+
+            subtree:add(buffer(i, 4), i .. ": UNIX time: " .. buffer(i, 4):uint());
+            i = i + 4
+
+            subtree:add(buffer(i, 4), i .. ": Software version");
+            i = i + 4
+
+            subtree:add(buffer(i, 4), i .. ": Free RAM");
+            i = i + 4
+
+            subtree:add(buffer(i, 4), i .. ": Latency");
+            i = i + 4
+
+            subtree:add(buffer(i, 4), i .. ": NTP server");
+            i = i + 4
+
+            local b = i
+            local strsize = 0
+            while buffer(b, 1):uint() > 0 do
+                strsize = strsize + 1
+                b = b + 1
+            end
+
+            subtree:add(buffer(i, strsize), i .. ": HTTP Base address")
+            i = i + strsize
+
+            b = i
+            strsize = 0
+            while buffer(b, 1):uint() > 0 do
+                strsize = strsize + 1
+                b = b + 1
+            end
+
+            subtree:add(buffer(i, strsize), i .. ": Platform name")
+            i = i + strsize
+
+            b = i
+            strsize = 0
+            while buffer(b, 1):uint() > 0 do
+                strsize = strsize + 1
+                b = b + 1
+            end
+
+            subtree:add(buffer(i, strsize), i .. ": Accelerometer name")
+            i = i + strsize
 		end
 	end
 end
