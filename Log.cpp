@@ -11,7 +11,7 @@ IPaddr Log::syslogServer(0, 0, 0, 0);
 bool Log::syslogEnabled = false;
 Udp Log::syslogUdp;
 FILE *Log::logFile = NULL;
-bool Log::serialDebug = true;
+std::string Log::logFilePath = "";
 LogLevel Log::logLevel = LEVEL_INFO;
 std::string Log::deviceid = "";
 bool Log::stdoutDebug = false;
@@ -27,9 +27,11 @@ void Log::setSyslogServer(IPaddr server) {
 		Log::syslogServer = server;
 		Log::syslogEnabled = true;
 		Log::syslogUdp.connectTo(Log::syslogServer, 514);
-		// TODO: choose a special value to disable... maybe 0?
-		//Log::syslogUdp.begin(514);
 	}
+}
+
+void Log::setLogFile(std::string filepath) {
+	Log::setLogFile(filepath.c_str());
 }
 
 void Log::setLogFile(const char *filepath) {
@@ -39,17 +41,11 @@ void Log::setLogFile(const char *filepath) {
 
 	Log::logFile = fopen(filepath, "w");
 	if (Log::logFile == NULL) {
-		//Serial.println("Error opening log file\n");
+		fprintf(stderr, "Cannot open %s", Log::logFile);
+		Log::logFilePath = "";
+ 	} else {
+		Log::logFilePath = std::string(filepath);
 	}
-}
-
-void Log::enableSerialDebug(bool serialDebug) {
-	if (!Log::serialDebug && serialDebug) {
-		//Serial.begin(9600);
-	} else if (Log::serialDebug && !serialDebug) {
-		//Serial.end();
-	}
-	Log::serialDebug = serialDebug;
 }
 
 void Log::log(LogLevel level, const char *msg, va_list argptr) {
@@ -80,10 +76,6 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 		printf("%s\n", logentry);
 	}
 
-	if (Log::serialDebug) {
-		//Serial.println(logentry);
-	}
-
 	if (Log::syslogEnabled) {
 		// priority = (facility * 8) + severity
 		int priority = (16 * 8);
@@ -106,6 +98,7 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 		fwrite(logentry, strlen(logentry), 1, Log::logFile);
 		char newline = '\n';
 		fwrite(&newline, 1, 1, Log::logFile);
+		fflush(Log::logFile);
 	}
 }
 
@@ -138,9 +131,6 @@ void Log::enableStdoutDebug(bool enable) {
 	Log::stdoutDebug = enable;
 }
 
-/**
- * TODO: recuperare da intero
- */
 std::string Log::getDateTime() {
 
 	char buf[512];
@@ -157,4 +147,16 @@ void Log::updateFromConfig() {
 
 IPaddr Log::getSyslogServer() {
 	return Log::syslogServer;
+}
+
+void Log::rotate() {
+	if(Log::logFile != NULL) {
+		fclose(Log::logFile);
+		Log::logFile = NULL;
+		std::string oldlog = Log::logFilePath;
+		oldlog.append(".old");
+		unlink(oldlog.c_str());
+		rename(Log::logFilePath.c_str(), oldlog.c_str());
+		setLogFile(Log::logFilePath);
+	}
 }

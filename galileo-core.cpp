@@ -12,13 +12,20 @@
 #include "net/NTP.h"
 #include "net/NetworkManager.h"
 #include "CommandInterface.h"
+#include "Watchdog.h"
 
 Seismometer *seismometer;
+unsigned long netLastMs = 0;
+unsigned long ntpLastMs = 0;
+unsigned long cfgLastMs = 0;
+unsigned long seismoLastMs = 0;
+unsigned long logRotationMs = 0;
 
 void setup();
 void loop();
 
 int main() {
+	Watchdog::launch();
 	setup();
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -33,6 +40,7 @@ int main() {
 }
 
 void setup() {
+	logRotationMs = Utils::millis();
 	LED::init(LED_GREEN_PIN, LED_YELLOW_PIN, LED_RED_PIN);
 	Log::setLogFile(DEFAULT_LOG_PATH);
 	Log::enableStdoutDebug(true);
@@ -108,11 +116,6 @@ void setup() {
 	LED::startupBlink();
 }
 
-unsigned long netLastMs = 0;
-unsigned long ntpLastMs = 0;
-unsigned long cfgLastMs = 0;
-unsigned long seismoLastMs = 0;
-
 void loop() {
 	CommandInterface::checkCommandPacket();
 
@@ -138,6 +141,10 @@ void loop() {
 	if(Utils::millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
 		seismometer->tick();
 		seismoLastMs = Utils::millis();
+	}
+
+	if(Utils::millis() - logRotationMs >= 1000 * 60 * 60 * 24) {
+		Log::rotate();
 	}
 }
 

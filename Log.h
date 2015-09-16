@@ -26,11 +26,12 @@ public:
 	static IPaddr getSyslogServer();
 	static void setLogLevel(LogLevel);
 	static void setSyslogServer(IPaddr);
-	static void setLogFile(const char *);
-	static void enableSerialDebug(bool);
+	static void setLogFile(std::string);
+	static void setLogFile(const char*);
 	static void enableStdoutDebug(bool);
 	static void setDeviceId(std::string);
 	static void updateFromConfig();
+	static void rotate();
 
 private:
 	static void log(LogLevel, const char *, va_list argptr);
@@ -39,9 +40,8 @@ private:
 	static IPaddr syslogServer;
 	static bool syslogEnabled;
 	static Udp syslogUdp;
-	static const char *logFilePath;
+	static std::string logFilePath;
 	static FILE *logFile;
-	static bool serialDebug;
 	static LogLevel logLevel;
 	static std::string deviceid;
 	static bool stdoutDebug;

@@ -23,6 +23,7 @@ public:
 	static std::string trim(std::string& str, char c);
 	static std::string getInterfaceMAC();
 	static uint32_t uptime();
+	static std::string readFirstLine(std::string filename);
 };
 
 #endif //GALILEO_TERREMOTI_UTILS_H

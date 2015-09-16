@@ -3,6 +3,7 @@
 SKETCHPATH=$1
 if [ "$1" == "" ]; then
 	echo "Usage: $0 <sketch-file>"
+	exit 1
 fi
 
 WHOAMI=`whoami`

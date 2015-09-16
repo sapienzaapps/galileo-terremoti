@@ -29,6 +29,21 @@ bool Utils::fileExists(const char *filename) {
 	return access(filename, F_OK) != -1;
 }
 
+std::string Utils::readFirstLine(std::string filename) {
+	std::string buf = "";
+
+	FILE *fp = fopen(filename.c_str(), "rb");
+	if(fp) {
+		char cb[1024];
+		memset(cb, 0, 1024);
+		fread(cb, 1023, 1, fp);
+		fclose(fp);
+		buf.append(cb);
+	}
+
+	return buf;
+}
+
 double Utils::atofn(const char *str, size_t max)  {
 	size_t bufLen = strlen(str);
 	char buf[bufLen+1];

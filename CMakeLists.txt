@@ -55,7 +55,7 @@ set(SOURCE_FILES
 		vendor/linux-x86/generic.cpp
 		generic.h
 		vendor/linux-x86/vendor_specific.h
-)
+		Watchdog.cpp Watchdog.h)
 
 add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
 #target_compile_options(galileo_gen1 PUBLIC "-DGALILEO_GEN=1")

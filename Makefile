@@ -8,7 +8,7 @@ MAINFLAGS=-DPLATFORM=\"${PLATFORM}\" -Wno-unknown-pragmas -g
 include vendor/${PLATFORM}/toolchain.mk
 
 
-MODULES := avg CommandInterface Config Log Seismometer Utils galileo-core
+MODULES := avg CommandInterface Config Log Seismometer Utils Watchdog galileo-core
 SOURCES := $(MODULES:%=%.cpp)
 OBJECTS := $(MODULES:%=${OBJDIR}/%.o)
 
