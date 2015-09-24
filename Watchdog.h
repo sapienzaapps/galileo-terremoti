@@ -9,8 +9,10 @@
 class Watchdog {
 public:
 	static void launch();
+	static void heartBeat();
 
 private:
+	static unsigned long lastBeat;
 	static pid_t getSketchPid();
 };
 

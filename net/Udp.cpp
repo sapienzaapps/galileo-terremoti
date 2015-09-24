@@ -3,6 +3,7 @@
 //
 
 #include "Udp.h"
+#include "../Utils.h"
 #include <arpa/inet.h>
 #include <string.h>
 #include <unistd.h>
@@ -91,4 +92,8 @@ bool Udp::listen(unsigned short port) {
 		return false;
 	}
 	return true;
+}
+
+void Udp::setNonblocking() {
+	Utils::setNonblocking(fd);
 }

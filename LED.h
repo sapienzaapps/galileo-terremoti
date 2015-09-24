@@ -14,10 +14,15 @@ public:
 	static void red(bool);
 	static void yellow(bool);
 	static void startupBlink();
+	static void tick();
+	static void setLedAnimation(bool);
+	static bool getLedAnimation();
+	static void dispose();
 private:
 	static uint8_t greenLedPin;
 	static uint8_t yellowLedPin;
 	static uint8_t redLedPin;
+	static volatile bool ledAnimation;
 };
 
 

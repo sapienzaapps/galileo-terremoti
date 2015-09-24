@@ -41,7 +41,7 @@ void Log::setLogFile(const char *filepath) {
 
 	Log::logFile = fopen(filepath, "w");
 	if (Log::logFile == NULL) {
-		fprintf(stderr, "Cannot open %s", Log::logFile);
+		fprintf(stderr, "Cannot open %s", Log::logFilePath.c_str());
 		Log::logFilePath = "";
  	} else {
 		Log::logFilePath = std::string(filepath);
@@ -158,5 +158,13 @@ void Log::rotate() {
 		unlink(oldlog.c_str());
 		rename(Log::logFilePath.c_str(), oldlog.c_str());
 		setLogFile(Log::logFilePath);
+	}
+}
+
+void Log::close() {
+	if(Log::logFile != NULL) {
+		fflush(Log::logFile);
+		fclose(Log::logFile);
+		Log::logFile = NULL;
 	}
 }

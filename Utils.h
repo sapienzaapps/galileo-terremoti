@@ -24,6 +24,7 @@ public:
 	static std::string getInterfaceMAC();
 	static uint32_t uptime();
 	static std::string readFirstLine(std::string filename);
+	static int setNonblocking(int);
 };
 
 #endif //GALILEO_TERREMOTI_UTILS_H

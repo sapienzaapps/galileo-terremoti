@@ -15,6 +15,8 @@
 #include "Utils.h"
 #include "Log.h"
 
+unsigned long Watchdog::lastBeat = 0;
+
 void Watchdog::launch() {
 	pid_t pid, sid;
 	int fd;
@@ -32,6 +34,7 @@ void Watchdog::launch() {
 	if (pid > 0) {
 		// Parent process can proceed
 		signal(SIGCHLD, SIG_IGN);
+		heartBeat();
 		return;
 	}
 
@@ -54,6 +57,7 @@ void Watchdog::launch() {
 		// Intermediate parent can be killed
 		exit(EXIT_SUCCESS);
 	}
+
 	unlink(WATCHDOG_LOG_PATH);
 	Log::setLogFile(WATCHDOG_LOG_PATH);
 	Log::setLogLevel(LEVEL_DEBUG);
@@ -82,13 +86,27 @@ void Watchdog::launch() {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 	while(true) {
+		sleep(15);
 		pid_t sketchpid = Watchdog::getSketchPid();
-		if (sketchpid == 0) {
+		struct stat fileinfo;
+		stat(WATCHDOG_FILE, &fileinfo);
+
+		bool heartbeat = true;
+		if(fileinfo.st_mtim.tv_sec < time(NULL) - 15) {
+			heartbeat = false;
+		}
+		if (sketchpid == 0 || !heartbeat) {
+			if(!heartbeat) {
+				Log::d("Heartbeat missed");
+			}
+			if(sketchpid == 0) {
+				Log::d("Unable to get sketch PID");
+			}
 			Log::i("Sketch is not running");
+			Log::close();
 			system("reboot");
 			exit(EXIT_SUCCESS);
 		}
-		sleep(1);
 	}
 #pragma clang diagnostic pop
 }
@@ -118,4 +136,16 @@ pid_t Watchdog::getSketchPid() {
 	}
 
 	return ret;
+}
+
+void Watchdog::heartBeat() {
+	if(Utils::millis() - lastBeat > 5000) {
+		FILE* fp = fopen(WATCHDOG_FILE, "w");
+		char buf[10];
+		memset(buf, 0xFF, 10);
+		fwrite(buf, 10, 1, fp);
+		fflush(fp);
+		fclose(fp);
+		lastBeat = Utils::millis();
+	}
 }

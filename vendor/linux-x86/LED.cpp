@@ -32,3 +32,14 @@ void LED::startupBlink() {
 		LED::yellow(false);
 	}
 }
+
+void LED::tick() {}
+
+void LED::dispose() { }
+
+void LED::setLedAnimation(bool b) {
+}
+
+bool LED::getLedAnimation() {
+	return ledAnimation;
+}

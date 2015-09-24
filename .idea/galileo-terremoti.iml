@@ -15,6 +15,8 @@
       <sourceFolder url="file://$MODULE_DIR$/Seismometer.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Utils.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Utils.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Watchdog.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Watchdog.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/avg.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/avg.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/common.h" isTestSource="false" />
@@ -40,8 +42,6 @@
       <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/LED.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/generic.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/linux-x86/vendor_specific.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/Watchdog.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/Watchdog.h" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

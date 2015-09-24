@@ -42,6 +42,8 @@ int main() {
 void setup() {
 	logRotationMs = Utils::millis();
 	LED::init(LED_GREEN_PIN, LED_YELLOW_PIN, LED_RED_PIN);
+	LED::setLedAnimation(true);
+
 	Log::setLogFile(DEFAULT_LOG_PATH);
 	Log::enableStdoutDebug(true);
 	Log::setLogLevel(LEVEL_DEBUG);
@@ -99,6 +101,7 @@ void setup() {
 		// Wait for location from App if not avail
 		Log::i("Position not available, waiting for position from App");
 		do {
+			Watchdog::heartBeat();
 			CommandInterface::checkCommandPacket();
 			Utils::delay(200);
 		} while(!Config::hasPosition());
@@ -113,10 +116,14 @@ void setup() {
 	Log::d("Free RAM: %lu", Utils::freeRam());
 	Log::d("INIZIALIZATION COMPLETE!");
 
-	LED::startupBlink();
+//	LED::setLedAnimation(false);
+//	LED::startupBlink();
 }
 
 void loop() {
+	LED::tick();
+	Watchdog::heartBeat();
+
 	CommandInterface::checkCommandPacket();
 
 	if(Utils::millis() - netLastMs >= CHECK_NETWORK_INTERVAL) {

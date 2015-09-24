@@ -240,6 +240,7 @@ void CommandInterface::sendValues(RECORD *db) {
 // establish the connection through the CMD_INTERFACE_PORT port to interact with the mobile APP
 bool CommandInterface::commandInterfaceInit() {
 	bool ret = cmdc.listen(CMD_INTERFACE_PORT);
+	cmdc.setNonblocking();
 	if(!ret) {
 		Log::e("Error during listening");
 	}

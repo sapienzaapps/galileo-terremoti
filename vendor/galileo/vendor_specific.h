@@ -5,6 +5,7 @@
 #ifndef GALILEO_TERREMOTI_VENDOR_SPECIFIC_H
 #define GALILEO_TERREMOTI_VENDOR_SPECIFIC_H
 
+#define WATCHDOG_FILE        "/tmp/galileo_watchdog"
 #define DEFAULT_LOG_PATH     "/media/realroot/sketch.log"
 #define WATCHDOG_LOG_PATH    "/media/realroot/watchdog.log"
 #define DEFAULT_CONFIG_PATH  "/media/realroot/seismoconfig.txt"

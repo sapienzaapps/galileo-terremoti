@@ -32,6 +32,7 @@ public:
 	static void setDeviceId(std::string);
 	static void updateFromConfig();
 	static void rotate();
+	static void close();
 
 private:
 	static void log(LogLevel, const char *, va_list argptr);

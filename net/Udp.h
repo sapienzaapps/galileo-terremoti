@@ -14,6 +14,7 @@ class Udp {
 public:
 	Udp();
 	Udp(IPaddr ipaddr, unsigned short port);
+	void setNonblocking();
 	bool connectTo(IPaddr ipaddr, unsigned short port);
 	bool listen(unsigned short port);
 	ssize_t send(void *buf, size_t size, IPaddr dstaddr, unsigned short port);

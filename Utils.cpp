@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <fcntl.h>
 #include "common.h"
 #include "Utils.h"
 
@@ -188,4 +189,12 @@ uint32_t Utils::uptime() {
 	} else {
 		return 0;
 	}
+}
+
+int Utils::setNonblocking(int fd) {
+	int flags;
+    if (-1 == (flags = fcntl(fd, F_GETFL, 0))) {
+		flags = 0;
+	}
+    return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
