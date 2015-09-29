@@ -6,6 +6,8 @@ uint8_t LED::greenLedPin;
 uint8_t LED::yellowLedPin;
 uint8_t LED::redLedPin;
 
+volatile bool LED::ledAnimation = false;
+
 void LED::init(uint8_t greenLedPin, uint8_t yellowLedPin, uint8_t redLedPin) {
 	LED::greenLedPin = greenLedPin;
 	LED::yellowLedPin = yellowLedPin;
