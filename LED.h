@@ -18,6 +18,10 @@ public:
 	static void setLedAnimation(bool);
 	static bool getLedAnimation();
 	static void dispose();
+	static void set(uint8_t pin, bool isOn);
+	static void setLedBlinking(uint8_t pin);
+	static void clearLedBlinking();
+	static bool get(uint8_t pin);
 private:
 	static uint8_t greenLedPin;
 	static uint8_t yellowLedPin;

@@ -23,6 +23,15 @@ void LED::red(bool isOn) {
 void LED::yellow(bool isOn) {
 }
 
+void LED::setLedBlinking(uint8_t pin) {
+}
+
+void LED::clearLedBlinking() {
+}
+
+void LED::set(uint8_t pin, bool status) {
+}
+
 void LED::startupBlink() {
 	for(int i=0; i < 5; i++) {
 		LED::green(true);

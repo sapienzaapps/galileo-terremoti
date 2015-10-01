@@ -121,6 +121,8 @@ void Seismometer::calibrateForHour(HOUR currentHour) {
 		return;
 	}
 
+	LED::setLedBlinking(LED_YELLOW_PIN);
+
 	int cbufx[CALIBRATIONITER];
 	int cbufy[CALIBRATIONITER];
 	int cbufz[CALIBRATIONITER];
@@ -148,6 +150,8 @@ void Seismometer::calibrateForHour(HOUR currentHour) {
 	thresholds.nthresx = avgx - (sdevx + ORANGEZONE);
 	thresholds.nthresy = avgy - (sdevy + ORANGEZONE);
 	thresholds.nthresz = avgz - (sdevz + ORANGEZONE);
+
+	LED::clearLedBlinking();
 }
 
 void Seismometer::calibrateIfNeeded() {
