@@ -3,7 +3,7 @@ VARIANT_MODULE   := variant
 VARIANT_OBJECTS  := $(VARIANT_MODULE:%=${OBJDIR}/$(PLATFORM)_$(VARIANT)_%.o)
 
 GALILEO_MODULES  := UtilTime wiring_analog wiring_digital trace sysfs mux TTYUART RingBuffer WString Print fast_gpio_sc \
-	fast_gpio_common fast_gpio_nc WMath
+	fast_gpio_common fast_gpio_nc WMath i2c interrupt IPAddress Tone Stream pulseIn UtilMisc
 GALILEO_OBJECTS  := $(GALILEO_MODULES:%=${OBJDIR}/cores_$(VARIANT)_%.o)
 
 VENDOR_MODULES   := LED AcceleroMMA7361 generic

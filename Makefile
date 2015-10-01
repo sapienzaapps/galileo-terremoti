@@ -30,6 +30,7 @@ ${OBJDIR}/%.o: %.cpp
 
 ${OUTDIR}/sketch.elf: $(OBJECTS)
 	${CPP} ${OBJDIR}/*.o ${LFLAGS} ${MAINFLAGS} -o ${OUTDIR}/sketch.elf
+	${STRIP} ${OUTDIR}/sketch.elf
 
 clean:
 	rm -f ${OUTDIR}/* ${OBJDIR}/*

@@ -7,6 +7,7 @@
 
 #include "Accelerometer.h"
 
+void vendor_init(int argc, char** argv);
 Accelerometer* getAccelerometer();
 std::string getPlatformName();
 

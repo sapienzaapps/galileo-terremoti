@@ -61,11 +61,11 @@ void LED::init(uint8_t greenLedPin, uint8_t yellowLedPin, uint8_t redLedPin) {
 }
 
 void LED::green(bool isOn) {
-	digitalWrite(redLedPin, isOn ? (uint8_t)HIGH : (uint8_t)LOW);
+	digitalWrite(greenLedPin, isOn ? (uint8_t)HIGH : (uint8_t)LOW);
 }
 
 void LED::red(bool isOn) {
-	digitalWrite(greenLedPin, isOn ? (uint8_t)HIGH : (uint8_t)LOW);
+	digitalWrite(redLedPin, isOn ? (uint8_t)HIGH : (uint8_t)LOW);
 }
 
 void LED::yellow(bool isOn) {
@@ -73,14 +73,15 @@ void LED::yellow(bool isOn) {
 }
 
 void LED::startupBlink() {
-	for(int i=0; i < 5; i++) {
+	for(int i=0; i < 10; i++) {
 		LED::green(true);
 		LED::red(true);
 		LED::yellow(true);
-		delay(100);
+		delay(20);
 		LED::green(false);
 		LED::red(false);
 		LED::yellow(false);
+		delay(20);
 	}
 }
 
@@ -92,6 +93,11 @@ void LED::dispose() {
 
 void LED::setLedAnimation(bool b) {
 	ledAnimation = b;
+	if(!b) {
+		LED::green(false);
+		LED::red(false);
+		LED::yellow(false);
+	}
 }
 
 bool LED::getLedAnimation() {

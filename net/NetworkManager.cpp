@@ -33,15 +33,9 @@ bool NetworkManager::isConnectedToInternet(bool force) {
 
 		int ping = system(CMD_PING);
 
-		int pingWifexited = WIFEXITED(ping);
-		if (pingWifexited) {
-			Log::d("Ping WEXITSTATUS STATUS: %i", WEXITSTATUS(ping));
-			if (WEXITSTATUS(ping) == 0) {
-				NetworkManager::connectionAvailable = true;
-			}
-		}
-		else {
-			Log::d("Ping WEXITSTATUS STATUS: %i", pingWifexited);
+		Log::d("Ping WIFEXITED WEXITSTATUS: %i %i", WIFEXITED(ping), WEXITSTATUS(ping));
+		if (WEXITSTATUS(ping) == 0) {
+			NetworkManager::connectionAvailable = true;
 		}
 		NetworkManager::connectionChecked = true;
 	}

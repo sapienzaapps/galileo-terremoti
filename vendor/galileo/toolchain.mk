@@ -33,11 +33,13 @@ LIBRARY_DIRS  = -L $(SYSROOT_TARGET)/lib/ \
 				-L $(SYSROOT_TARGET)/usr/lib/ \
 				-L $(SYSROOT_TARGET)/usr/lib/$(TARGET_NAME)/$(GCC_VERSION)
 COMPILE_OPTS  = -Os -pipe -g -feliminate-unused-debug-types -fpermissive -Wall -w -fexceptions \
-	-ffunction-sections -fdata-sections -MMD -D__ARDUINO_X86__ -Xassembler -mquark-strip-lock=yes $(INCLUDE_DIRS)
+	-ffunction-sections -fdata-sections -MMD -D__ARDUINO_X86__ -Xassembler -mquark-strip-lock=yes -DARDUINO=10600 \
+	$(INCLUDE_DIRS)
 
 TOOLDIR     = $(SYSROOT_NATIVE)/usr/bin/$(TARGET_NAME)
 CC          = $(TOOLDIR)/i586-poky-linux-uclibc-gcc
 CPP         = $(TOOLDIR)/i586-poky-linux-uclibc-g++
+STRIP       = $(TOOLDIR)/i586-poky-linux-uclibc-strip
 CFLAGS      = $(COMPILE_OPTS) -std=c++11 -D__IS_GALILEO=1 -DGALILEO_GEN=${GALILEO_GEN}
 CPPFLAGS    = $(COMPILE_OPTS) -std=c++11 -D__IS_GALILEO=1 -DGALILEO_GEN=${GALILEO_GEN}
 LFLAGS      = -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed $(LIBRARY_DIRS) -lstdc++ -lpthread

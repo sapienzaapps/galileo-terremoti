@@ -13,6 +13,7 @@
 #include "net/NetworkManager.h"
 #include "CommandInterface.h"
 #include "Watchdog.h"
+#include "generic.h"
 
 Seismometer *seismometer;
 unsigned long netLastMs = 0;
@@ -24,7 +25,9 @@ unsigned long logRotationMs = 0;
 void setup();
 void loop();
 
-int main() {
+int main(int argc, char** argv) {
+	vendor_init(argc, argv);
+
 	Watchdog::launch();
 	setup();
 #pragma clang diagnostic push
@@ -116,8 +119,9 @@ void setup() {
 	Log::d("Free RAM: %lu", Utils::freeRam());
 	Log::d("INIZIALIZATION COMPLETE!");
 
-//	LED::setLedAnimation(false);
-//	LED::startupBlink();
+	LED::setLedAnimation(false);
+	LED::startupBlink();
+	LED::green(true);
 }
 
 void loop() {
@@ -127,9 +131,7 @@ void loop() {
 	CommandInterface::checkCommandPacket();
 
 	if(Utils::millis() - netLastMs >= CHECK_NETWORK_INTERVAL) {
-		if(!NetworkManager::isConnectedToInternet(true)) {
-			//NetworkManager::forceRestart();
-		}
+		LED::yellow(!NetworkManager::isConnectedToInternet(true));
 		netLastMs = Utils::millis();
 	}
 

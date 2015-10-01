@@ -5,6 +5,10 @@
 #include "../../generic.h"
 #include "DummyAccelerometer.h"
 
+
+void vendor_init(int argc, char** argv) {
+}
+
 Accelerometer* getAccelerometer() {
 	return new DummyAccelerometer();
 }
