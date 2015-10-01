@@ -55,38 +55,3 @@ See `linux-x86` and `galileo` for more infos.
 In order to test latency you need to run `sketch.elf` as root OR grant `CAP_NET_RAW` capability with a command like:
 
     $ sudo setcap cap_net_raw=ep build/out_linux-x86/sketch.elf
-
-# Working procedure
-
-TODO: update doc here and expand
-
-## Boot
-
-1. Enabling file logging to level DEBUG
-2. Setting analog read resolution to 10 (3.3V => 4096)
-3. Fixing Galileo bugs on network sockets (networking restart and register SIGPIPE to SIG_IGN)
-4. Loading config file
-5. Initial Accelerometer calibration
-6. Setup networking
-7. Enabling syslog
-8. If no MAC available, ask to server
-9. start = Config::hasPosition()
-10. Some leds stuffs (network available and others)
-11. If internet and position are OK, get config from server
-12. Startup local network command UDP socket
-13. If internet is connected, sync with NTP
-14. If reboot script doesn't exists, create it
-
-## Loop
-
-1. At `checkInternetConnectionInterval`, check internet connection. If not OK, enable "reset ethernet" flag
-2. At `NTPInterval`, sync with NTP server
-3. If `ForceCalibrationNeeded` or at `calibrationInterval` force check for calibration
-4. If we have generated too many alerts (`numAlert >= reTareNum`), force recalibration
-5. Reset `inEvent` after `nextContact` time
-6. If we need to reset ethernet, then reset NOW!
-7. At every 50UL ms and if `zz < 3` (unknown) do
-	1. If we don't need to record values, then do normal sensor detection
-	2. If we need to record values, then start if not started, and record
-8. At `checkConfigInterval` check new config from server
-9. Then after 24h or 20 errors, reset/reboot Galileo

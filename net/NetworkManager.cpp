@@ -29,14 +29,7 @@ bool NetworkManager::isConnectedToInternet() {
 
 bool NetworkManager::isConnectedToInternet(bool force) {
 	if (!NetworkManager::connectionChecked || force) {
-		NetworkManager::connectionAvailable = false;
-
-		int ping = system(CMD_PING);
-
-		Log::d("Ping WIFEXITED WEXITSTATUS: %i %i", WIFEXITED(ping), WEXITSTATUS(ping));
-		if (WEXITSTATUS(ping) == 0) {
-			NetworkManager::connectionAvailable = true;
-		}
+		NetworkManager::connectionAvailable = ping(IPaddr(8, 8, 8, 8), 2000, 1);
 		NetworkManager::connectionChecked = true;
 	}
 	return NetworkManager::connectionAvailable;
@@ -57,7 +50,7 @@ float NetworkManager::latency() {
 	return lastLatency;
 }
 
-int NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequenceNumber) {
+bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequenceNumber) {
 	const int val = 255;
 	struct ICMP_PACKET pckt;
 	struct sockaddr_in r_addr;
@@ -75,23 +68,23 @@ int NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequenceN
 	int sd = socket(PF_INET, SOCK_RAW, proto->p_proto);
 	if ( sd < 0 ) {
 		perror("socket");
-		return 1;
+		return false;
 	}
 	if ( setsockopt(sd, SOL_IP, IP_TTL, &val, sizeof(val)) != 0) {
 		perror("Set TTL option");
-		return 1;
+		return false;
 	}
 	if ( fcntl(sd, F_SETFL, O_NONBLOCK) != 0 ) {
 		perror("Request nonblocking I/O");
-		return 1;
+		return false;
 	}
 
 	bzero(&pckt, sizeof(pckt));
 	pckt.hdr.type = ICMP_ECHO;
 	pckt.hdr.un.echo.id = (uint16_t)pid;
 
-	unsigned int i;
-	for (i = 0; i < sizeof(pckt.msg)-1; i++ ) {
+	unsigned int i = 0;
+	for (; i < sizeof(pckt.msg)-1; i++ ) {
 		pckt.msg[i] = i+'0';
 	}
 
@@ -100,6 +93,7 @@ int NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequenceN
 	pckt.hdr.checksum = NetworkManager::checksum(&pckt, sizeof(pckt));
 	if ( sendto(sd, &pckt, sizeof(pckt), 0, (struct sockaddr*)&addr_ping, sizeof(addr_ping)) <= 0 ) {
 		perror("sendto");
+		return false;
 	}
 
 	unsigned long startms = Utils::millis();
@@ -107,12 +101,12 @@ int NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequenceN
 		socklen_t len = 0;
 		if ( recvfrom(sd, &pckt, sizeof(pckt), 0, (struct sockaddr*)&r_addr, &len) > 0 ) {
 			// FIXME: check ICMP type?
-			return 0;
+			return true;
 		}
 		usleep(100);
 	}
 
-	return 1;
+	return false;
 }
 
 unsigned short NetworkManager::checksum(void *b, int len) {

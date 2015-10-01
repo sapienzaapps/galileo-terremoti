@@ -13,7 +13,7 @@ public:
 	static bool isConnectedToInternet(bool force);
 	static float getLastLatency();
 	static float latency();
-	static int ping(IPaddr address, unsigned int waitms, uint16_t sequenceNumber);
+	static bool ping(IPaddr address, unsigned int waitms, uint16_t sequenceNumber);
 
 private:
 	static bool connectionAvailable;

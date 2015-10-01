@@ -20,7 +20,7 @@ Seismometer* Seismometer::instance = NULL;
 
 Seismometer::Seismometer() {
 	lastEventWas = 0;
-	inEvent = 0;
+	inEvent = false;
 	thresholds = { 0, 0, 0, 0, 0, 0 };
 	accelero = getAccelerometer();
 	thresholdHour = 30; // invalid hour, so loadThresholdIfNeeded is forced to load values from storage
@@ -43,6 +43,14 @@ void Seismometer::init() {
 void Seismometer::tick() {
 
 	if(accelero == NULL) {
+		return;
+	}
+
+	// Skipping detections for 5 seconds
+	if(inEvent && Utils::millis()-lastEventWas >= 5000) {
+		LED::red(false);
+		inEvent = false;
+	} else {
 		return;
 	}
 
@@ -87,9 +95,6 @@ void Seismometer::tick() {
 		lastEventWas = Utils::millis();
 
 		HTTPClient::httpSendAlert1(&db, &thresholds);
-
-	} else {
-		LED::red(false);
 	}
 }
 
