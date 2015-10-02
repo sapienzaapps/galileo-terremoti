@@ -2,7 +2,7 @@
 
 * GNU/Linux
 * GNU make
-* Galileo toolchain (if you plan to compile for Arduino)
+* Galileo toolchain (if you plan to compile for Arduino), you can find it here: http://www.intel.com/support/galileo/sb/CS-035101.htm
 * GCC compiler (if you plan to compile for linux-x86)
 
 # Toolchains
