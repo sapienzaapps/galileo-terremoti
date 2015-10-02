@@ -45,7 +45,7 @@ bool NTP::sendNTPpacket(IPaddr address) {
 // Set date and time to NTP's retrieved one
 void NTP::execSystemTimeUpdate(time_t epoch) {
 	char command[100];
-	snprintf(command, 100, "/bin/date -s @%lu", epoch);
+	snprintf(command, 100, SETDATE_CMD, epoch);
 
 	char buf[64];
 	FILE *ptr;
@@ -71,7 +71,7 @@ unsigned long NTP::getUNIXTime() {
 
 unsigned long int NTP::getUNIXTimeMS() {
 	unsigned long diff = Utils::millis() - NTP::unixTimeUpdate;
-	return (((NTP::unixTimeTS) + (diff /= 1000) + (diff % 1000 >= 0 ? 1 : 0)));
+	return (((NTP::unixTimeTS) + (diff / 1000) + 1));
 }
 
 void NTP::setNTPServer(IPaddr ntpserver) {

@@ -1,3 +1,4 @@
+
 #include <vendor_specific.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -5,18 +6,25 @@
 #include <string.h>
 #include <fcntl.h>
 #include <resolv.h>
+
+#if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
+#endif
+
 #include <netinet/ip_icmp.h>
 #include "NetworkManager.h"
 #include "../Log.h"
 #include "../Utils.h"
 
-#ifdef __IS_GALILEO
-#include "../Utils.h"
-#endif
-
 struct ICMP_PACKET {
+#if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
+    struct icmp hdr;
+	char msg[64-sizeof(struct icmp)];
+#else
 	struct icmphdr hdr;
 	char msg[64-sizeof(struct icmphdr)];
+#endif
 };
 
 float NetworkManager::lastLatency = -1;
@@ -56,7 +64,6 @@ bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequence
 	struct sockaddr_in r_addr;
 	struct sockaddr_in addr_ping;
 
-	pid_t pid = getpid();
 	struct protoent* proto = getprotobyname("ICMP");
 
 	bzero(&addr_ping, sizeof(addr_ping));
@@ -80,8 +87,12 @@ bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequence
 	}
 
 	bzero(&pckt, sizeof(pckt));
+#if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
+	pckt.hdr.icmp_type = ICMP_ECHO;
+#else
 	pckt.hdr.type = ICMP_ECHO;
 	pckt.hdr.un.echo.id = (uint16_t)pid;
+#endif
 
 	unsigned int i = 0;
 	for (; i < sizeof(pckt.msg)-1; i++ ) {
@@ -89,8 +100,12 @@ bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequence
 	}
 
 	pckt.msg[i] = 0;
+#if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
+	pckt.hdr.icmp_cksum = sequenceNumber;
+#else
 	pckt.hdr.un.echo.sequence = sequenceNumber;
 	pckt.hdr.checksum = NetworkManager::checksum(&pckt, sizeof(pckt));
+#endif
 	if ( sendto(sd, &pckt, sizeof(pckt), 0, (struct sockaddr*)&addr_ping, sizeof(addr_ping)) <= 0 ) {
 		perror("sendto");
 		return false;

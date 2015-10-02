@@ -1,6 +1,6 @@
 # Requirements
 
-* GNU/Linux
+* GNU/Linux (OSX is currently not supported)
 * GNU make
 * Galileo toolchain (if you plan to compile for Arduino), you can find it here: http://www.intel.com/support/galileo/sb/CS-035101.htm
 * GCC compiler (if you plan to compile for linux-x86)

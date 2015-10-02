@@ -2,7 +2,11 @@
 #define galileo_log_h
 
 #include <math.h>
+
+#ifdef __LINUX__
 #include <sys/sysinfo.h>
+#endif
+
 #include <signal.h>
 #include <stdlib.h>
 #include <stdint.h>

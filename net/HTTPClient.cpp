@@ -233,11 +233,12 @@ int HTTPClient::getLine(Tcp c, uint8_t *buffer, size_t maxsize, int toRead) {
 	memset(buffer, 0, maxsize);  // set the buffer to 0
 
 	for (i = 0; i < maxsize - 1 && !done; i++) {
-		buffer[i] = (uint8_t) c.readchar();
+		int bufchar = c.readchar();
+		buffer[i] = (uint8_t) bufchar;
 
 		if (buffer[i] == '\r') {
 			i--;
-		} else if (buffer[i] == '\n' || buffer[i] == -1) {  // if there is nothing more to read
+		} else if (buffer[i] == '\n' || bufchar == -1) {  // if there is nothing more to read
 			done = 1;
 			buffer[i] = 0;
 		}

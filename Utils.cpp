@@ -2,7 +2,6 @@
 // Created by ebassetti on 23/07/15.
 //
 
-#include <sys/sysinfo.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -17,6 +16,8 @@
 
 
 
+#ifdef __LINUX__
+#include <sys/sysinfo.h>
 unsigned long Utils::freeRam() {
 	struct sysinfo sys_info;
 	if (sysinfo(&sys_info) == 0) {
@@ -25,6 +26,58 @@ unsigned long Utils::freeRam() {
 		return 0;
 	}
 }
+
+uint32_t Utils::uptime() {
+	struct sysinfo sys_info;
+	if (sysinfo(&sys_info) == 0) {
+		return (uint32_t)sys_info.uptime;
+	} else {
+		return 0;
+	}
+}
+
+uint32_t Utils::millis() {
+	struct timespec ts;
+	unsigned theTick = 0U;
+	clock_gettime( CLOCK_REALTIME, &ts );
+	theTick  = ts.tv_nsec / 1000000;
+	theTick += ts.tv_sec * 1000;
+	return theTick;
+}
+#else
+
+#if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
+
+#include <sys/sysctl.h>
+#include <sys/timeb.h>
+#include <ifaddrs.h>
+#include <net/if_dl.h>
+
+unsigned long Utils::freeRam() {
+	return 0;
+}
+
+uint32_t Utils::uptime() {
+	struct timeval boottime;
+	size_t len = sizeof(boottime);
+	int mib[2] = { CTL_KERN, KERN_BOOTTIME };
+	if( sysctl(mib, 2, &boottime, &len, NULL, 0) < 0 )
+	{
+		return 0;
+	}
+	time_t bsec = boottime.tv_sec, csec = time(NULL);
+
+	return (uint32_t)difftime(csec, bsec);
+}
+
+uint32_t Utils::millis() {
+	timeb tb;
+	ftime( &tb );
+	time_t nCount = tb.millitm + (tb.time & 0xfffff) * 1000;
+	return (uint32_t)nCount;
+}
+#endif
+#endif
 
 bool Utils::fileExists(const char *filename) {
 	return access(filename, F_OK) != -1;
@@ -83,15 +136,6 @@ void Utils::delay(unsigned int ms) {
 	usleep(ms * 1000);
 }
 
-uint32_t Utils::millis() {
-	struct timespec ts;
-	unsigned theTick = 0U;
-	clock_gettime( CLOCK_REALTIME, &ts );
-	theTick  = ts.tv_nsec / 1000000;
-	theTick += ts.tv_sec * 1000;
-	return theTick;
-}
-
 uint64_t Utils::hton64(byte* bignum) {
 	uint64_t aux = 0;
 	uint8_t *p = (uint8_t*)bignum;
@@ -133,10 +177,9 @@ std::string Utils::doubleToString(double d) {
 }
 
 std::string Utils::getInterfaceMAC() {
-	struct ifreq ifr;
 	struct ifconf ifc;
 	char buf[1024];
-	int success = 0;
+	bool success = false;
 
 	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (sock == -1) {
@@ -152,24 +195,46 @@ std::string Utils::getInterfaceMAC() {
 	struct ifreq* it = ifc.ifc_req;
 	const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
 
+	unsigned char mac_address[6];
+
 	for (; it != end; ++it) {
+#ifdef __LINUX__
+		struct ifreq ifr;
 		strcpy(ifr.ifr_name, it->ifr_name);
 		if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {
 			if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
 				if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
-					success = 1;
+					memcpy(mac_address, ifr.ifr_hwaddr.sa_data, 6);
+					success = true;
 					break;
 				}
 			}
 		} else {
 			return std::string("");
 		}
+#else
+#if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
+		ifaddrs* iflist;
+		if (getifaddrs(&iflist) == 0) {
+			for (ifaddrs* cur = iflist; cur; cur = cur->ifa_next) {
+				if ((cur->ifa_addr->sa_family == AF_LINK) &&
+					(strcmp(cur->ifa_name, it->ifr_name) == 0) && cur->ifa_addr) {
+					sockaddr_dl* sdl = (sockaddr_dl*)cur->ifa_addr;
+					memcpy(mac_address, LLADDR(sdl), sdl->sdl_alen);
+					success = true;
+					break;
+				}
+			}
+
+			freeifaddrs(iflist);
+		}
+#else
+#error No definition for getInterfaceMAC()
+#endif
+#endif
 	}
 
-	unsigned char mac_address[6];
-
 	if (success) {
-		memcpy(mac_address, ifr.ifr_hwaddr.sa_data, 6);
 		char buf1[100];
 		memset(buf1, 0, 50);
 		snprintf(buf1, 50, "%02x%02x%02x%02x%02x%02x",
@@ -179,15 +244,6 @@ std::string Utils::getInterfaceMAC() {
 		return std::string(buf1);
 	} else {
 		return std::string("");
-	}
-}
-
-uint32_t Utils::uptime() {
-	struct sysinfo sys_info;
-	if (sysinfo(&sys_info) == 0) {
-		return (uint32_t)sys_info.uptime;
-	} else {
-		return 0;
 	}
 }
 

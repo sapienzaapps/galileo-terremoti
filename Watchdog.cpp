@@ -92,9 +92,19 @@ void Watchdog::launch() {
 		stat(WATCHDOG_FILE, &fileinfo);
 
 		bool heartbeat = true;
+#ifdef __LINUX__
 		if(fileinfo.st_mtim.tv_sec < time(NULL) - 15) {
 			heartbeat = false;
 		}
+#else
+#if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
+		if(fileinfo.st_mtimespec.tv_sec < time(NULL) - 15) {
+			heartbeat = false;
+		}
+#else
+#error No definition for file modify time (watchdog)
+#endif
+#endif
 		if (sketchpid == 0 || !heartbeat) {
 			if(!heartbeat) {
 				Log::d("Heartbeat missed");
@@ -104,7 +114,7 @@ void Watchdog::launch() {
 			}
 			Log::i("Sketch is not running");
 			Log::close();
-			system("reboot");
+			system(REBOOT_CMD);
 			exit(EXIT_SUCCESS);
 		}
 	}

@@ -192,7 +192,7 @@ void CommandInterface::checkCommandPacket() {
 			sendPacket(pkt);
 
 			Log::i("Requesting reboot from remote host %s", pkt.source.asString().c_str());
-			system("reboot");
+			system(REBOOT_CMD);
 			exit(0);
 		}
 		case PKTTYPE_GETINFO:
