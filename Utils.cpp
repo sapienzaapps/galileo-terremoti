@@ -16,7 +16,7 @@
 
 
 
-#ifdef __LINUX__
+#ifdef __linux__
 #include <sys/sysinfo.h>
 unsigned long Utils::freeRam() {
 	struct sysinfo sys_info;
@@ -198,7 +198,7 @@ std::string Utils::getInterfaceMAC() {
 	unsigned char mac_address[6];
 
 	for (; it != end; ++it) {
-#ifdef __LINUX__
+#ifdef __linux__
 		struct ifreq ifr;
 		strcpy(ifr.ifr_name, it->ifr_name);
 		if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {

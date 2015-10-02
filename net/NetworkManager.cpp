@@ -19,7 +19,7 @@
 
 struct ICMP_PACKET {
 #if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
-    struct icmp hdr;
+	struct icmp hdr;
 	char msg[64-sizeof(struct icmp)];
 #else
 	struct icmphdr hdr;
@@ -90,6 +90,7 @@ bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequence
 #if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
 	pckt.hdr.icmp_type = ICMP_ECHO;
 #else
+	pid_t pid = getpid();
 	pckt.hdr.type = ICMP_ECHO;
 	pckt.hdr.un.echo.id = (uint16_t)pid;
 #endif

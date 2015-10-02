@@ -92,7 +92,7 @@ void Watchdog::launch() {
 		stat(WATCHDOG_FILE, &fileinfo);
 
 		bool heartbeat = true;
-#ifdef __LINUX__
+#ifdef __linux__
 		if(fileinfo.st_mtim.tv_sec < time(NULL) - 15) {
 			heartbeat = false;
 		}
