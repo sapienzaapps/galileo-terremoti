@@ -5,6 +5,18 @@
 * Galileo toolchain (if you plan to compile for Arduino), you can find it here: http://www.intel.com/support/galileo/sb/CS-035101.htm
 * GCC compiler (if you plan to compile for linux-x86)
 
+# LED outputs
+
+LEDs can be in these different states:
+
+* **Green**: device is ready
+* **Green + Yellow**: device is ready but there is an issue connecting to SeismoCloud APIs
+* **Green (still) + Yellow (blinking)**: device is calibrating
+* **Green + Red (only for about 5 seconds)**: shake detected
+* **Yellow ONLY blinking**: no position available - initialize Seismometer with Android/iOS App
+* **Green + Yellow + Red - ALL rotating**: software is loading
+* **Green + Yellow + Red - ALL blinking fast**: software is loaded, starting accelerometer
+
 # Toolchains
 ## Galileo
 

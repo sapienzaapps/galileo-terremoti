@@ -103,11 +103,15 @@ void setup() {
 		// TODO: Get position if not avail
 		// Wait for location from App if not avail
 		Log::i("Position not available, waiting for position from App");
+		LED::setLedAnimation(false);
+		LED::setLedBlinking(LED_YELLOW_PIN);
 		do {
 			Watchdog::heartBeat();
 			CommandInterface::checkCommandPacket();
 			Utils::delay(200);
 		} while(!Config::hasPosition());
+		LED::clearLedBlinking();
+		LED::setLedAnimation(true);
 	} else {
 		Log::i("GPS coords: %f %f", Config::getLatitude(), Config::getLongitude());
 	}

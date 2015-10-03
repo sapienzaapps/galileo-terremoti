@@ -11,7 +11,7 @@
 #define DEFAULT_CONFIG_PATH  "/media/realroot/seismoconfig.txt"
 #define CMD_PING             "/bin/busybox ping -w 2 8.8.8.8 > /dev/null"
 #define CALIBRATION_FILE     "/media/realroot/calibration.dat"
-#define REBOOT_CMD           ""
+#define REBOOT_CMD           "reboot"
 #define SETDATE_CMD          "/bin/date -s @%lu"
 
 #endif //GALILEO_TERREMOTI_VENDOR_SPECIFIC_H

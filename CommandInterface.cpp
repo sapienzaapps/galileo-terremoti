@@ -169,8 +169,8 @@ void CommandInterface::checkCommandPacket() {
 			if(memcmp(myMac, pkt.mac, 6) != 0) return;
 
 			// Reply
-			Config::setLongitude(pkt.latitude);
-			Config::setLatitude(pkt.longitude);
+			Config::setLongitude(pkt.longitude);
+			Config::setLatitude(pkt.latitude);
 
 			Log::d("Location received - latitude: %lf - longitude: %lf", pkt.latitude, pkt.longitude);
 
