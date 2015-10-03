@@ -36,6 +36,7 @@ Seismometer::Seismometer() {
 
 void Seismometer::init() {
 	if(accelero == NULL) {
+		Log::e("Accelerometer is NULL");
 		return;
 	}
 }
@@ -50,7 +51,7 @@ void Seismometer::tick() {
 	if(inEvent && Utils::millis()-lastEventWas >= 5000) {
 		LED::red(false);
 		inEvent = false;
-	} else {
+	} else if(inEvent && Utils::millis()-lastEventWas < 5000) {
 		return;
 	}
 

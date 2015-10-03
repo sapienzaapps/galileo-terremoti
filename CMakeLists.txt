@@ -49,13 +49,22 @@ set(SOURCE_FILES
 		vendor/galileo/AcceleroMMA7361.cpp
 		vendor/galileo/AcceleroMMA7361.h
 		vendor/galileo/LED.cpp
+        vendor/galileo/generic.cpp
+        vendor/galileo/vendor_specific.h
 		vendor/linux-x86/DummyAccelerometer.cpp
 		vendor/linux-x86/DummyAccelerometer.h
 		vendor/linux-x86/LED.cpp
 		vendor/linux-x86/generic.cpp
-		generic.h
 		vendor/linux-x86/vendor_specific.h
-		Watchdog.cpp Watchdog.h)
+        vendor/mac-osx/DummyAccelerometer.cpp
+        vendor/mac-osx/DummyAccelerometer.h
+        vendor/mac-osx/LED.cpp
+        vendor/mac-osx/generic.cpp
+        vendor/mac-osx/vendor_specific.h
+        generic.h
+		Watchdog.cpp
+        Watchdog.h
+)
 
 add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
 #target_compile_options(galileo_gen1 PUBLIC "-DGALILEO_GEN=1")

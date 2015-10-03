@@ -14,6 +14,16 @@ OBJECTS := $(MODULES:%=${OBJDIR}/%.o)
 
 all: createdir vendor net ${OUTDIR}/sketch.elf
 
+ifeq (, ${REMOTEHOST})
+upload:
+	$(error No REMOTEHOST specified)
+else
+upload:
+	scp $(OUTDIR)/sketch.elf root@${REMOTEHOST}:/sketch/sketch.new
+	ssh root@${REMOTEHOST} "killall sketch.elf && mv /sketch/sketch.new /sketch/sketch.elf && reboot"
+
+endif
+
 createdir:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(OUTDIR)
