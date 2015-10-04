@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-// #include <Serial.h>
 #include "common.h"
 #include "Log.h"
 #include "Config.h"
+#include "Utils.h"
 
 IPaddr Log::syslogServer(0, 0, 0, 0);
 bool Log::syslogEnabled = false;
@@ -13,12 +13,7 @@ Udp Log::syslogUdp;
 FILE *Log::logFile = NULL;
 std::string Log::logFilePath = "";
 LogLevel Log::logLevel = LEVEL_INFO;
-std::string Log::deviceid = "";
 bool Log::stdoutDebug = false;
-
-void Log::setDeviceId(std::string deviceid) {
-	Log::deviceid = deviceid;
-}
 
 void Log::setSyslogServer(IPaddr server) {
 	if(server == 0) {
@@ -66,11 +61,7 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 	} else if (level == LEVEL_ERROR) {
 		levelC = 'E';
 	}
-	if (deviceid == "") {
-		snprintf(logentry, 1024, "[%s] [%c] [?] %s", Log::getDateTime().c_str(), levelC, realmsg);
-	} else {
-		snprintf(logentry, 1024, "[%s] [%c] [%s] %s", Log::getDateTime().c_str(), levelC, deviceid.c_str(), realmsg);
-	}
+	snprintf(logentry, 1024, "[%s] [%c] [%s] %s", Log::getDateTime().c_str(), levelC, Utils::getInterfaceMAC().c_str(), realmsg);
 
 	if (Log::stdoutDebug) {
 		printf("%s\n", logentry);

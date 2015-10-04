@@ -2,11 +2,6 @@
 #define galileo_log_h
 
 #include <math.h>
-
-#ifdef __LINUX__
-#include <sys/sysinfo.h>
-#endif
-
 #include <signal.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -33,7 +28,6 @@ public:
 	static void setLogFile(std::string);
 	static void setLogFile(const char*);
 	static void enableStdoutDebug(bool);
-	static void setDeviceId(std::string);
 	static void updateFromConfig();
 	static void rotate();
 	static void close();
@@ -48,7 +42,6 @@ private:
 	static std::string logFilePath;
 	static FILE *logFile;
 	static LogLevel logLevel;
-	static std::string deviceid;
 	static bool stdoutDebug;
 };
 
