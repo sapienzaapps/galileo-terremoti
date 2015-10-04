@@ -12,8 +12,8 @@
 
 time_t NTP::unixTimeTS = 0;
 unsigned long NTP::unixTimeUpdate = 0;
-
-IPaddr NTP::ntpserver(88, 149, 128, 123);
+IPaddr NTP::lastNTPServer = 0;
+std::string NTP::ntpserver = "europe.pool.ntp.org";
 Udp NTP::udpSocket;
 
 // send an NTP request to the time server at the given address
@@ -74,7 +74,7 @@ unsigned long int NTP::getUNIXTimeMS() {
 	return (((NTP::unixTimeTS) + (diff / 1000) + 1));
 }
 
-void NTP::setNTPServer(IPaddr ntpserver) {
+void NTP::setNTPServer(std::string ntpserver) {
 	NTP::ntpserver = ntpserver;
 }
 
@@ -84,9 +84,9 @@ void NTP::init() {
 }
 
 bool NTP::sync() {
-	Log::d("NTP sync with %s", NTP::ntpserver.asString().c_str());
+	Log::d("NTP sync with %s", NTP::ntpserver.c_str());
 	bool ret = false;
-	if(NTP::ntpserver == 0) return false;
+	if(NTP::ntpserver.empty()) return false;
 	// If current time is lower than ~ "2015-07-23 12:45:00" then we force NTP sync
 	//
 	// This function will loop when no NTP sync occurs and:
@@ -97,7 +97,9 @@ bool NTP::sync() {
 	// Let's hope for first condition :-)
 	do {
 		// send an NTP packet to a time server
-		NTP::sendNTPpacket(NTP::ntpserver);
+		lastNTPServer = IPaddr::resolve(NTP::ntpserver);
+		if(lastNTPServer == 0) return false;
+		NTP::sendNTPpacket(lastNTPServer);
 
 		// wait to see if a reply is available
 		Utils::delay(500);
@@ -123,7 +125,7 @@ bool NTP::sync() {
 			}
 		}
 		if(!ret) {
-			Log::e("ERROR NTP PACKET NOT RECEIVED: %s", NTP::ntpserver.asString().c_str());
+			Log::e("ERROR NTP PACKET NOT RECEIVED: %s", NTP::ntpserver.c_str());
 		}
 	} while(NTP::unixTimeTS < 1437648361);
 	return ret;
@@ -136,6 +138,10 @@ int NTP::getHour() {
 	return tm_struct->tm_hour;
 }
 
-IPaddr NTP::getNTPServer() {
+std::string NTP::getNTPServer() {
 	return ntpserver;
+}
+
+IPaddr NTP::getLastNTPServer() {
+	return lastNTPServer;
 }

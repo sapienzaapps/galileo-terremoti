@@ -10,7 +10,6 @@
 std::string Config::macAddress = "";
 double Config::lat = 0.0;
 double Config::lon = 0.0;
-uint32_t Config::ntpServer = 0;
 uint32_t Config::syslogServer = 0;
 
 bool Config::hasMACAddress() {
@@ -123,12 +122,7 @@ void Config::init() {
 void Config::loadDefault() {
 	lat = 0.0;
 	lon = 0.0;
-	macAddress = "";
-	ntpServer = 0;
-}
-
-uint32_t Config::getNTPServer() {
-	return Config::ntpServer;
+	macAddress = Utils::getInterfaceMAC();
 }
 
 bool Config::checkServerConfig() {
@@ -162,8 +156,7 @@ bool Config::checkServerConfig() {
 			HTTPClient::setBaseURL(params["server"]);
 		}
 
-		IPaddr ntpserver = IPaddr::resolve(params["ntpserver"]);
-		NTP::setNTPServer(ntpserver);
+		NTP::setNTPServer(params["ntpserver"]);
 
 		std::string script = params["script"];
 		if (!script.empty()) {

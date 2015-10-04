@@ -198,7 +198,7 @@ void CommandInterface::checkCommandPacket() {
 			memcpy(pkt.softwareVersion, SOFTWARE_VERSION, 4);
 			pkt.freeRam = Utils::freeRam()/1024;
 			pkt.latency = NetworkManager::latency();
-			pkt.ntpServer = NTP::getNTPServer();
+			pkt.ntpServer = NTP::getLastNTPServer();
 			pkt.httpBaseAddress = HTTPClient::getBaseURL();
 			pkt.platformName = getPlatformName();
 			pkt.accelerometerName = Seismometer::getInstance()->getAccelerometerName();

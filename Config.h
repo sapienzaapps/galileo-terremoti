@@ -16,7 +16,6 @@ public:
 	static double getLatitude();
 	static double getLongitude();
 	static bool hasPosition();
-	static uint32_t getNTPServer();
 	static bool checkServerConfig();
 	static void printConfig();
 	static void setMacAddress(std::string macAddress);
@@ -35,7 +34,6 @@ private:
 	static double lat;
 	static double lon;
 	static std::string macAddress;
-	static uint32_t ntpServer;
 	static uint32_t syslogServer;
 };
 
