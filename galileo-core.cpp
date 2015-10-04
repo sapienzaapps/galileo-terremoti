@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 	while(1) {
 		loop();
-#ifndef __IS_GALILEO
+#ifndef GALILEO_GEN
 		Utils::delay(50);
 #endif
 	}
@@ -54,10 +54,7 @@ void setup() {
 	Log::i("Starting.........");
 
 	Log::i("Software version: %s", SOFTWARE_VERSION);
-	Log::i("Platform name: %s", PLATFORM);
-#ifdef __IS_GALILEO
-	Log::i("Galileo Gen: %i", GALILEO_GEN);
-#endif
+	Log::i("Platform name: %s", PLATFORM_TAG);
 
 	Log::i("Loading config");
 	// Load saved config - if not available, load defaults

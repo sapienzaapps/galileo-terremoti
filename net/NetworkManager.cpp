@@ -1,5 +1,4 @@
 
-#include <vendor_specific.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <netdb.h>
@@ -27,13 +26,8 @@ struct ICMP_PACKET {
 #endif
 };
 
-float NetworkManager::lastLatency = -1;
 bool NetworkManager::connectionAvailable = false;
 bool NetworkManager::connectionChecked = false;
-
-bool NetworkManager::isConnectedToInternet() {
-	return NetworkManager::isConnectedToInternet(false);
-}
 
 bool NetworkManager::isConnectedToInternet(bool force) {
 	if (!NetworkManager::connectionChecked || force) {
@@ -47,15 +41,10 @@ void NetworkManager::init() {
 	signal(SIGPIPE, SIG_IGN);
 }
 
-float NetworkManager::getLastLatency() {
-	return lastLatency;
-}
-
 float NetworkManager::latency() {
 	unsigned long startms = Utils::millis();
 	ping(IPaddr(8, 8, 8, 8), 2000, 1);
-	lastLatency = Utils::millis() - startms;
-	return lastLatency;
+	return Utils::millis() - startms;
 }
 
 bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequenceNumber) {
@@ -116,8 +105,9 @@ bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequence
 	while(Utils::millis() < startms + waitms) {
 		socklen_t len = 0;
 		if ( recvfrom(sd, &pckt, sizeof(pckt), 0, (struct sockaddr*)&r_addr, &len) > 0 ) {
-			// FIXME: check ICMP type?
-			return true;
+			if(pckt.hdr.type == 0) {
+				return true;
+			}
 		}
 		usleep(100);
 	}

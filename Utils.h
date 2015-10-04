@@ -18,13 +18,16 @@ public:
 	static void delay(unsigned int ms);
 	static uint32_t millis();
 	static uint64_t hton64(byte* bignum);
-	static std::string doubleToString(double);
 	static float reverseFloat(const float inFloat);
 	static std::string trim(std::string& str, char c);
 	static std::string getInterfaceMAC();
 	static uint32_t uptime();
 	static std::string readFirstLine(std::string filename);
 	static int setNonblocking(int);
+	static std::string toString(double);
+	static std::string toString(long d);
+	static std::string toString(unsigned long d);
+	static std::string toString(uint32_t d);
 };
 
 #endif //GALILEO_TERREMOTI_UTILS_H

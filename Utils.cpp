@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <cmath>
 #include <sstream>
 #include <netinet/in.h>
@@ -170,7 +171,24 @@ std::string Utils::trim(std::string& str, char c) {
 	return str.substr(first, (last-first+1));
 }
 
-std::string Utils::doubleToString(double d) {
+std::string Utils::toString(uint32_t d) {
+	std::ostringstream strs;
+	strs << d;
+	return strs.str();
+}
+
+std::string Utils::toString(double d) {
+	std::ostringstream strs;
+	strs << d;
+	return strs.str();
+}
+
+std::string Utils::toString(long d) {
+	std::ostringstream strs;
+	strs << d;
+	return strs.str();
+}
+std::string Utils::toString(unsigned long d) {
 	std::ostringstream strs;
 	strs << d;
 	return strs.str();

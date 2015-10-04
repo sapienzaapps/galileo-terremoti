@@ -68,15 +68,7 @@ void CommandInterface::sendPacket(PACKET pkt) {
 		memcpy(pktbuf + 6, mac, 6);
 
 		memcpy(pktbuf + 12, SOFTWARE_VERSION, 4);
-#if GALILEO_GEN == 1
-		memcpy(pktbuf + 16, "galileo1", 8);
-#else
-#if GALILEO_GEN == 2
-		memcpy(pktbuf + 16, "galileo2", 8);
-#else
-		memcpy(pktbuf + 16, PLATFORM, 8);
-#endif
-#endif
+		memcpy(pktbuf + 16, PLATFORM_TAG, (strlen(PLATFORM_TAG) < 8 ? strlen(PLATFORM) : 8));
 	} else if(pkt.type == PKTTYPE_GETINFO_REPLY) {
 		int offset = 6;
 		memcpy(pktbuf + offset, pkt.mac, 6);

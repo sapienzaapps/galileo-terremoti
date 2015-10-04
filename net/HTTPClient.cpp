@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "HTTPClient.h"
-#include "../common.h"
 #include "../Log.h"
 #include "../Utils.h"
 
@@ -13,14 +12,13 @@ std::string HTTPClient::getConfig() {
 	std::string cfg;
 	std::map<std::string, std::string> postValues;
 	postValues["deviceid"] = Config::getMacAddress();
-	postValues["lat"] = Utils::doubleToString(Config::getLatitude());
-	postValues["lon"] = Utils::doubleToString(Config::getLongitude());
+	postValues["lat"] = Utils::toString(Config::getLatitude());
+	postValues["lon"] = Utils::toString(Config::getLongitude());
 	postValues["version"] = SOFTWARE_VERSION;
-#if GALILEO_GEN == 1
-	postValues["model"] = "galileo1";
-#else
-	postValues["model"] = "galileo2";
-#endif
+	postValues["memfree"] = Utils::toString(Utils::freeRam());
+	postValues["uptime"] = Utils::toString(Utils::uptime());
+	postValues["model"] = PLATFORM_TAG;
+	postValues["sensor"] = Seismometer::getInstance()->getAccelerometerName();
 
 	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "alive.php", postValues);
 	Log::d("Response received, code: %i", resp->responseCode);
@@ -50,25 +48,6 @@ void HTTPClient::httpSendAlert1(RECORD *db, THRESHOLDS *td) {
 		nextContact = atol((const char *) resp->body) * 1000UL;
 	}
 	freeHTTPResponse(resp);
-}
-
-std::string HTTPClient::getMACAddress() {
-	std::string mac;
-	std::map<std::string, std::string> postValues;
-	postValues["deviceid"] = "00000000c1a0";
-	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "alive.php", postValues);
-	if (resp->error == HTTP_OK && resp->body != NULL) {
-		mac = std::string((char *) resp->body);
-	} else {
-		mac = std::string("");
-	}
-	freeHTTPResponse(resp);
-	return mac;
-}
-
-
-unsigned long HTTPClient::getNextContact() {
-	return nextContact;
 }
 
 size_t HTTPClient::hostFromURL(const char *url, char *hostname, unsigned short *port) {

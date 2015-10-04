@@ -215,7 +215,7 @@ void Config::file_put_contents(const char *path, std::string content) {
 
 void Config::printConfig() {
 	Log::i("###################### Config ######################### ");
-	Log::i("UDID (DeviceID): %s - Model: %s - Version: %s", Config::getMacAddress().c_str(), PLATFORM, SOFTWARE_VERSION);
+	Log::i("UDID (DeviceID): %s - Model: %s - Version: %s", Config::getMacAddress().c_str(), PLATFORM_TAG, SOFTWARE_VERSION);
 	Log::i("Position (lat, lon): %lf %lf", Config::getLatitude(), Config::getLongitude());
 
 	char buf[300];

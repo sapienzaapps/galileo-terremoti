@@ -7,10 +7,6 @@
 
 #define MINVAL(a,b) ((a) < (b) ? (a) : (b))
 
-#ifdef __IS_GALILEO
-#include <Arduino.h>
-#endif
-
 #ifndef PLATFORM
 #define PLATFORM "unknown"
 #endif
@@ -29,11 +25,11 @@ typedef uint8_t byte;
 #define LED_RED_PIN 12
 #define LED_GREEN_PIN 10
 
-#define NTP_SYNC_INTERVAL 60*60*1000
-#define CHECK_NETWORK_INTERVAL 6*30*1000  // when to check for Internet connection availability
-#define CHECK_CONFIG_INTERVAL 15*60*1000  // when to check for Internet connection availability
-#define SEISMOMETER_TICK_INTERVAL 50
-#define HTTP_RESPONSE_TIMEOUT_VALUE 5000
-#define NTP_RESPONSE_TIMEOUT_VALUE 5000
+#define NTP_SYNC_INTERVAL            60*60*1000
+#define CHECK_NETWORK_INTERVAL       30*1000  // when to check for Internet connection availability
+#define CHECK_CONFIG_INTERVAL        15*60*1000  // when to check for Internet connection availability
+#define SEISMOMETER_TICK_INTERVAL    50
+#define HTTP_RESPONSE_TIMEOUT_VALUE  10*1000
+#define NTP_RESPONSE_TIMEOUT_VALUE   5*1000
 
 #endif //GALILEO_TERREMOTI_COMMON_H
