@@ -6,7 +6,11 @@
 #include "../Utils.h"
 
 unsigned long HTTPClient::nextContact = 5000;
+#ifdef DEBUG
+std::string HTTPClient::baseUrl = "http://192.0.2.20/seismocloud/";
+#else
 std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
+#endif
 
 std::string HTTPClient::getConfig() {
 	std::string cfg;
@@ -22,7 +26,7 @@ std::string HTTPClient::getConfig() {
 
 	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "alive.php", postValues);
 	Log::d("Response received, code: %i", resp->responseCode);
-	if (resp->error == HTTP_OK && resp->body != NULL) {
+	if (resp->error == HTTP_OK && resp->responseCode == 200 && resp->body != NULL) {
 		cfg = std::string((char *) resp->body);
 	} else {
 		cfg = std::string("");
@@ -152,7 +156,7 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 
 			Log::d("buffer response[%i]: %s", s, rBuffer);
 
-			if (strncmp(rBuffer, "HTTP/1.1", 8) == 0) {
+			if (strncmp(rBuffer, "HTTP/1.", 7) == 0) {
 				resp->error = HTTP_OK;
 				resp->responseCode = getResponseCode(rBuffer);
 

@@ -5,6 +5,7 @@
 #ifndef GALILEO_TERREMOTI_WATCHDOG_H
 #define GALILEO_TERREMOTI_WATCHDOG_H
 
+#include <string>
 
 class Watchdog {
 public:
@@ -12,6 +13,7 @@ public:
 	static void heartBeat();
 
 private:
+	static void storeCrashInfos(std::string);
 	static unsigned long lastBeat;
 	static pid_t getSketchPid();
 };

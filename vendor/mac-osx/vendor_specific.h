@@ -13,5 +13,6 @@
 #define CALIBRATION_FILE     "/tmp/calibration.dat"
 #define REBOOT_CMD           ""
 #define SETDATE_CMD          "/bin/date -f \"%%s\" %lu"
+#define WATCHDOG_CRASHDIR    "/tmp/watchdog/"
 
 #endif //GALILEO_TERREMOTI_VENDOR_SPECIFIC_H

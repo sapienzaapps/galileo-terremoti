@@ -18,5 +18,6 @@
 #define CALIBRATION_FILE     "/media/realroot/calibration.dat"
 #define REBOOT_CMD           "reboot"
 #define SETDATE_CMD          "/bin/date -s @%lu"
+#define WATCHDOG_CRASHDIR    "/media/realroot/watchdog/"
 
 #endif //GALILEO_TERREMOTI_VENDOR_SPECIFIC_H

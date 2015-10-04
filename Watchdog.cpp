@@ -106,14 +106,18 @@ void Watchdog::launch() {
 #endif
 #endif
 		if (sketchpid == 0 || !heartbeat) {
+			std::string reason = "";
 			if(!heartbeat) {
 				Log::d("Heartbeat missed");
+				reason.append("Heartbeat missed\n");
 			}
 			if(sketchpid == 0) {
 				Log::d("Unable to get sketch PID");
+				reason.append("Unable to get sketch PID");
 			}
 			Log::i("Sketch is not running");
 			Log::close();
+			storeCrashInfos(reason);
 			system(REBOOT_CMD);
 			exit(EXIT_SUCCESS);
 		}
@@ -158,4 +162,13 @@ void Watchdog::heartBeat() {
 		fclose(fp);
 		lastBeat = Utils::millis();
 	}
+}
+
+void Watchdog::storeCrashInfos(std::string reason) {
+	std::string path = WATCHDOG_CRASHDIR;
+	path.append(Utils::toString(time(NULL)));
+	path.append(".dat");
+	FILE* fp = fopen(path.c_str(), "w");
+	fwrite(reason.c_str(), reason.length(), 1, fp);
+	fclose(fp);
 }

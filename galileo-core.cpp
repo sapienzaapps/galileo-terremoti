@@ -48,8 +48,10 @@ void setup() {
 	LED::setLedAnimation(true);
 
 	Log::setLogFile(DEFAULT_LOG_PATH);
+#ifdef DEBUG
 	Log::enableStdoutDebug(true);
 	Log::setLogLevel(LEVEL_DEBUG);
+#endif
 
 	Log::i("Starting.........");
 

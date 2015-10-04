@@ -1,12 +1,15 @@
 
 include build-cfg.mk
 
-OUTDIR=$(shell pwd)/build/out_$(PLATFORM)$(VARIANT)
-OBJDIR=$(shell pwd)/build/tmp_$(PLATFORM)$(VARIANT)
-MAINFLAGS=-DPLATFORM=\"${PLATFORM}\" -Wno-unknown-pragmas -g
+OUTDIR    := $(shell pwd)/build/out_$(PLATFORM)$(VARIANT)
+OBJDIR    := $(shell pwd)/build/tmp_$(PLATFORM)$(VARIANT)
+MAINFLAGS := -DPLATFORM=\"${PLATFORM}\" -Wno-unknown-pragmas -g
+
+ifneq (, DEBUG)
+MAINFLAGS += -DDEBUG
+endif
 
 include vendor/${PLATFORM}/toolchain.mk
-
 
 MODULES := avg CommandInterface Config Log Seismometer Utils Watchdog galileo-core
 SOURCES := $(MODULES:%=%.cpp)
