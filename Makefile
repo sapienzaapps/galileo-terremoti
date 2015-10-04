@@ -5,7 +5,7 @@ OUTDIR    := $(shell pwd)/build/out_$(PLATFORM)$(VARIANT)
 OBJDIR    := $(shell pwd)/build/tmp_$(PLATFORM)$(VARIANT)
 MAINFLAGS := -DPLATFORM=\"${PLATFORM}\" -Wno-unknown-pragmas -g
 
-ifneq (, DEBUG)
+ifneq (, ${DEBUG})
 MAINFLAGS += -DDEBUG
 endif
 
