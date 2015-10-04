@@ -80,6 +80,7 @@ void NTP::setNTPServer(IPaddr ntpserver) {
 
 void NTP::init() {
 	udpSocket.listen(63451);
+	udpSocket.setNonblocking();
 }
 
 bool NTP::sync() {
