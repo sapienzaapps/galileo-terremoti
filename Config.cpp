@@ -5,6 +5,7 @@
 #include "net/NTP.h"
 #include "Log.h"
 #include "Utils.h"
+#include "LED.h"
 #include <string.h>
 
 std::string Config::macAddress = "";
@@ -135,6 +136,10 @@ bool Config::checkServerConfig() {
 
 		std::string path = params["path"];
 		if(!path.empty()) {
+			LED::green(false);
+			LED::yellow(false);
+			LED::red(false);
+			LED::setLedBlinking(LED_RED_PIN);
 			// Firmware update
 			char cmd[1024];
 			memset(cmd, 0, 1024);
@@ -143,12 +148,12 @@ bool Config::checkServerConfig() {
 
 			FILE *fp = fopen("/sketch/update.sh", "w");
 			memset(cmd, 0, 1024);
-			snprintf(cmd, 1023, "#!/bin/bash\nkillall sketch.elf && mv /sketch/sketch.new /sketch/sketch.elf && reboot");
+			snprintf(cmd, 1023, "#!/bin/bash\nkillall sketch.elf; mv /sketch/sketch.new /sketch/sketch.elf; sleep 1; reboot");
 			fwrite(cmd, strlen(cmd), 1, fp);
 			fclose(fp);
 
 			system("/bin/bash /sketch/update.sh");
-			exit(0);
+			while(1) {};
 		}
 
 		// Workaround for old configuration
@@ -158,15 +163,16 @@ bool Config::checkServerConfig() {
 
 		NTP::setNTPServer(params["ntpserver"]);
 
-		std::string script = params["script"];
-		if (!script.empty()) {
-			Log::i("Script Creation (len: %i path: %s...", script.size(), "/tmp/script.sh");
-			file_put_contents("/tmp/script.sh", script);
-			Log::d("Script: %s", script.c_str());
-			Log::i("Script created, executing...");
-			system("chmod +x /tmp/script.sh");
-			system("/tmp/script.sh");
-		}
+//		std::string script = params["script"];
+//		if (!script.empty()) {
+//			Log::i("Script Creation (len: %i path: %s...", script.size(), "/tmp/script.sh");
+//			file_put_contents("/tmp/script.sh", script);
+//			Log::d("Script: %s", script.c_str());
+//			Log::i("Script created, executing...");
+//			system("chmod +x /tmp/script.sh");
+//			system("/tmp/script.sh");
+//			unlink("/tmp/script.sh");
+//		}
 		return true;
 	} else {
 		return false;
