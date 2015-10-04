@@ -93,7 +93,7 @@ void Watchdog::launch() {
 
 		bool heartbeat = true;
 #ifdef __linux__
-		if(fileinfo.st_mtim.tv_sec < time(NULL) - 15) {
+		if(fileinfo.st_mtim.tv_sec < time(NULL) - WATCHDOG_TIMER/1000) {
 			heartbeat = false;
 		}
 #else
@@ -149,7 +149,7 @@ pid_t Watchdog::getSketchPid() {
 }
 
 void Watchdog::heartBeat() {
-	if(Utils::millis() - lastBeat > 5000) {
+	if(Utils::millis() - lastBeat > WATCHDOG_TIMER/3) {
 		FILE* fp = fopen(WATCHDOG_FILE, "w");
 		char buf[10];
 		memset(buf, 0xFF, 10);

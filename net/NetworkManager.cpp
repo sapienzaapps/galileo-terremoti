@@ -101,16 +101,19 @@ bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequence
 		return false;
 	}
 
+	bzero(&pckt, sizeof(pckt));
 	unsigned long startms = Utils::millis();
 	while(Utils::millis() < startms + waitms) {
 		socklen_t len = 0;
-		if ( recvfrom(sd, &pckt, sizeof(pckt), 0, (struct sockaddr*)&r_addr, &len) > 0 ) {
-			if(pckt.hdr.type == 0) {
+		byte buf[1500];
+		if ( recvfrom(sd, buf, 1500, 0, (struct sockaddr*)&r_addr, &len) > 0 ) {
+			if(buf[20] == ICMP_ECHOREPLY) {
 				return true;
 			}
 		}
 		usleep(100);
 	}
+	Log::d("ICMP timeout");
 
 	return false;
 }
