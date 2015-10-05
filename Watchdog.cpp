@@ -118,8 +118,10 @@ void Watchdog::launch() {
 			Log::i("Sketch is not running");
 			Log::close();
 			storeCrashInfos(reason);
-			system(REBOOT_CMD);
-			exit(EXIT_SUCCESS);
+			while(1) {
+				system(REBOOT_CMD);
+				sleep(5);
+			}
 		}
 	}
 #pragma clang diagnostic pop
