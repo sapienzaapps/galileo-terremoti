@@ -192,17 +192,16 @@ void Watchdog::storeCrashInfos(std::string reason) {
 	fwrite(softwareversion.c_str(), softwareversion.length(), 1, fp);
 	fwrite(reason.c_str(), reason.length(), 1, fp);
 
-	std::string crashFile = std::string(WATCHDOG_CRASHDIR) + "/crash.dat";
-	if(Utils::fileExists(crashFile.c_str())) {
+	if(Utils::fileExists(STACKTRACEINFO)) {
 		fwrite("Crash infos:\n", 13, 1, fp);
 		char buf[1024];
 		memset(buf, 0, 1024);
 
-		FILE* crashfd = fopen(crashFile.c_str(), "r");
+		FILE* crashfd = fopen(STACKTRACEINFO, "r");
 		fread(buf, 1024, 1, crashfd);
 		fwrite(buf, strlen(buf), 1, fp);
 		fclose(crashfd);
-		unlink(crashFile.c_str());
+		unlink(STACKTRACEINFO);
 	}
 
 	fclose(fp);

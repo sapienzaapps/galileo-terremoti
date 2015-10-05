@@ -38,10 +38,7 @@ void crashHandler(int sig) {
 	fprintf(stderr, "Error: signal %d:\n", sig);
 	backtrace_symbols_fd(array, size, STDERR_FILENO);
 
-	mkdir(WATCHDOG_CRASHDIR, 0644);
-
-	std::string crashFile = std::string(WATCHDOG_CRASHDIR) + "/crash.dat";
-	int fd = open(crashFile.c_str(), O_RDWR | O_TRUNC);
+	int fd = open(STACKTRACEINFO, O_RDWR | O_TRUNC);
 	std::string sigError = "Error: signal " + Utils::toString(sig);
 	write(fd, sigError.c_str(), sigError.length());
 	backtrace_symbols_fd(array, size, fd);

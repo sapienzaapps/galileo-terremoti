@@ -14,5 +14,6 @@
 #define REBOOT_CMD           ""
 #define SETDATE_CMD          "/bin/date -s @%lu"
 #define WATCHDOG_CRASHDIR    "/tmp/watchdog/"
+#define STACKTRACEINFO       "/tmp/stacktrace.txt"
 
 #endif //GALILEO_TERREMOTI_VENDOR_SPECIFIC_H
