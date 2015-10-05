@@ -14,6 +14,7 @@
 #include "net/HTTPClient.h"
 #include "generic.h"
 #include "Seismometer.h"
+#include "LED.h"
 
 Udp CommandInterface::cmdc;
 IPaddr CommandInterface::udpDest(0);
@@ -184,8 +185,13 @@ void CommandInterface::checkCommandPacket() {
 			sendPacket(pkt);
 
 			Log::i("Requesting reboot from remote host %s", pkt.source.asString().c_str());
-			system(REBOOT_CMD);
-			exit(0);
+			LED::green(false);
+			LED::yellow(false);
+			LED::red(true);
+			while(1) {
+				system(REBOOT_CMD);
+				sleep(5);
+			}
 		}
 		case PKTTYPE_GETINFO:
 		{
