@@ -233,6 +233,13 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 		client.println(contentLength.c_str());
 		client.println("");
 
+		FILE *fp = fopen(file.c_str(), "r");
+		char buf[fileSize];
+		memset(buf, 0, fileSize);
+		fread(buf, fileSize, 1, fp);
+		client.send(buf, fileSize);
+		fclose(fp);
+
 		Log::d("HTTP Request to %s sent", URL.c_str());
 
 		// Request sent, wait for reply
