@@ -38,7 +38,7 @@ private:
 
 	static void freeHTTPResponse(HTTPResponse *resp);
 	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);
-	static HTTPResponse *httpRequestWithFile(std::string file);
+	static HTTPResponse *httpPostFile(std::string URL, std::string file);
 	static size_t hostFromURL(const char *url, char *hostname, unsigned short *port);
 	static unsigned short getResponseCode(char *line);
 	static int getLine(Tcp c, uint8_t *buffer, size_t maxsize, int toRead);

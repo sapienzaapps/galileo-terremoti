@@ -17,6 +17,7 @@
 #include "CommandInterface.h"
 #include "Watchdog.h"
 #include "generic.h"
+#include "net/HTTPClient.h"
 
 Seismometer *seismometer;
 unsigned long netLastMs = 0;
@@ -54,6 +55,8 @@ int main(int argc, char** argv) {
 
 	Watchdog::launch();
 	setup();
+
+	HTTPClient::sendCrashReports();
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 	while(1) {

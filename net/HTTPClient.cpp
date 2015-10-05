@@ -203,6 +203,95 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 	return resp;
 }
 
+HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
+	HTTPResponse *resp = new HTTPResponse();
+
+	Tcp client;
+	char serverName[100];
+	unsigned short serverPort = 80;
+	size_t pathOffset = hostFromURL(URL.c_str(), serverName, &serverPort);
+
+	if (client.connectTo(std::string(serverName), serverPort)) {
+		Log::d("Connect to server OK");
+		char linebuf[1024];
+
+		snprintf(linebuf, 1024, "POST %s HTTP/1.1", URL.c_str() + pathOffset);
+		client.println(linebuf);
+
+		if (serverPort != 80) {
+			snprintf(linebuf, 1024, "Host: %s:%i", serverName, serverPort);
+		} else {
+			snprintf(linebuf, 1024, "Host: %s", serverName);
+		}
+		client.println(linebuf);
+
+		client.println("Content-Type: text/plain");
+		client.println("Connection: close");
+
+		off_t fileSize = Utils::fileSize(file.c_str());
+		std::string contentLength = "Content-Length: " + Utils::toString((int)fileSize);
+		client.println(contentLength.c_str());
+		client.println("");
+
+		Log::d("HTTP Request to %s sent", URL.c_str());
+
+		// Request sent, wait for reply
+		unsigned long reqTime = Utils::millis();
+		while (!client.available() && (Utils::millis() - reqTime < HTTP_RESPONSE_TIMEOUT_VALUE)) { ; }
+
+		if (client.available()) {
+			char rBuffer[300 + 1];
+			memset(rBuffer, 0, 300 + 1);
+			int s = getLine(client, (uint8_t *) rBuffer, 300);
+
+			Log::d("buffer response[%i]: %s", s, rBuffer);
+
+			if (strncmp(rBuffer, "HTTP/1.", 7) == 0) {
+				resp->error = HTTP_OK;
+				resp->responseCode = getResponseCode(rBuffer);
+
+				// Read headers
+				do {
+					s = getLine(client, (uint8_t *) rBuffer, 300);
+					if (s > 0 && strlen(rBuffer) != 0) {
+						char *dppos = strchr(rBuffer, ':');
+						*dppos = 0;
+						if (*(dppos + 1) == ' ') {
+							dppos++;
+						}
+						dppos++;
+						resp->headers[std::string(rBuffer)] = std::string(dppos);
+					}
+				} while (s > 0 && strlen(rBuffer) != 0);
+
+				resp->body = NULL;
+				if (resp->headers.count("Content-Length") == 1) {
+					size_t bodySize = (size_t) atol(resp->headers["Content-Length"].c_str());
+					resp->body = (uint8_t *) malloc(bodySize+1);
+					memset(resp->body, 0, bodySize+1);
+					client.readall(resp->body, bodySize);
+				}
+			} else {
+				Log::e("HTTP malformed reply");
+				resp->error = HTTP_MALFORMED_REPLY;
+			}
+		} else {
+			Log::e("HTTP request timeout");
+			resp->error = HTTP_REQUEST_TIMEOUT;
+		}
+	} else {
+		Log::e("HTTP connection timeout");
+		resp->error = HTTP_CONNECTION_TIMEOUT;
+	}
+	Log::d("Stopping tcp client");
+	client.stop();
+	// TODO: better handling?
+	while (client.connected()) {
+		client.stop();
+	}
+	return resp;
+}
+
 void HTTPClient::freeHTTPResponse(HTTPResponse *resp) {
 	if (resp->body != NULL) {
 		free(resp->body);
@@ -268,6 +357,12 @@ void HTTPClient::sendCrashReports() {
 
 	while((entry = readdir(dp))) {
 		std::string filename = std::string(WATCHDOG_CRASHDIR) + "/" + entry->d_name;
+
+		HTTPResponse *resp = httpPostFile(baseUrl + "crashreport.php?deviceid=" + Utils::getInterfaceMAC(), filename);
+		if(resp->error == HTTP_OK && resp->responseCode == 200) {
+			unlink(filename.c_str());
+		}
+		freeHTTPResponse(resp);
 	}
 
 	closedir(dp);

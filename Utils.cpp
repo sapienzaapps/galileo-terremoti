@@ -280,3 +280,11 @@ int Utils::setNonblocking(int fd) {
 	}
     return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
+
+off_t Utils::fileSize(const char *filename) {
+	struct stat st;
+	if (stat(filename, &st) == 0)
+		return st.st_size;
+
+	return -1;
+}

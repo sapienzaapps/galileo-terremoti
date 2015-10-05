@@ -6,12 +6,14 @@
 #define GALILEO_TERREMOTI_UTILS_H
 
 #include <string>
+#include <sys/stat.h>
 #include "common.h"
 
 class Utils {
 public:
 	static unsigned long getFreeRam();
 	static bool fileExists(const char *filename);
+	static off_t fileSize(const char *filename);
 	static double atofn(const char *buf, size_t max);
 	static float absavg(int *buf, int size);
 	static double stddev(int *buf, int size, float avg);
