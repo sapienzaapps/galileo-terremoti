@@ -69,7 +69,7 @@ void CommandInterface::sendPacket(PACKET pkt) {
 		memcpy(pktbuf + 6, mac, 6);
 
 		memcpy(pktbuf + 12, SOFTWARE_VERSION, 4);
-		memcpy(pktbuf + 16, PLATFORM_TAG, (strlen(PLATFORM_TAG) < 8 ? strlen(PLATFORM) : 8));
+		memcpy(pktbuf + 16, PLATFORM_TAG, MINVAL(strlen(PLATFORM_TAG), 8));
 	} else if(pkt.type == PKTTYPE_GETINFO_REPLY) {
 		int offset = 6;
 		memcpy(pktbuf + offset, pkt.mac, 6);
@@ -202,7 +202,7 @@ void CommandInterface::checkCommandPacket() {
 			pkt.uptime = Utils::uptime();
 			pkt.unixts = (uint32_t)NTP::getUNIXTime();
 			memcpy(pkt.softwareVersion, SOFTWARE_VERSION, 4);
-			pkt.freeRam = Utils::freeRam()/1024;
+			pkt.freeRam = Utils::getFreeRam()/1024;
 			pkt.latency = NetworkManager::latency();
 			pkt.ntpServer = NTP::getLastNTPServer();
 			pkt.httpBaseAddress = HTTPClient::getBaseURL();

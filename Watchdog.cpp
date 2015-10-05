@@ -109,7 +109,7 @@ void Watchdog::launch() {
 			std::string reason = "";
 			if(!heartbeat) {
 				Log::d("Heartbeat missed");
-				reason.append("Heartbeat missed\n");
+				reason.append("Heartbeat missed;");
 			}
 			if(sketchpid == 0) {
 				Log::d("Unable to get sketch PID");
@@ -167,10 +167,43 @@ void Watchdog::heartBeat() {
 }
 
 void Watchdog::storeCrashInfos(std::string reason) {
+
+	reason = "reason:" + reason + "\n";
+
+	std::string macstr = "mac:" + Utils::getInterfaceMAC() + "\n";
+	std::string unixtime = "time:" + Utils::toString(time(NULL)) + "\n";
+	std::string freemem = "freeram:" + Utils::toString(Utils::getFreeRam()) + "\n";
+	std::string uptime = "uptime:" + Utils::toString(Utils::uptime()) + "\n";
+	std::string platform = "platform:" + std::string(PLATFORM_TAG) + "\n";
+	std::string softwareversion = "softwareversion:" + std::string(SOFTWARE_VERSION) + "\n";
+
 	std::string path = WATCHDOG_CRASHDIR;
 	path.append(Utils::toString(time(NULL)));
 	path.append(".dat");
+
+	mkdir(WATCHDOG_CRASHDIR, 0644);
+
 	FILE* fp = fopen(path.c_str(), "w");
+	fwrite(macstr.c_str(), macstr.length(), 1, fp);
+	fwrite(unixtime.c_str(), unixtime.length(), 1, fp);
+	fwrite(freemem.c_str(), freemem.length(), 1, fp);
+	fwrite(uptime.c_str(), uptime.length(), 1, fp);
+	fwrite(platform.c_str(), platform.length(), 1, fp);
+	fwrite(softwareversion.c_str(), softwareversion.length(), 1, fp);
 	fwrite(reason.c_str(), reason.length(), 1, fp);
+
+	std::string crashFile = std::string(WATCHDOG_CRASHDIR) + "/crash.dat";
+	if(Utils::fileExists(crashFile.c_str())) {
+		fwrite("Crash infos:\n", 13, 1, fp);
+		char buf[1024];
+		memset(buf, 0, 1024);
+
+		FILE* crashfd = fopen(crashFile.c_str(), "r");
+		fread(buf, 1024, 1, crashfd);
+		fwrite(buf, strlen(buf), 1, fp);
+		fclose(crashfd);
+		unlink(crashFile.c_str());
+	}
+
 	fclose(fp);
 }

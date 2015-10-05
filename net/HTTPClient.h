@@ -30,6 +30,7 @@ public:
 	static std::string getConfig();
 	static void httpSendAlert1(RECORD *db, THRESHOLDS *td);
 	static void setBaseURL(std::string baseUrl);
+	static void sendCrashReports();
 	static std::string getBaseURL();
 private:
 	static unsigned long nextContact;
@@ -37,6 +38,7 @@ private:
 
 	static void freeHTTPResponse(HTTPResponse *resp);
 	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);
+	static HTTPResponse *httpRequestWithFile(std::string file);
 	static size_t hostFromURL(const char *url, char *hostname, unsigned short *port);
 	static unsigned short getResponseCode(char *line);
 	static int getLine(Tcp c, uint8_t *buffer, size_t maxsize, int toRead);

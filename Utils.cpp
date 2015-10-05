@@ -19,7 +19,7 @@
 
 #ifdef __linux__
 #include <sys/sysinfo.h>
-unsigned long Utils::freeRam() {
+unsigned long Utils::getFreeRam() {
 	struct sysinfo sys_info;
 	if (sysinfo(&sys_info) == 0) {
 		return sys_info.freeram;
@@ -53,8 +53,10 @@ uint32_t Utils::millis() {
 #include <sys/timeb.h>
 #include <ifaddrs.h>
 #include <net/if_dl.h>
+#include <string>
+#include <memory>
 
-unsigned long Utils::freeRam() {
+unsigned long Utils::getFreeRam() {
 	return 0;
 }
 
@@ -189,6 +191,12 @@ std::string Utils::toString(long d) {
 	return strs.str();
 }
 std::string Utils::toString(unsigned long d) {
+	std::ostringstream strs;
+	strs << d;
+	return strs.str();
+}
+
+std::string Utils::toString(int d) {
 	std::ostringstream strs;
 	strs << d;
 	return strs.str();

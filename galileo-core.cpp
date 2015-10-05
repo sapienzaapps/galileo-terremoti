@@ -3,6 +3,9 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <execinfo.h>
+#include <sys/fcntl.h>
+#include <sys/stat.h>
 
 #include "common.h"
 #include "Config.h"
@@ -25,8 +28,32 @@ unsigned long logRotationMs = 0;
 void setup();
 void loop();
 
+void crashHandler(int sig) {
+	void *array[10];
+
+	// get void*'s for all entries on the stack
+	int size = backtrace(array, 10);
+
+	// print out all the frames to stderr
+	fprintf(stderr, "Error: signal %d:\n", sig);
+	backtrace_symbols_fd(array, size, STDERR_FILENO);
+
+	mkdir(WATCHDOG_CRASHDIR, 0644);
+
+	std::string crashFile = std::string(WATCHDOG_CRASHDIR) + "/crash.dat";
+	int fd = open(crashFile.c_str(), O_RDWR | O_TRUNC);
+	std::string sigError = "Error: signal " + Utils::toString(sig);
+	write(fd, sigError.c_str(), sigError.length());
+	backtrace_symbols_fd(array, size, fd);
+	close(fd);
+
+	exit(1);
+}
+
 int main(int argc, char** argv) {
 	vendor_init(argc, argv);
+
+	signal(SIGSEGV, crashHandler);
 
 	Watchdog::launch();
 	setup();
@@ -119,7 +146,7 @@ void setup() {
 	seismometer = Seismometer::getInstance();
 	seismometer->init();
 
-	Log::d("Free RAM: %lu", Utils::freeRam());
+	Log::d("Free RAM: %lu", Utils::getFreeRam());
 	Log::d("INIZIALIZATION COMPLETE!");
 
 	LED::setLedAnimation(false);

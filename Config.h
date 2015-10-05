@@ -12,7 +12,7 @@ public:
 	static void init();
 	static bool hasMACAddress();
 	static std::string getMacAddress();
-	static void getMacAddressAsByte(byte mac[6]); // TODO: test
+	static void getMacAddressAsByte(byte mac[6]);
 	static double getLatitude();
 	static double getLongitude();
 	static bool hasPosition();

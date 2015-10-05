@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <dirent.h>
 #include "HTTPClient.h"
 #include "../Log.h"
 #include "../Utils.h"
@@ -19,7 +20,7 @@ std::string HTTPClient::getConfig() {
 	postValues["lat"] = Utils::toString(Config::getLatitude());
 	postValues["lon"] = Utils::toString(Config::getLongitude());
 	postValues["version"] = SOFTWARE_VERSION;
-	postValues["memfree"] = Utils::toString(Utils::freeRam());
+	postValues["memfree"] = Utils::toString(Utils::getFreeRam());
 	postValues["uptime"] = Utils::toString(Utils::uptime());
 	postValues["model"] = PLATFORM_TAG;
 	postValues["sensor"] = Seismometer::getInstance()->getAccelerometerName();
@@ -255,4 +256,19 @@ void HTTPClient::setBaseURL(std::string baseUrl) {
 
 std::string HTTPClient::getBaseURL() {
 	return baseUrl;
+}
+
+void HTTPClient::sendCrashReports() {
+	// TODO
+	struct dirent *entry;
+	DIR *dp = opendir(WATCHDOG_CRASHDIR);
+	if(dp == NULL) {
+		return;
+	}
+
+	while((entry = readdir(dp))) {
+		std::string filename = std::string(WATCHDOG_CRASHDIR) + "/" + entry->d_name;
+	}
+
+	closedir(dp);
 }

@@ -10,7 +10,7 @@
 
 class Utils {
 public:
-	static unsigned long freeRam();
+	static unsigned long getFreeRam();
 	static bool fileExists(const char *filename);
 	static double atofn(const char *buf, size_t max);
 	static float absavg(int *buf, int size);
@@ -28,6 +28,7 @@ public:
 	static std::string toString(long d);
 	static std::string toString(unsigned long d);
 	static std::string toString(uint32_t d);
+	static std::string toString(int d);
 };
 
 #endif //GALILEO_TERREMOTI_UTILS_H
