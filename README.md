@@ -14,6 +14,7 @@ LEDs can be in these different states:
 * **Green (still) + Yellow (blinking)**: device is calibrating
 * **Green + Red (only for about 5 seconds)**: shake detected
 * **Yellow ONLY blinking**: no position available - initialize Seismometer with Android/iOS App
+* **Red ONLY** still: reboot/upgrade in progress
 * **Green + Yellow + Red - ALL rotating**: software is loading
 * **Green + Yellow + Red - ALL blinking fast**: software is loaded, starting accelerometer
 
