@@ -83,12 +83,11 @@ void setup() {
 
 	Log::i("Starting.........");
 
-	Log::i("Software version: %s", SOFTWARE_VERSION);
-	Log::i("Platform name: %s", PLATFORM_TAG);
-
 	Log::i("Loading config");
 	// Load saved config - if not available, load defaults
 	Config::init();
+
+	Config::printConfig();
 
 	Log::i("Network init");
 	// Network init
@@ -137,6 +136,7 @@ void setup() {
 			CommandInterface::checkCommandPacket();
 			Utils::delay(200);
 		} while(!Config::hasPosition());
+		Config::printConfig();
 		LED::clearLedBlinking();
 		LED::setLedAnimation(true);
 	} else {

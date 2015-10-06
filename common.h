@@ -10,6 +10,9 @@
 #ifndef PLATFORM
 #define PLATFORM "unknown"
 #endif
+#ifndef BUILD_VERSION
+#define BUILD_VERSION "unknown"
+#endif
 
 #include <unistd.h>
 #include <stdint.h>

@@ -214,14 +214,21 @@ void Config::file_put_contents(const char *path, std::string content) {
 
 void Config::printConfig() {
 	Log::i("###################### Config ######################### ");
-	Log::i("UDID (DeviceID): %s - Model: %s - Version: %s", Config::getMacAddress().c_str(), PLATFORM_TAG, SOFTWARE_VERSION);
+
+	Log::i("Software version: %s", SOFTWARE_VERSION);
+	Log::i("Platform name: %s", PLATFORM_TAG);
+
+	Log::i("DeviceID: %s", Config::getMacAddress().c_str());
+
 	Log::i("Position (lat, lon): %lf %lf", Config::getLatitude(), Config::getLongitude());
 
-	char buf[300];
-	IPaddr localIp = IPaddr::localIP();
-	snprintf(buf, 300, "%i.%i.%i.%i", localIp[0], localIp[1], localIp[2], localIp[3]);
+	Log::i("IP: %s", IPaddr::localIP().asString().c_str());
 
-	Log::i("IP: %s", buf);
+	Log::i("Base URL: %s", HTTPClient::getBaseURL().c_str());
+
+#ifdef DEBUG
+	Log::d("Build version: %s", BUILD_VERSION);
+#endif
 	Log::i("##################### Config end ####################### ");
 }
 

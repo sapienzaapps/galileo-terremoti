@@ -1,9 +1,10 @@
 
 include build-cfg.mk
 
-OUTDIR    = $(shell pwd)/build/out_$(PLATFORM)$(VARIANT)
-OBJDIR    = $(shell pwd)/build/tmp_$(PLATFORM)$(VARIANT)
-MAINFLAGS := -DPLATFORM=\"${PLATFORM}\" -Wno-unknown-pragmas
+OUTDIR        = $(shell pwd)/build/out_$(PLATFORM)$(VARIANT)
+OBJDIR        = $(shell pwd)/build/tmp_$(PLATFORM)$(VARIANT)
+BUILDVERSION := $(shell git describe --tags)
+MAINFLAGS    := -DPLATFORM=\"${PLATFORM}\" -Wno-unknown-pragmas -DBUILD_VERSION=\"${BUILDVERSION}\"
 
 ifneq (, ${DEBUG})
 MAINFLAGS += -g -rdynamic -DDEBUG
