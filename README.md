@@ -38,7 +38,7 @@ If you don't have root access, you can place these files to any path you like (r
 
 You should issue `make` command into project root directory. You should use these options to compile a particular version:
 
-* **PLATFORM** : can be `linux-x86` (default) or `galileo`
+* **PLATFORM** : can be `linux-x86` (default), `mac-osx` or `galileo` depending on your target system
 * **VARIANT** : platform variant; for "galileo" variants are:
 	* **galileo_fab_d** : Galileo Gen 1 (default)
 	* **galileo_fab_g** : Galileo Gen 2
