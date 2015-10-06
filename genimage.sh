@@ -33,10 +33,8 @@ elif [ "$FUSEEXT" != "" ]; then
 	if [ "$UNAME_S" != "Darwin" ]; then
 		UMOUNTCMD=`which fusermount`
 		UMOUNTCMD="${UMOUNTCMD} -u"
-		MOUNTOPTS="-o rw"
-	else
-		MOUNTOPTS="-o rw+"
 	fi
+	MOUNTOPTS="-o rw+"
 	PASS=1
 elif [ "$SUDO" != "" ]; then
 	MOUNTCMD="$SUDO $MOUNTCMD"
