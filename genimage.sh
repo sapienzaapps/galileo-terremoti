@@ -6,24 +6,37 @@ if [ "$1" == "" ]; then
 	exit 1
 fi
 
+MOUNTDIR=/tmp/arduinoimg
 WHOAMI=`whoami`
 SUDO=`which sudo`
 FUSEEXT=`which fuseext2`
 MOUNTCMD=`which mount`
 UMOUNTCMD=`which umount`
-CP=""
+CP="cp"
 PASS=0
 NEEDUMOUNT=`mount | grep arduinoimg -c`
 MOUNTOPTS="-t ext2 -o loop"
+UNAME_S=`uname -s`
+
+if [ "$UNAME_S" == "Darwin" ]; then
+	MOUNTDIR=/var/tmp/arduinoimg
+	SUDO=""
+	WHOAMI=""
+	FUSEEXT=`which fuse-ext2`
+fi
 
 if [ "$WHOAMI" == "root" ]; then
 	PASS=1
 	UMOUNTCMD="$UMOUNTCMD -f"
 elif [ "$FUSEEXT" != "" ]; then
 	MOUNTCMD=$FUSEEXT
-	UMOUNTCMD=`which fusermount`
-	UMOUNTCMD="${UMOUNTCMD} -u"
-	MOUNTOPTS="-o rw"
+	if [ "$UNAME_S" != "Darwin" ]; then
+		UMOUNTCMD=`which fusermount`
+		UMOUNTCMD="${UMOUNTCMD} -u"
+		MOUNTOPTS="-o rw"
+	else
+		MOUNTOPTS="-o rw+"
+	fi
 	PASS=1
 elif [ "$SUDO" != "" ]; then
 	MOUNTCMD="$SUDO $MOUNTCMD"
@@ -33,24 +46,33 @@ elif [ "$SUDO" != "" ]; then
 fi
 
 if [ $PASS -eq 0 ]; then
-	echo "Root permissions, sudo or fuse-ext2 is required"
+	if [ "$UNAME_S" == "Darwin" ]; then
+		echo "fuse-ext2 is required";
+	else
+		echo "Root permissions, sudo or fuse-ext2 is required"
+	fi
 	exit 1
 fi
 
 echo "Cleaning up environment..."
-mkdir -p /tmp/arduinoimg
+mkdir -p $MOUNTDIR
 rm -rf build/image-full-galileo/
 
 echo "Copying necessary files..."
 cp -r image-full-galileo build/
 
 echo "Modifying image filesystem..."
-$MOUNTCMD ${MOUNTOPTS} build/image-full-galileo/image-full-galileo-clanton.ext3 /tmp/arduinoimg
-$CP $SKETCHPATH /tmp/arduinoimg/sketch/sketch.elf
-$UMOUNTCMD /tmp/arduinoimg
+$MOUNTCMD build/image-full-galileo/image-full-galileo-clanton.ext3 $MOUNTDIR ${MOUNTOPTS}
+
+if [ "$UNAME_S" == "Darwin" ]; then
+	sleep 2
+fi
+
+$CP $SKETCHPATH $MOUNTDIR/sketch/sketch.elf
+$UMOUNTCMD $MOUNTDIR
 
 echo "Final cleanup..."
-rmdir /tmp/arduinoimg
+rmdir $MOUNTDIR
 
 echo "**********"
 echo "Image created at build/image-full-galileo/"

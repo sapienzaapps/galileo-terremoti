@@ -210,8 +210,8 @@ void Watchdog::storeCrashInfos(std::string reason) {
 		memset(buf, 0, 1024);
 
 		FILE* corefd = fopen("/media/realroot/core", "rb");
-		int c = fread(buf, 1, 1024*1024, corefd);
-		fwrite(buf, 1, c, crashfd);
+		size_t c = fread(buf, 1, 1024*1024, corefd);
+		fwrite(buf, 1, c, fp);
 		fclose(corefd);
 
 		unlink("/media/realroot/core");

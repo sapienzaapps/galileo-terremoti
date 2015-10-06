@@ -9,6 +9,10 @@ ifneq (, ${DEBUG})
 MAINFLAGS += -g -rdynamic -DDEBUG
 endif
 
+ifneq (, ${DEBUG_SERVER})
+MAINFLAGS += -DDEBUG_SERVER
+endif
+
 include vendor/${PLATFORM}/toolchain.mk
 
 MODULES := avg CommandInterface Config Log Seismometer Utils Watchdog galileo-core
@@ -23,7 +27,7 @@ upload: all
 else
 upload: all
 	scp $(OUTDIR)/sketch.elf root@${REMOTEHOST}:/sketch/sketch.new
-	ssh root@${REMOTEHOST} "killall sketch.elf && mv /sketch/sketch.new /sketch/sketch.elf && reboot"
+	ssh root@${REMOTEHOST} "killall sketch.elf; mv /sketch/sketch.new /sketch/sketch.elf && reboot"
 
 endif
 

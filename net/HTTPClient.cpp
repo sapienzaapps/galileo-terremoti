@@ -7,7 +7,7 @@
 #include "../Utils.h"
 
 unsigned long HTTPClient::nextContact = 5000;
-#ifdef DEBUG
+#ifdef DEBUG_SERVER
 std::string HTTPClient::baseUrl = "http://192.0.2.20/seismocloud/";
 #else
 std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
