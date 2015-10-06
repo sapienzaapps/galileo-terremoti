@@ -148,15 +148,7 @@ IPaddr Log::getSyslogServer() {
 }
 
 void Log::rotate() {
-	if(Log::logFile != NULL) {
-		fclose(Log::logFile);
-		Log::logFile = NULL;
-		std::string oldlog = Log::logFilePath;
-		oldlog.append(".old");
-		unlink(oldlog.c_str());
-		rename(Log::logFilePath.c_str(), oldlog.c_str());
-		setLogFile(Log::logFilePath);
-	}
+	setLogFile(Log::logFilePath);
 }
 
 void Log::close() {
