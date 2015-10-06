@@ -183,7 +183,7 @@ void Watchdog::storeCrashInfos(std::string reason) {
 
 	mkdir(WATCHDOG_CRASHDIR, 0644);
 
-	FILE* fp = fopen(path.c_str(), "w");
+	FILE* fp = fopen(path.c_str(), "wb");
 	fwrite(macstr.c_str(), macstr.length(), 1, fp);
 	fwrite(unixtime.c_str(), unixtime.length(), 1, fp);
 	fwrite(freemem.c_str(), freemem.length(), 1, fp);
@@ -202,6 +202,19 @@ void Watchdog::storeCrashInfos(std::string reason) {
 		fwrite(buf, strlen(buf), 1, fp);
 		fclose(crashfd);
 		unlink(STACKTRACEINFO);
+	}
+
+	if(Utils::fileExists("/media/realroot/core")) {
+		fwrite("Core dump:\n", 11, 1, fp);
+		char buf[1024*1024];
+		memset(buf, 0, 1024);
+
+		FILE* corefd = fopen("/media/realroot/core", "rb");
+		int c = fread(buf, 1, 1024*1024, corefd);
+		fwrite(buf, 1, c, crashfd);
+		fclose(corefd);
+
+		unlink("/media/realroot/core");
 	}
 
 	fclose(fp);

@@ -355,7 +355,6 @@ std::string HTTPClient::getBaseURL() {
 }
 
 void HTTPClient::sendCrashReports() {
-	// TODO
 	struct dirent *entry;
 	DIR *dp = opendir(WATCHDOG_CRASHDIR);
 	if(dp == NULL) {
