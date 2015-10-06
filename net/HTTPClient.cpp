@@ -142,6 +142,8 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 
 			client.println("");
 			client.print(reqBody.c_str());
+
+			Log::d("HTTP Post: %s", reqBody.c_str());
 		}
 
 		Log::d("HTTP Request to %s sent", URL.c_str());
