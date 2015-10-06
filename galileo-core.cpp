@@ -51,9 +51,10 @@ void crashHandler(int sig) {
 int main(int argc, char** argv) {
 	vendor_init(argc, argv);
 
+	Watchdog::launch();
+
 	signal(SIGSEGV, crashHandler);
 
-	Watchdog::launch();
 	setup();
 
 	HTTPClient::sendCrashReports();
