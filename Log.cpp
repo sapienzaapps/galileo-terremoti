@@ -34,6 +34,13 @@ void Log::setLogFile(const char *filepath) {
 		fclose(Log::logFile);
 	}
 
+	if(Utils::fileExists(filepath)) {
+		std::string oldlog = filepath;
+		oldlog.append(".old");
+		unlink(oldlog.c_str());
+		rename(filepath, oldlog.c_str());
+	}
+
 	Log::logFile = fopen(filepath, "w");
 	if (Log::logFile == NULL) {
 		fprintf(stderr, "Cannot open %s", Log::logFilePath.c_str());
