@@ -144,7 +144,7 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 			client.print(reqBody.c_str());
 		}
 
-		Log::d("HTTP Request to %s:%i sent", serverName, serverPort);
+		Log::d("HTTP Request to %s sent", URL.c_str());
 
 		// Request sent, wait for reply
 		unsigned long reqTime = Utils::millis();
