@@ -206,9 +206,10 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 }
 
 HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
-	HTTPResponse *resp = new HTTPResponse();
 	off_t fileSize = Utils::fileSize(file.c_str());
 	if(fileSize == -1) return NULL;
+
+	HTTPResponse *resp = new HTTPResponse();
 
 	Tcp client;
 	char serverName[100];

@@ -155,8 +155,9 @@ void Watchdog::heartBeat() {
 	if(Utils::millis() - lastBeat > WATCHDOG_TIMER/3) {
 		FILE* fp = fopen(WATCHDOG_FILE, "w");
 		char buf[10];
-		memset(buf, 0xFF, 10);
-		fwrite(buf, 10, 1, fp);
+		memset(buf, 0xFF, 9);
+		buf[9] = 0;
+		fwrite(buf, 1, 10, fp);
 		fflush(fp);
 		fclose(fp);
 		lastBeat = Utils::millis();

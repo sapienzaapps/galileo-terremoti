@@ -87,6 +87,7 @@ bool Config::readConfigFile(const char *filepath) {
 			Log::d("Longitude: %lf", Config::getLongitude());
 		}
 	}
+	fclose(fp);
 	Log::i("Config file read OK");
 	return true;
 }
