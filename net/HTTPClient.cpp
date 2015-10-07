@@ -366,7 +366,7 @@ void HTTPClient::sendCrashReports() {
 
 	while((entry = readdir(dp))) {
 		if(strcmp("..", entry->d_name) == 0 || strcmp(".", entry->d_name) == 0) continue;
-		
+
 		std::string filename = std::string(WATCHDOG_CRASHDIR) + "/" + entry->d_name;
 
 		Log::d("Doing %s", filename.c_str());

@@ -52,15 +52,15 @@ void crashHandler(int sig) {
 int main(int argc, char** argv) {
 	vendor_init(argc, argv);
 
-	Watchdog::launch();
-
-	signal(SIGSEGV, crashHandler);
-
 	if(argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
 		valgrindMs = Utils::millis();
 		Config::setMacAddress("000000000000");
 		Config::setLatitude(0.1);
 		Config::setLongitude(0.1);
+	} else {
+
+		Watchdog::launch();
+		signal(SIGSEGV, crashHandler);
 	}
 
 	setup();
