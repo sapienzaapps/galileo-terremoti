@@ -58,6 +58,9 @@ int main(int argc, char** argv) {
 
 	if(argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
 		valgrindMs = Utils::millis();
+		Config::setMacAddress("000000000000");
+		Config::setLatitude(0.1);
+		Config::setLongitude(0.1);
 	}
 
 	setup();
