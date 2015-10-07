@@ -74,4 +74,19 @@ In order to test latency you need to run `sketch.elf` as root OR grant `CAP_NET_
 
     $ sudo setcap cap_net_raw=ep build/out_linux-x86/sketch.elf
 
+## GDB Debug (cross)
 
+To debug core dumps from Galileo you need "gdb-multiarch" (usually shipped in your distro's repos). Example:
+
+    $ gdb-multiarch
+    ...
+    This GDB was configured as "x86_64-linux-gnu".
+    Type "show configuration" for configuration details.
+    For bug reporting instructions, please see:
+    <http://www.gnu.org/software/gdb/bugs/>.
+    ...
+    (gdb) set gnutarget elf32-littlearm
+    (gdb) file sketch.elf
+    (gdb) target core coredump.dat
+
+    
