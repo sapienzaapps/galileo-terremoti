@@ -2,6 +2,7 @@
 // Created by ebassetti on 21/08/15.
 //
 
+#include <stdlib.h>
 #include "../../generic.h"
 #include "DummyAccelerometer.h"
 

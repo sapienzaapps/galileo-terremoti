@@ -125,7 +125,7 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 		if (method == HTTP_POST && postValues.empty()) {
 			client.println("Content-Length: 0");
 			client.println("");
-		} else if (method == HTTP_POST && postValues.empty()) {
+		} else if (method == HTTP_POST && !postValues.empty()) {
 			std::string reqBody;
 			for (std::map<std::string, std::string>::iterator i = postValues.begin(); i != postValues.end(); ++i) {
 				reqBody.append(i->first);
