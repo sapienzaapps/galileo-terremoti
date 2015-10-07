@@ -188,10 +188,7 @@ void CommandInterface::checkCommandPacket() {
 			LED::green(false);
 			LED::yellow(false);
 			LED::red(true);
-			while(1) {
-				system(REBOOT_CMD);
-				sleep(5);
-			}
+			platformReboot();
 		}
 		case PKTTYPE_GETINFO:
 		{

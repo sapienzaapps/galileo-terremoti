@@ -14,6 +14,7 @@
 #include "Watchdog.h"
 #include "Utils.h"
 #include "Log.h"
+#include "generic.h"
 
 unsigned long Watchdog::lastBeat = 0;
 
@@ -27,8 +28,7 @@ void Watchdog::launch() {
 	// Fork off the parent process
 	pid = fork();
 	if (pid < 0) {
-		system("reboot");
-		exit(EXIT_FAILURE);
+		platformReboot();
 	}
 
 	if (pid > 0) {
@@ -118,10 +118,7 @@ void Watchdog::launch() {
 			Log::i("Sketch is not running");
 			Log::close();
 			storeCrashInfos(reason);
-			while(1) {
-				system(REBOOT_CMD);
-				sleep(5);
-			}
+			platformReboot();
 		}
 	}
 #pragma clang diagnostic pop

@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <execinfo.h>
 #include <sys/fcntl.h>
-#include <sys/stat.h>
+#include <string.h>
 
 #include "common.h"
 #include "Config.h"
@@ -25,6 +25,7 @@ unsigned long ntpLastMs = 0;
 unsigned long cfgLastMs = 0;
 unsigned long seismoLastMs = 0;
 unsigned long logRotationMs = 0;
+unsigned long valgrindMs = 0;
 
 void setup();
 void loop();
@@ -54,6 +55,10 @@ int main(int argc, char** argv) {
 	Watchdog::launch();
 
 	signal(SIGSEGV, crashHandler);
+
+	if(argc > 1 && strcmp("--valgrind", argv[1])) {
+		valgrindMs = Utils::millis();
+	}
 
 	setup();
 
@@ -185,6 +190,10 @@ void loop() {
 
 	if(Utils::millis() - logRotationMs >= 1000 * 60 * 60 * 24) {
 		Log::rotate();
+	}
+
+	if(valgrindMs > 0 && Utils::millis() - valgrindMs > 1000 * 60 * 1) {
+		exit(EXIT_SUCCESS);
 	}
 }
 

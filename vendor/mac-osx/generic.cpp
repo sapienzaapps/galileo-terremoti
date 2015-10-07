@@ -16,3 +16,7 @@ Accelerometer* getAccelerometer() {
 std::string getPlatformName() {
 	return "OSX Generic";
 }
+
+void platformReboot() {
+	exit(0);
+}

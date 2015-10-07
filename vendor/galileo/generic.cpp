@@ -9,6 +9,7 @@
 #include <trace.h>
 #include <interrupt.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #define PLATFORM_NAME_PATH "/sys/devices/platform/"
 #define MY_TRACE_PREFIX __FILE__
@@ -106,4 +107,11 @@ std::string getPlatformName() {
 #else
 	return std::string("Intel Galileo Gen2");
 #endif
+}
+
+void platformReboot() {
+	while(0) {
+		system("reboot");
+		sleep(5);
+	}
 }

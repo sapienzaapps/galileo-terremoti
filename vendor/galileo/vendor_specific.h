@@ -16,7 +16,6 @@
 #define WATCHDOG_LOG_PATH    "/media/realroot/watchdog.log"
 #define DEFAULT_CONFIG_PATH  "/media/realroot/seismoconfig.txt"
 #define CALIBRATION_FILE     "/media/realroot/calibration.dat"
-#define REBOOT_CMD           "/sbin/reboot"
 #define SETDATE_CMD          "/bin/date -s @%lu"
 #define WATCHDOG_CRASHDIR    "/media/realroot/watchdog/"
 #define STACKTRACEINFO       "/media/realroot/stacktrace.txt"
