@@ -207,6 +207,8 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 
 HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 	HTTPResponse *resp = new HTTPResponse();
+	off_t fileSize = Utils::fileSize(file.c_str());
+	if(fileSize == -1) return NULL;
 
 	Tcp client;
 	char serverName[100];
@@ -230,16 +232,15 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 		client.println("Content-Type: text/plain");
 		client.println("Connection: close");
 
-		off_t fileSize = Utils::fileSize(file.c_str());
 		std::string contentLength = "Content-Length: " + Utils::toString((int)fileSize);
 		client.println(contentLength.c_str());
 		client.println("");
 
 		FILE *fp = fopen(file.c_str(), "r");
 		char buf[fileSize];
-		memset(buf, 0, fileSize);
+		memset(buf, 0, (size_t)fileSize);
 		fread(buf, fileSize, 1, fp);
-		client.send(buf, fileSize);
+		client.send(buf, (size_t)fileSize);
 		fclose(fp);
 
 		Log::d("HTTP Request to %s sent", URL.c_str());
@@ -364,13 +365,19 @@ void HTTPClient::sendCrashReports() {
 	}
 
 	while((entry = readdir(dp))) {
+		if(strcmp("..", entry->d_name) == 0 || strcmp(".", entry->d_name) == 0) continue;
+		
 		std::string filename = std::string(WATCHDOG_CRASHDIR) + "/" + entry->d_name;
 
+		Log::d("Doing %s", filename.c_str());
+
 		HTTPResponse *resp = httpPostFile(baseUrl + "crashreport.php?deviceid=" + Utils::getInterfaceMAC(), filename);
-		if(resp->error == HTTP_OK && resp->responseCode == 200) {
-			unlink(filename.c_str());
+		if(resp != NULL) {
+			if (resp->error == HTTP_OK && resp->responseCode == 200) {
+				unlink(filename.c_str());
+			}
+			freeHTTPResponse(resp);
 		}
-		freeHTTPResponse(resp);
 	}
 
 	closedir(dp);
