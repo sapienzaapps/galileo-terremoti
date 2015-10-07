@@ -230,7 +230,7 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 		}
 		client.println(linebuf);
 
-		client.println("Content-Type: text/plain");
+		client.println("Content-Type: application/octet-stream");
 		client.println("Connection: close");
 
 		std::string contentLength = "Content-Length: " + Utils::toString((int)fileSize);
