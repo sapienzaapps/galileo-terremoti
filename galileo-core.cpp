@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
 
 	signal(SIGSEGV, crashHandler);
 
-	if(argc > 1 && strcmp("--valgrind", argv[1])) {
+	if(argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
 		valgrindMs = Utils::millis();
 	}
 
