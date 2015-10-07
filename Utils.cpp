@@ -155,8 +155,8 @@ uint64_t Utils::hton64(byte* bignum) {
 
 float Utils::reverseFloat(const float inFloat) {
 	float retVal;
-	char *floatToConvert = ( char* ) & inFloat;
-	char *returnFloat = ( char* ) & retVal;
+	uint8_t *floatToConvert = ( uint8_t* ) & inFloat;
+	uint8_t *returnFloat = ( uint8_t* ) & retVal;
 
 	// swap the bytes into a temporary buffer
 	returnFloat[0] = floatToConvert[3];

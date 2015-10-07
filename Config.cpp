@@ -131,7 +131,7 @@ bool Config::checkServerConfig() {
 	std::string cfg = HTTPClient::getConfig();
 	if(!cfg.empty()) {
 		std::map<std::string, std::string> params = configSplit(cfg, '|');
-		if(params.size() == 0) {
+		if(params.empty()) {
 			return false;
 		}
 
@@ -201,8 +201,8 @@ std::map<std::string, std::string> Config::configSplit(const std::string &s, cha
 	std::map<std::string, std::string> elems;
 	try {
 		configSplit(s, delim, elems);
-	} catch(std::exception e) {
-		Log::e("Config splitting exception: %s", e.what());
+	} catch(std::exception *e) {
+		Log::e("Config splitting exception: %s", e->what());
 	}
 	return elems;
 }

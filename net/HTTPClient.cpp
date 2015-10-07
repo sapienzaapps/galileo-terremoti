@@ -63,7 +63,7 @@ size_t HTTPClient::hostFromURL(const char *url, char *hostname, unsigned short *
 
 	size_t urlSize = strlen(url);
 	size_t hostEnd = offset;
-	while (url[hostEnd] != '/' && url[hostEnd] != ':' && hostEnd < urlSize) {
+	while (hostEnd < urlSize && url[hostEnd] != '/' && url[hostEnd] != ':') {
 		hostEnd++;
 	}
 
@@ -122,12 +122,12 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 
 		client.println("Connection: close");
 
-		if (method == HTTP_POST && postValues.size() == 0) {
+		if (method == HTTP_POST && postValues.empty()) {
 			client.println("Content-Length: 0");
 			client.println("");
-		} else if (method == HTTP_POST && postValues.size() > 0) {
+		} else if (method == HTTP_POST && postValues.empty()) {
 			std::string reqBody;
-			for (std::map<std::string, std::string>::iterator i = postValues.begin(); i != postValues.end(); i++) {
+			for (std::map<std::string, std::string>::iterator i = postValues.begin(); i != postValues.end(); ++i) {
 				reqBody.append(i->first);
 				reqBody.append("=");
 				reqBody.append(i->second);
