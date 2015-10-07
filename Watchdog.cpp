@@ -202,12 +202,13 @@ void Watchdog::storeCrashInfos(std::string reason) {
 	}
 
 	if(Utils::fileExists("/media/realroot/core")) {
+		off_t fileSize = Utils::fileSize("/media/realroot/core");
 		fwrite("Core dump:\n", 11, 1, fp);
-		char buf[1024*1024];
-		memset(buf, 0, 1024);
+		char buf[fileSize];
+		memset(buf, 0, fileSize);
 
 		FILE* corefd = fopen("/media/realroot/core", "rb");
-		size_t c = fread(buf, 1, 1024*1024, corefd);
+		size_t c = fread(buf, 1, fileSize, corefd);
 		fwrite(buf, 1, c, fp);
 		fclose(corefd);
 
