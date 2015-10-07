@@ -203,9 +203,12 @@ std::string Utils::toString(int d) {
 }
 
 std::string Utils::getInterfaceMAC() {
+	bool success = false;
+	unsigned char mac_address[6];
+
+#ifdef __linux__
 	struct ifconf ifc;
 	char buf[1024];
-	bool success = false;
 
 	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (sock == -1) {
@@ -221,10 +224,7 @@ std::string Utils::getInterfaceMAC() {
 	struct ifreq* it = ifc.ifc_req;
 	const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
 
-	unsigned char mac_address[6];
-
 	for (; it != end; ++it) {
-#ifdef __linux__
 		struct ifreq ifr;
 		strcpy(ifr.ifr_name, it->ifr_name);
 		if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {
@@ -238,27 +238,28 @@ std::string Utils::getInterfaceMAC() {
 		} else {
 			return std::string("");
 		}
+	}
 #else
 #if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
-		ifaddrs* iflist;
-		if (getifaddrs(&iflist) == 0) {
-			for (ifaddrs* cur = iflist; cur; cur = cur->ifa_next) {
-				if ((cur->ifa_addr->sa_family == AF_LINK) &&
-					(strcmp(cur->ifa_name, it->ifr_name) == 0) && cur->ifa_addr) {
-					sockaddr_dl* sdl = (sockaddr_dl*)cur->ifa_addr;
-					memcpy(mac_address, LLADDR(sdl), sdl->sdl_alen);
-					success = true;
-					break;
-				}
+	ifaddrs* iflist;
+	if (getifaddrs(&iflist) == 0) {
+		for (ifaddrs* cur = iflist; cur; cur = cur->ifa_next) {
+			if ((cur->ifa_addr->sa_family == AF_LINK)
+					&& ((cur->ifa_flags & IFF_LOOPBACK) == 0)
+					&& (strncmp(cur->ifa_name, "en", 2) == 0)
+					&& cur->ifa_addr) {
+				sockaddr_dl* sdl = (sockaddr_dl*)cur->ifa_addr;
+				memcpy(mac_address, LLADDR(sdl), sdl->sdl_alen);
+				success = true;
+				break;
 			}
-
-			freeifaddrs(iflist);
 		}
+		freeifaddrs(iflist);
+	}
 #else
 #error No definition for getInterfaceMAC()
 #endif
 #endif
-	}
 
 	if (success) {
 		char buf1[100];
