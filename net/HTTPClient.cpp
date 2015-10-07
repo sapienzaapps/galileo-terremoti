@@ -44,10 +44,10 @@ void HTTPClient::httpSendAlert1(RECORD *db, THRESHOLDS *td) {
 	Log::i("%l - %l - %l", db->valx, db->valy, db->valz);
 
 	std::map<std::string, std::string> postValues;
-	postValues["tsstart"] = db->ms;
+	postValues["tsstart"] = Utils::toString(db->ms);
 	postValues["deviceid"] = Config::getMacAddress();
-	postValues["lat"] = Config::getLatitude();
-	postValues["lon"] = Config::getLongitude();
+	postValues["lat"] = Utils::toString(Config::getLatitude());
+	postValues["lon"] = Utils::toString(Config::getLongitude());
 	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "terremoto.php", postValues);
 	if (resp->error == HTTP_OK && resp->body != NULL) {
 		nextContact = atol((const char *) resp->body) * 1000UL;
