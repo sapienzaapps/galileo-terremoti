@@ -46,9 +46,14 @@ include vendor/${PLATFORM}/Makefile
 ${OBJDIR}/%.o: %.cpp
 	$(CPP) $(CPPFLAGS) ${MAINFLAGS} -c -o $@ $<
 
+ifeq (, ${DEBUG})
 ${OUTDIR}/sketch.elf: $(OBJECTS)
 	${CPP} ${OBJDIR}/*.o ${LFLAGS} ${MAINFLAGS} -o ${OUTDIR}/sketch.elf
-	${STRIP} ${OUTDIR}/sketch.elf
+	${STRIP} ${OUTDIR}/sketch.elf7
+else
+${OUTDIR}/sketch.elf: $(OBJECTS)
+	${CPP} ${OBJDIR}/*.o ${LFLAGS} ${MAINFLAGS} -o ${OUTDIR}/sketch.elf
+endif
 
 clean:
 	rm -f ${OUTDIR}/* ${OBJDIR}/*
