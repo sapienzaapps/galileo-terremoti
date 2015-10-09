@@ -110,7 +110,7 @@ std::string getPlatformName() {
 }
 
 void platformReboot() {
-	while(0) {
+	while(1) {
 		system("reboot");
 		sleep(5);
 	}

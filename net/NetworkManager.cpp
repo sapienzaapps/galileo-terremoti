@@ -108,12 +108,14 @@ bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequence
 		byte buf[1500];
 		if ( recvfrom(sd, buf, 1500, 0, (struct sockaddr*)&r_addr, &len) > 0 ) {
 			if(buf[20] == ICMP_ECHOREPLY) {
+				close(sd);
 				return true;
 			}
 		}
 		usleep(100);
 	}
 	Log::d("ICMP timeout");
+	close(sd);
 
 	return false;
 }
