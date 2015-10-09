@@ -206,8 +206,18 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 }
 
 HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
-	off_t fileSize = Utils::fileSize(file.c_str());
+	size_t fileSize = Utils::fileSize(file.c_str());
 	if(fileSize == -1) return NULL;
+
+	FILE *fp = fopen(file.c_str(), "r");
+	if(fp == NULL) {
+		// Woops!
+		return NULL;
+	}
+	uint8_t *buf = (uint8_t *)malloc(fileSize);
+	memset(buf, 0, (size_t)fileSize);
+	fread(buf, fileSize, 1, fp);
+	fclose(fp);
 
 	HTTPResponse *resp = new HTTPResponse();
 
@@ -237,12 +247,7 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 		client.println(contentLength.c_str());
 		client.println("");
 
-		FILE *fp = fopen(file.c_str(), "r");
-		char buf[fileSize];
-		memset(buf, 0, (size_t)fileSize);
-		fread(buf, fileSize, 1, fp);
-		client.send(buf, (size_t)fileSize);
-		fclose(fp);
+		client.send(buf, fileSize);
 
 		Log::d("HTTP Request to %s sent", URL.c_str());
 
@@ -294,6 +299,7 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 		Log::e("HTTP connection timeout");
 		resp->error = HTTP_CONNECTION_TIMEOUT;
 	}
+	free(buf);
 	Log::d("Stopping tcp client");
 	client.stop();
 	// TODO: better handling?

@@ -148,10 +148,13 @@ bool Config::checkServerConfig() {
 			system(cmd);
 
 			FILE *fp = fopen("/sketch/update.sh", "w");
-			memset(cmd, 0, 1024);
-			snprintf(cmd, 1023, "#!/bin/bash\nkillall sketch.elf; mv /sketch/sketch.new /sketch/sketch.elf; sleep 1; reboot");
-			fwrite(cmd, strlen(cmd), 1, fp);
-			fclose(fp);
+			if(fp != NULL) {
+				memset(cmd, 0, 1024);
+				snprintf(cmd, 1023,
+						 "#!/bin/bash\nkillall sketch.elf; mv /sketch/sketch.new /sketch/sketch.elf; sleep 1; reboot");
+				fwrite(cmd, strlen(cmd), 1, fp);
+				fclose(fp);
+			}
 
 			system("/bin/bash /sketch/update.sh");
 			while(1) {};
@@ -209,8 +212,10 @@ std::map<std::string, std::string> Config::configSplit(const std::string &s, cha
 
 void Config::file_put_contents(const char *path, std::string content) {
 	FILE *fp = fopen(path, "w");
-	fwrite(content.c_str(), content.size(), 1, fp);
-	fclose(fp);
+	if(fp != NULL) {
+		fwrite(content.c_str(), content.size(), 1, fp);
+		fclose(fp);
+	}
 }
 
 void Config::printConfig() {

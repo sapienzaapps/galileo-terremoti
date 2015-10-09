@@ -154,6 +154,11 @@ pid_t Watchdog::getSketchPid() {
 void Watchdog::heartBeat() {
 	if(Utils::millis() - lastBeat > WATCHDOG_TIMER/3) {
 		FILE* fp = fopen(WATCHDOG_FILE, "w");
+		if(fp == NULL) {
+			unlink(WATCHDOG_FILE);
+			platformReboot();
+			return;
+		}
 		char buf[10];
 		memset(buf, 0xFF, 9);
 		buf[9] = 0;
@@ -182,6 +187,10 @@ void Watchdog::storeCrashInfos(std::string reason) {
 	mkdir(WATCHDOG_CRASHDIR, 0644);
 
 	FILE* fp = fopen(path.c_str(), "wb");
+	if(fp == NULL) {
+		// Ooops!
+		return;
+	}
 	fwrite(macstr.c_str(), macstr.length(), 1, fp);
 	fwrite(unixtime.c_str(), unixtime.length(), 1, fp);
 	fwrite(freemem.c_str(), freemem.length(), 1, fp);
@@ -196,9 +205,11 @@ void Watchdog::storeCrashInfos(std::string reason) {
 		memset(buf, 0, 1024);
 
 		FILE* crashfd = fopen(STACKTRACEINFO, "r");
-		fread(buf, 1024, 1, crashfd);
-		fwrite(buf, strlen(buf), 1, fp);
-		fclose(crashfd);
+		if(crashfd != NULL) {
+			fread(buf, 1024, 1, crashfd);
+			fwrite(buf, strlen(buf), 1, fp);
+			fclose(crashfd);
+		}
 		unlink(STACKTRACEINFO);
 	}
 
@@ -209,10 +220,11 @@ void Watchdog::storeCrashInfos(std::string reason) {
 		memset(buf, 0, fileSize);
 
 		FILE* corefd = fopen("/media/realroot/core", "rb");
-		size_t c = fread(buf, 1, fileSize, corefd);
-		fwrite(buf, 1, c, fp);
-		fclose(corefd);
-
+		if(corefd != NULL) {
+			size_t c = fread(buf, 1, fileSize, corefd);
+			fwrite(buf, 1, c, fp);
+			fclose(corefd);
+		}
 		free(buf);
 
 		unlink("/media/realroot/core");
