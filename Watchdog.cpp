@@ -58,7 +58,6 @@ void Watchdog::launch() {
 		exit(EXIT_SUCCESS);
 	}
 
-	unlink(WATCHDOG_LOG_PATH);
 	Log::setLogFile(WATCHDOG_LOG_PATH);
 	Log::setLogLevel(LEVEL_DEBUG);
 	Log::d("Watchdog PID is %i", getpid());
@@ -89,22 +88,27 @@ void Watchdog::launch() {
 		sleep(15);
 		pid_t sketchpid = Watchdog::getSketchPid();
 		struct stat fileinfo;
-		stat(WATCHDOG_FILE, &fileinfo);
 
 		bool heartbeat = true;
+		int rp = stat(WATCHDOG_FILE, &fileinfo);
+		if(rp == 0) {
+
 #ifdef __linux__
-		if(fileinfo.st_mtim.tv_sec < time(NULL) - WATCHDOG_TIMER/1000) {
-			heartbeat = false;
-		}
+			if(fileinfo.st_mtim.tv_sec < time(NULL) - WATCHDOG_TIMER/1000) {
+				heartbeat = false;
+			}
 #else
-#if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
-		if(fileinfo.st_mtimespec.tv_sec < time(NULL) - 15) {
-			heartbeat = false;
-		}
+#if defined(OPENBSD) || defined(FREEBSD) || defined(__APPLE__) || defined(__darwin__)
+			if (fileinfo.st_mtimespec.tv_sec < time(NULL) - 15) {
+				heartbeat = false;
+			}
 #else
 #error No definition for file modify time (watchdog)
 #endif
 #endif
+		} else {
+			heartbeat = true;
+		}
 		if (sketchpid == 0 || !heartbeat) {
 			std::string reason = "";
 			if(!heartbeat) {

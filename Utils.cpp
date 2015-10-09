@@ -64,8 +64,7 @@ uint32_t Utils::uptime() {
 	struct timeval boottime;
 	size_t len = sizeof(boottime);
 	int mib[2] = { CTL_KERN, KERN_BOOTTIME };
-	if( sysctl(mib, 2, &boottime, &len, NULL, 0) < 0 )
-	{
+	if( sysctl(mib, 2, &boottime, &len, NULL, 0) < 0 ) {
 		return 0;
 	}
 	time_t bsec = boottime.tv_sec, csec = time(NULL);
@@ -284,8 +283,9 @@ int Utils::setNonblocking(int fd) {
 
 size_t Utils::fileSize(const char *filename) {
 	struct stat st;
-	if (stat(filename, &st) == 0)
-		return st.st_size;
-
-	return -1;
+	if (stat(filename, &st) == 0) {
+		return (size_t)st.st_size;
+	} else {
+		return (size_t) -1;
+	}
 }

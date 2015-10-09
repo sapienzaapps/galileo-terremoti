@@ -6,6 +6,7 @@
 #include "Log.h"
 #include "Utils.h"
 #include "LED.h"
+#include "generic.h"
 #include <string.h>
 
 std::string Config::macAddress = "";
@@ -154,10 +155,11 @@ bool Config::checkServerConfig() {
 						 "#!/bin/bash\nkillall sketch.elf; mv /sketch/sketch.new /sketch/sketch.elf; sleep 1; reboot");
 				fwrite(cmd, strlen(cmd), 1, fp);
 				fclose(fp);
-			}
 
-			system("/bin/bash /sketch/update.sh");
-			while(1) {};
+				system("/bin/bash /sketch/update.sh");
+				while(1) {};
+			}
+			platformReboot();
 		}
 
 		// Workaround for old configuration

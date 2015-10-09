@@ -4,6 +4,7 @@
 
 #include "IPaddr.h"
 #include "../Log.h"
+#include "../generic.h"
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
@@ -55,6 +56,10 @@ IPaddr IPaddr::localIP() {
 	struct ifreq ifr;
 
 	int fd = socket(AF_INET, SOCK_DGRAM, 0);
+	if(fd < 0) {
+		// Ooops! Cannot open socket()
+		platformReboot();
+	}
 
 	/* I want to get an IPv4 IP address */
 	ifr.ifr_addr.sa_family = AF_INET;

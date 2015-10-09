@@ -47,7 +47,7 @@ void Seismometer::tick() {
 		return;
 	}
 
-	// Let's read and throw away
+	// Let's read and throw away (to empty read queue if needed)
 	int valx = accelero->getXAccel();
 	int valy = accelero->getYAccel();
 	int valz = accelero->getZAccel();

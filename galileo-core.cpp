@@ -41,6 +41,10 @@ void crashHandler(int sig) {
 	backtrace_symbols_fd(array, size, STDERR_FILENO);
 
 	int fd = open(STACKTRACEINFO, O_RDWR | O_TRUNC);
+	if(fd < 0) {
+		// Ooops! Cannot create stack trace info
+		exit(1);
+	}
 	std::string sigError = "Error: signal " + Utils::toString(sig);
 	write(fd, sigError.c_str(), sigError.length());
 	backtrace_symbols_fd(array, size, fd);
@@ -58,7 +62,6 @@ int main(int argc, char** argv) {
 		Config::setLatitude(0.1);
 		Config::setLongitude(0.1);
 	} else {
-
 		Watchdog::launch();
 		signal(SIGSEGV, crashHandler);
 	}
