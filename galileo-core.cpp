@@ -68,7 +68,9 @@ int main(int argc, char** argv) {
 
 	setup();
 
+	LED::setLedBlinking(LED_RED_PIN);
 	HTTPClient::sendCrashReports();
+	LED::clearLedBlinking();
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 	while(1) {
