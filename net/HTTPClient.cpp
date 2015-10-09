@@ -72,7 +72,7 @@ size_t HTTPClient::hostFromURL(const char *url, char *hostname, unsigned short *
 
 	if (url[hostEnd] == ':') {
 		size_t portEnd = hostEnd + 1;
-		while (url[portEnd] != '/' && portEnd < urlSize) {
+		while (portEnd < urlSize && url[portEnd] != '/') {
 			portEnd++;
 		}
 

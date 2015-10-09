@@ -27,7 +27,14 @@ const double oneG = 1672;
 const double oneGplusHalf = 1876;
 
 /// constructor
-AcceleroMMA7361::AcceleroMMA7361() {}
+AcceleroMMA7361::AcceleroMMA7361() {
+	_offSets[0] = 0;
+	_offSets[1] = 0;
+	_offSets[2] = 0;
+	_refVoltage = 0;
+	_average = 0;
+	_sensi = false;
+}
 
 void AcceleroMMA7361::begin(uint8_t xPin, uint8_t yPin, uint8_t zPin) {
 	pinMode(xPin, INPUT);
@@ -169,7 +176,7 @@ long AcceleroMMA7361::_mapMMA7361V(long value) {
 
 /// mapMMA7361G: calculates and returns the accelerometer value in degrees derived from the raw data. Used in getXAccel, getYAccel, getZAccel
 long AcceleroMMA7361::_mapMMA7361G(long value) {
-	if (_sensi == false) {
+	if (!_sensi) {
 		if (_refVoltage == 3.3) {
 			return map(value, 0, 1024, -825, 800);
 		} else {
@@ -203,7 +210,7 @@ void AcceleroMMA7361::calibrate() {
 		sumZ = sumZ + getZVolt();
 	}
 
-	if (_sensi == false) { // if ref is 3,3V
+	if (!_sensi) { // if ref is 3,3V
 		setOffSets((int)(oneG - sumX / var), (int)(oneG - sumY / var), (int)(+oneGplusHalf - sumZ / var));
 	} else {
 		setOffSets((int)(1650 - sumX / var), (int)(1650 - sumY / var), (int)(+2450 - sumZ / var));
