@@ -182,6 +182,7 @@ void Watchdog::storeCrashInfos(std::string reason) {
 	std::string freemem = "freeram:" + Utils::toString(Utils::getFreeRam()) + "\n";
 	std::string uptime = "uptime:" + Utils::toString(Utils::uptime()) + "\n";
 	std::string platform = "platform:" + std::string(PLATFORM_TAG) + "\n";
+	std::string buildversion = "buildversion:" + std::string(BUILD_VERSION) + "\n";
 	std::string softwareversion = "softwareversion:" + std::string(SOFTWARE_VERSION) + "\n";
 
 	std::string path = WATCHDOG_CRASHDIR;
@@ -200,6 +201,7 @@ void Watchdog::storeCrashInfos(std::string reason) {
 	fwrite(freemem.c_str(), freemem.length(), 1, fp);
 	fwrite(uptime.c_str(), uptime.length(), 1, fp);
 	fwrite(platform.c_str(), platform.length(), 1, fp);
+	fwrite(buildversion.c_str(), buildversion.length(), 1, fp);
 	fwrite(softwareversion.c_str(), softwareversion.length(), 1, fp);
 	fwrite(reason.c_str(), reason.length(), 1, fp);
 
