@@ -40,8 +40,7 @@ std::string HTTPClient::getConfig() {
 void HTTPClient::httpSendAlert1(RECORD *db, THRESHOLDS *td) {
 	// New Event ----------------------------------------------------------
 	Log::d("---- httpSendAlert1 ---------START-------");
-	Log::i("New Event, values (X-Y-Z):");
-	Log::i("%l - %l - %l", db->valx, db->valy, db->valz);
+	Log::i("New Event, values (X-Y-Z): %lu - %lu - %lu", db->valx, db->valy, db->valz);
 
 	std::map<std::string, std::string> postValues;
 	postValues["tsstart"] = Utils::toString(db->ms);
