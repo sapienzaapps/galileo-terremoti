@@ -9,6 +9,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/fcntl.h>
+#include <errno.h>
 
 Tcp::Tcp() {
 	fd = 0;
@@ -77,9 +78,9 @@ bool Tcp::connectTo(IPaddr ipaddr, unsigned short port) {
 	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 
 	int c = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
-	if(c < 0) {
+	if(c < 0 && errno != EINPROGRESS) {
 		// TODO: error
-		printf("Error during connect");
+		Log::e("Error during connect: %s", strerror(errno));
 		fd = 0;
 		return false;
 	}
@@ -91,7 +92,7 @@ bool Tcp::connectTo(IPaddr ipaddr, unsigned short port) {
 	int status = select(fd+1, NULL, &set, NULL, &timeout);
 
 	if(status == -1) {
-		Log::e("Error during TCP select()");
+		Log::e("Error during TCP select(): %s", strerror(errno));
 		fd = 0;
 		return false;
 	} else if(status == 0) {
