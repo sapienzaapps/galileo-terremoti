@@ -88,5 +88,6 @@ To debug core dumps from Galileo you need "gdb-multiarch" (usually shipped in yo
     (gdb) set gnutarget elf32-littlearm
     (gdb) file sketch.elf
     (gdb) target core coredump.dat
+    (gdb) set sysroot /opt/arduino-1.6.0+Intel/hardware/tools/i586/sysroots/i586-poky-linux-uclibc/
+    (gdb) bt
 
-    
