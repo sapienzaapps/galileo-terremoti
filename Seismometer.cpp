@@ -47,6 +47,11 @@ void Seismometer::tick() {
 		return;
 	}
 
+	// Let's read and throw away
+	int valx = accelero->getXAccel();
+	int valy = accelero->getYAccel();
+	int valz = accelero->getZAccel();
+
 	// Skipping detections for 5 seconds
 	if(inEvent && Utils::millis()-lastEventWas >= 5000) {
 		LED::red(false);
@@ -54,10 +59,6 @@ void Seismometer::tick() {
 	} else if(inEvent && Utils::millis()-lastEventWas < 5000) {
 		return;
 	}
-
-	int valx = accelero->getXAccel();
-	int valy = accelero->getYAccel();
-	int valz = accelero->getZAccel();
 
 	RECORD db = {0, 0, 0, 0, 0, false};
 
