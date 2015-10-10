@@ -26,7 +26,7 @@ void LED::yellow(bool isOn) {
 void LED::setLedBlinking(uint8_t pin) {
 }
 
-void LED::clearLedBlinking() {
+void LED::clearLedBlinking(uint8_t pin) {
 }
 
 void LED::set(uint8_t pin, bool status) {
