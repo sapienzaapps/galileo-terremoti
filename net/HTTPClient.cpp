@@ -6,6 +6,7 @@
 #include "HTTPClient.h"
 #include "../Log.h"
 #include "../Utils.h"
+#include "../LED.h"
 
 pthread_t HTTPClient::sendCrashReportThread;
 unsigned long HTTPClient::nextContact = 5000;
@@ -380,6 +381,8 @@ void *HTTPClient::sendCrashReportDoWork(void *mem) {
 		pthread_exit(NULL);
 	}
 
+	LED::setLedBlinking(LED_RED_PIN);
+
 	while((entry = readdir(dp))) {
 		if(strcmp("..", entry->d_name) == 0 || strcmp(".", entry->d_name) == 0) continue;
 
@@ -397,6 +400,7 @@ void *HTTPClient::sendCrashReportDoWork(void *mem) {
 	}
 
 	closedir(dp);
+	LED::clearLedBlinking(LED_RED_PIN);
 
 	pthread_exit(NULL);
 }
