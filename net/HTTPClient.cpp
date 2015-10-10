@@ -7,6 +7,7 @@
 #include "../Log.h"
 #include "../Utils.h"
 
+pthread_t HTTPClient::sendCrashReportThread;
 unsigned long HTTPClient::nextContact = 5000;
 #ifdef DEBUG_SERVER
 std::string HTTPClient::baseUrl = "http://192.0.2.20/seismocloud/";
@@ -370,6 +371,7 @@ void HTTPClient::sendCrashReports() {
 		Log::e("Error during LED thread creation");
 	}
 }
+
 
 void *HTTPClient::sendCrashReportDoWork(void *mem) {
 	struct dirent *entry;
