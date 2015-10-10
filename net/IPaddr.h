@@ -21,7 +21,7 @@ public:
 	std::string asString();
 
 	operator std::string() { return asString(); };
-//	operator uint32_t() const;
+	operator uint32_t() const;
 	IPaddr& operator=(uint32_t address);
 	uint8_t operator[](int idx) const { return ((uint8_t*)&ipaddr)[idx]; };
 
