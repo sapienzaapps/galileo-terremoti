@@ -27,9 +27,6 @@ void *led_doWork(void* mem) {
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 	while(true) {
 		if(LED::getLedAnimation()) {
-			greenBlinkStatus = false;
-			redBlinkStatus = false;
-			yellowBlinkStatus = false;
 			i = (++i) % 3;
 			switch(i) {
 				default:
