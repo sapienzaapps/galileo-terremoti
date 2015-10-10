@@ -31,7 +31,13 @@ bool NetworkManager::connectionChecked = false;
 
 bool NetworkManager::isConnectedToInternet(bool force) {
 	if (!NetworkManager::connectionChecked || force) {
-		NetworkManager::connectionAvailable = ping(IPaddr(8, 8, 8, 8), 2000, 1);
+		NetworkManager::connectionAvailable = ping(IPaddr(8, 8, 8, 8), 1000, 1);
+
+		// Try again - packet loss occurred?
+		if(!NetworkManager::connectionAvailable) {
+			NetworkManager::connectionAvailable = ping(IPaddr(8, 8, 8, 8), 1000, 1);
+		}
+
 		NetworkManager::connectionChecked = true;
 	}
 	return NetworkManager::connectionAvailable;
@@ -43,8 +49,14 @@ void NetworkManager::init() {
 
 float NetworkManager::latency() {
 	unsigned long startms = Utils::millis();
-	ping(IPaddr(8, 8, 8, 8), 2000, 1);
-	return Utils::millis() - startms;
+	bool c = ping(IPaddr(8, 8, 8, 8), 1000, 1);
+
+	// Try again - packet loss occurred?
+	if(!c) {
+		startms = Utils::millis();
+		c = ping(IPaddr(8, 8, 8, 8), 1000, 1);
+	}
+	return (c ? (float)(Utils::millis() - startms) : (float)-1);
 }
 
 bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequenceNumber) {
