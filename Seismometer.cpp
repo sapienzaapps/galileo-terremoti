@@ -113,10 +113,6 @@ bool Seismometer::isOverThresholdFixed(RECORD *db, THRESHOLDS *td) {
 		   || (abs(db->valz - GFORCE) > td->pthresz);
 }
 
-bool Seismometer::isInEvent() const {
-	return inEvent;
-}
-
 void Seismometer::calibrateForHour(HOUR currentHour) {
 
 	if(accelero == NULL) {

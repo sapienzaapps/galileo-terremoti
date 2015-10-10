@@ -21,11 +21,11 @@ public:
 	std::string asString();
 
 	operator std::string() { return asString(); };
-	operator uint32_t() const;
+//	operator uint32_t() const;
 	IPaddr& operator=(uint32_t address);
 	uint8_t operator[](int idx) const { return ((uint8_t*)&ipaddr)[idx]; };
 
-	bool operator==(IPaddr& addr) { return addr.asInt() == ipaddr; };
+	bool operator==(IPaddr& addr) const { return addr.asInt() == ipaddr; };
 
 	static IPaddr resolve(std::string hostname);
 	static IPaddr localIP();

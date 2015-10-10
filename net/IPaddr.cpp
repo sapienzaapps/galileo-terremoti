@@ -30,9 +30,9 @@ IPaddr::IPaddr(uint32_t x) {
 	ipaddr = x;
 }
 
-IPaddr::operator uint32_t() const {
-	return ipaddr;
-}
+//IPaddr::operator uint32_t() const {
+//	return ipaddr;
+//}
 
 IPaddr& IPaddr::operator=(uint32_t address) {
 	ipaddr = address;
