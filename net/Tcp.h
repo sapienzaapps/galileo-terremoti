@@ -15,7 +15,7 @@ public:
 	Tcp(IPaddr ipaddr, unsigned short port);
 	bool connectTo(std::string ipaddr, unsigned short port);
 	bool connectTo(IPaddr ipaddr, unsigned short port);
-	bool connected();
+	bool connected() const;
 	ssize_t send(void* buf, size_t size);
 	ssize_t println(const char* buf);
 	ssize_t print(const char* buf);

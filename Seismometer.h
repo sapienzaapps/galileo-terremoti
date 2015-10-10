@@ -38,7 +38,7 @@ class Seismometer {
 public:
 	void init();
 	void tick();
-	bool isInEvent();
+	bool isInEvent() const;
 	void calibrate(bool force);
 	void calibrateIfNeeded();
 	THRESHOLDS getThresholds();

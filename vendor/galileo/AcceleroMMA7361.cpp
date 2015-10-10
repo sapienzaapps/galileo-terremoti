@@ -44,7 +44,6 @@ void AcceleroMMA7361::begin(uint8_t xPin, uint8_t yPin, uint8_t zPin) {
 	_yPin = yPin;
 	_zPin = zPin;
 	setOffSets(0, 0, 0);
-	setARefVoltage(3.3);
 	setAveraging(10);
 }
 
@@ -62,18 +61,6 @@ void AcceleroMMA7361::setOffSets(int xOffSet, int yOffSet, int zOffSet) {
 		_offSets[1] = map(yOffSet, 0, 5000, 0, 1024);
 		_offSets[2] = map(zOffSet, 0, 5000, 0, 1024);
 	}
-}
-
-/// setARefVoltage(double _refV): Sets the AREF voltage to external, (now only takes 3.3 or 5 as parameter)
-/// default is 5 when no AREF is used. When you want to use 3.3 AREF, put a wire between the AREF pin and the
-/// 3.3 V VCC pin. This increases accuracy
-void AcceleroMMA7361::setARefVoltage(double refV) {
-#if ARDUINO < 153
-	_refVoltage = refV;
-	if (refV == 3.3) {
-		analogReference(EXTERNAL);
-	}
-#endif
 }
 
 /// setAveraging(int avg): Sets how many samples have to be averaged in getAccel default is 10.

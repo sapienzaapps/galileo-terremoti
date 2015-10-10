@@ -121,7 +121,7 @@ void Tcp::stop() {
 	fd = 0;
 }
 
-bool Tcp::connected() {
+bool Tcp::connected() const {
 	return fd > 0;
 }
 

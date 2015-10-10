@@ -17,11 +17,11 @@ public:
 	IPaddr(uint32_t x);
 
 	void setInt(uint32_t u) { ipaddr = u; };
-	uint32_t asInt() { return ipaddr; };
+	uint32_t asInt() const { return ipaddr; };
 	std::string asString();
 
 	operator std::string() { return asString(); };
-	operator uint32_t();
+	operator uint32_t() const;
 	IPaddr& operator=(uint32_t address);
 	uint8_t operator[](int idx) const { return ((uint8_t*)&ipaddr)[idx]; };
 

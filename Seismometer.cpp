@@ -113,7 +113,7 @@ bool Seismometer::isOverThresholdFixed(RECORD *db, THRESHOLDS *td) {
 		   || (abs(db->valz - GFORCE) > td->pthresz);
 }
 
-bool Seismometer::isInEvent() {
+bool Seismometer::isInEvent() const {
 	return inEvent;
 }
 
