@@ -7,8 +7,6 @@
 #include "../Log.h"
 #include "../Utils.h"
 
-pthread_t sendcrashreport_thread;
-
 unsigned long HTTPClient::nextContact = 5000;
 #ifdef DEBUG_SERVER
 std::string HTTPClient::baseUrl = "http://192.0.2.20/seismocloud/";
@@ -366,8 +364,14 @@ std::string HTTPClient::getBaseURL() {
 	return baseUrl;
 }
 
-void *sendCrashReportDoWork(void* mem) {
+void HTTPClient::sendCrashReports() {
+	int rc = pthread_create(&sendCrashReportThread, NULL, sendCrashReportDoWork, NULL);
+	if(rc) {
+		Log::e("Error during LED thread creation");
+	}
+}
 
+void *HTTPClient::sendCrashReportDoWork(void *mem) {
 	struct dirent *entry;
 	DIR *dp = opendir(WATCHDOG_CRASHDIR);
 	if(dp == NULL) {
@@ -381,7 +385,7 @@ void *sendCrashReportDoWork(void* mem) {
 
 		Log::d("Doing %s", filename.c_str());
 
-		HTTPResponse *resp = HTTPClient::httpPostFile(HTTPClient::getBaseURL() + "crashreport.php?deviceid=" + Utils::getInterfaceMAC(), filename);
+		HTTPResponse *resp = HTTPClient::httpPostFile(baseUrl + "crashreport.php?deviceid=" + Utils::getInterfaceMAC(), filename);
 		if(resp != NULL) {
 			if (resp->error == HTTP_OK && resp->responseCode == 200) {
 				unlink(filename.c_str());
@@ -393,11 +397,4 @@ void *sendCrashReportDoWork(void* mem) {
 	closedir(dp);
 
 	pthread_exit(NULL);
-}
-
-void HTTPClient::sendCrashReports() {
-	int rc = pthread_create(&sendcrashreport_thread, NULL, sendCrashReportDoWork, NULL);
-	if(rc) {
-		Log::e("Error during LED thread creation");
-	}
 }

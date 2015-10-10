@@ -60,9 +60,12 @@ public:
 	 * @return Base URL configured
 	 */
 	static std::string getBaseURL();
+
+	static void *sendCrashReportDoWork(void* mem);
 private:
 	static unsigned long nextContact;
 	static std::string baseUrl;
+	static pthread_t sendCrashReportThread;
 
 	static void freeHTTPResponse(HTTPResponse *resp);
 	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);
