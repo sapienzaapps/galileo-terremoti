@@ -55,6 +55,11 @@ bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequence
 
 	struct protoent* proto = getprotobyname("ICMP");
 
+	if(proto == NULL) {
+		Log::e("Error during getprotobyname()");
+		return false;
+	}
+
 	bzero(&addr_ping, sizeof(addr_ping));
 
 	addr_ping.sin_family = AF_INET;
