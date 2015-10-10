@@ -7,9 +7,19 @@
 
 #include <string>
 
+/**
+ * Watchdog class
+ */
 class Watchdog {
 public:
+	/**
+	 * Launch watchdog process
+	 */
 	static void launch();
+
+	/**
+	 * Heart beat to signal to watchdog process that main program is alive
+	 */
 	static void heartBeat();
 
 private:

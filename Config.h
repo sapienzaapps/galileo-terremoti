@@ -7,21 +7,90 @@
 #include "common.h"
 #include "Seismometer.h"
 
+/**
+ * Configuration management class
+ */
 class Config {
 public:
+	/**
+	 * Init config class
+	 */
 	static void init();
+
+	/**
+	 * Returns if MAC address is configured
+	 * @param True if MAC is configured, false otherwise
+	 */
 	static bool hasMACAddress();
+
+	/**
+	 * Get MAC Address
+	 * @return MAC Address
+	 */
 	static std::string getMacAddress();
+
+	/**
+	 * Get MAC Address as byte array
+	 * @param mac Byte array where MAC is stored
+	 */
 	static void getMacAddressAsByte(byte mac[6]);
+
+	/**
+	 * Get configured latitude
+	 * @return Configured latitude
+	 */
 	static double getLatitude();
+
+	/**
+	 * Get configured longitude
+	 * @return Configured longitude
+	 */
 	static double getLongitude();
+
+	/**
+	 * Device is configured with a GPS position?
+	 * @return True if position is set, false otherwise
+	 */
 	static bool hasPosition();
+
+	/**
+	 * Check server config, then refresh locally
+	 * @return True if config is OK, false if an error occurred
+	 */
 	static bool checkServerConfig();
+
+	/**
+	 * Print config to log
+	 */
 	static void printConfig();
+
+	/**
+	 * Set MAC Address
+	 * @param macAddress MAC Address to use
+	 */
 	static void setMacAddress(std::string macAddress);
+
+	/**
+	 * Set latitude
+	 * @return Latitude to set
+	 */
 	static void setLatitude(double lat);
+
+	/**
+	 * Set longitude
+	 * @return Longitude to set
+	 */
 	static void setLongitude(double lon);
+
+	/**
+	 * Returns the syslog server
+	 * @return Syslog server
+	 */
 	static uint32_t getSyslogServer();
+
+	/**
+	 * Save config to file
+	 */
 	static void save();
 
 private:

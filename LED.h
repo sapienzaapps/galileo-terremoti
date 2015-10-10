@@ -9,18 +9,82 @@
 
 class LED {
 public:
+	/**
+	 * Init LED class with led pins
+	 * @param greenLedPin Green LED pin number
+	 * @param yellowLedPin Yellow LED pin number
+	 * @param redLedPin Red LED pin number
+	 */
 	static void init(uint8_t greenLedPin, uint8_t yellowLedPin, uint8_t redLedPin);
-	static void green(bool);
-	static void red(bool);
-	static void yellow(bool);
+
+	/**
+	 * On/Off GREEN LED
+	 * @param s True will set LED on, false will set LED off
+	 */
+	static void green(bool s);
+
+	/**
+	 * On/Off RED LED
+	 * @param s True will set LED on, false will set LED off
+	 */
+	static void red(bool s);
+
+	/**
+	 * On/Off YELLOW LED
+	 * @param s True will set LED on, false will set LED off
+	 */
+	static void yellow(bool s);
+
+	/**
+	 * Startup blink procedure
+	 */
 	static void startupBlink();
+
+	/**
+	 * LED tick (if threads are not available)
+	 */
 	static void tick();
-	static void setLedAnimation(bool);
+
+	/**
+	 * Set if global LED animation
+	 * @param s True if animation should run, false will set LED to previous status
+	 */
+	static void setLedAnimation(bool s);
+
+	/**
+	 * Check if LED animation is running
+	 * @return True if LED animation is running, false otherwise
+	 */
 	static bool getLedAnimation();
+
+	/**
+	 * Clear all resources
+	 */
 	static void dispose();
+
+	/**
+	 * Set status of a single LED
+	 * @param pin PIN number
+	 * @param isOn True=ON, False=Off
+	 */
 	static void set(uint8_t pin, bool isOn);
+
+	/**
+	 * Blink a LED
+	 * @param pin PIN number
+	 */
 	static void setLedBlinking(uint8_t pin);
+
+	/**
+	 * Clear blinking status
+	 */
 	static void clearLedBlinking();
+
+	/**
+	 * Get PIN status
+	 * @param pin LED PIN number
+	 * @return True if LED is ON, false if LED is OFF
+	 */
 	static bool get(uint8_t pin);
 private:
 	static uint8_t greenLedPin;

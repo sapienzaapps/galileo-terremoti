@@ -25,12 +25,40 @@ typedef struct {
 	uint8_t *body;
 } HTTPResponse;
 
+/**
+ * HTTP client library
+ */
 class HTTPClient {
 public:
+
+	/**
+	 * Get config from server
+	 * @return The config as string (as returned to server)
+	 */
 	static std::string getConfig();
+
+	/**
+	 * Send alert to server
+	 * @param db Accelerometer values
+	 * @param td Threshold values
+	 */
 	static void httpSendAlert1(RECORD *db, THRESHOLDS *td);
+
+	/**
+	 * Set server base URL
+	 * @param baseUrl New base URL
+	 */
 	static void setBaseURL(std::string baseUrl);
+
+	/**
+	 * Send crash reports to server
+	 */
 	static void sendCrashReports();
+
+	/**
+	 * Returns the base URL used
+	 * @return Base URL configured
+	 */
 	static std::string getBaseURL();
 private:
 	static unsigned long nextContact;

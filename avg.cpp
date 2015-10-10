@@ -9,7 +9,6 @@ int bfrX[K];
 int bfrY[K];
 int bfrZ[K];
 
-// Calcola la media di un buffer
 int getAverage(int bfr[], int currsize) {
 	int i;
 	int sum = 0;
@@ -20,8 +19,6 @@ int getAverage(int bfr[], int currsize) {
 	return (sum / currsize);
 }
 
-
-// prende una rilevazione la mostra nel buffer e ritorna la media
 int getAvgX(int x) {
 	if (currsizeX >= K) {
 		currsizeX = 0;

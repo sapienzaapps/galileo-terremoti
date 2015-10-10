@@ -11,40 +11,6 @@
 #define CMD_INTERFACE_PORT 62001
 #define PACKET_SIZE 252
 
-/**
- * Packet definition:
- *
- * Offset Size  Only when         Description
- * ==========================================
- * 0      5                       Magic-bytes "INGV\0"
- * 5      1                       Command (see enum below)
- *
- * 6      6      DISCOVERY_REPLY  MAC address
- * 12     4      DISCOVERY_REPLY  Version string (not zero terminated)
- * 16     8      DISCOVERY_REPLY  Model ("galileo1", "galileo2", "simulator") not zero terminated
- *
- * 6      6      SENDGPS          MAC address
- * 12     4      SENDGPS          Latitude (IEEE 754)
- * 16     4      SENDGPS          Longitude (IEEE 754)
- *
- * 6      4      SETSYSLOG        Syslog server
- *
- * 6      6      GETINFO_REPLY    MAC Address
- * 12     4      GETINFO_REPLY    Syslog server
- * 16    12      GETINFO_REPLY    Thresholds (X, Y, Z)
- * 28     4      GETINFO_REPLY    Uptime (seconds)
- * 32     4      GETINFO_REPLY    UNIX time
- * 36     4      GETINFO_REPLY    Software version
- * 40     4      GETINFO_REPLY    Free RAM
- * 44     4      GETINFO_REPLY    Latency
- * 48     4      GETINFO_REPLY    NTP Server
- * 52     -      GETINFO_REPLY    HTTP base address (MAX: 170 chars including ZERO)
- * -      -      GETINFO_REPLY    Platform name (+ variant if any) (MAX: 20 chars including ZERO)
- * -      -      GETINFO_REPLY    Accelerometer name (MAX: 10 chars including ZERO)
- * String max size (sum): 200
- *
- */
-
 typedef enum {
 	PKTTYPE_DISCOVERY = 1,
 	PKTTYPE_DISCOVERY_REPLY = 2,
@@ -82,10 +48,55 @@ typedef struct _PACKET {
 	std::string accelerometerName;
 } PACKET;
 
+/**
+ * Packet definition:
+ *
+ * Offset Size  Only when         Description
+ * ==========================================
+ * 0      5                       Magic-bytes "INGV\0"
+ * 5      1                       Command (see enum below)
+ *
+ * 6      6      DISCOVERY_REPLY  MAC address
+ * 12     4      DISCOVERY_REPLY  Version string (not zero terminated)
+ * 16     8      DISCOVERY_REPLY  Model ("galileo1", "galileo2", "simulator") not zero terminated
+ *
+ * 6      6      SENDGPS          MAC address
+ * 12     4      SENDGPS          Latitude (IEEE 754)
+ * 16     4      SENDGPS          Longitude (IEEE 754)
+ *
+ * 6      4      SETSYSLOG        Syslog server
+ *
+ * 6      6      GETINFO_REPLY    MAC Address
+ * 12     4      GETINFO_REPLY    Syslog server
+ * 16    12      GETINFO_REPLY    Thresholds (X, Y, Z)
+ * 28     4      GETINFO_REPLY    Uptime (seconds)
+ * 32     4      GETINFO_REPLY    UNIX time
+ * 36     4      GETINFO_REPLY    Software version
+ * 40     4      GETINFO_REPLY    Free RAM
+ * 44     4      GETINFO_REPLY    Latency
+ * 48     4      GETINFO_REPLY    NTP Server
+ * 52     -      GETINFO_REPLY    HTTP base address (MAX: 170 chars including ZERO)
+ * -      -      GETINFO_REPLY    Platform name (+ variant if any) (MAX: 20 chars including ZERO)
+ * -      -      GETINFO_REPLY    Accelerometer name (MAX: 10 chars including ZERO)
+ * String max size (sum): 200
+ *
+ */
 class CommandInterface {
 public:
+	/**
+	 * Check if a command packet is received, if so, execute that
+	 */
 	static void checkCommandPacket();
+
+	/**
+	 * Send accelerometer values to Android
+	 * @param db Accelerometer values
+	 */
 	static void sendValues(RECORD *db);
+
+	/**
+	 * Init command interface
+	 */
 	static bool commandInterfaceInit();
 private:
 	static bool readPacket(PACKET*);

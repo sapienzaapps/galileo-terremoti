@@ -16,20 +16,78 @@ typedef enum _LogLevel {
 	LEVEL_ERROR = 2
 } LogLevel;
 
+/**
+ * Log class
+ */
 class Log {
 public:
-	static void d(const char *, ...);
-	static void i(const char *, ...);
-	static void e(const char *, ...);
+	/**
+	 * Log to DEBUG level
+	 * @param s String or printf model
+	 */
+	static void d(const char *s, ...);
 
+	/**
+	 * Log to INFO level
+	 * @param s String or printf model
+	 */
+	static void i(const char *s, ...);
+
+	/**
+	 * Log to ERROR level
+	 * @param s String or printf model
+	 */
+	static void e(const char *s, ...);
+
+	/**
+	 * Get configured SYSLOG
+	 * @return SYSLOG ip address
+	 */
 	static IPaddr getSyslogServer();
-	static void setLogLevel(LogLevel);
-	static void setSyslogServer(IPaddr);
-	static void setLogFile(std::string);
-	static void setLogFile(const char*);
-	static void enableStdoutDebug(bool);
+
+	/**
+	 * Set log level
+	 * @param level New log level
+	 */
+	static void setLogLevel(LogLevel level);
+
+	/**
+	 * Set SYSLOG Server
+	 * @param ipaddr New SYSLOG ipaddr
+	 */
+	static void setSyslogServer(IPaddr ipaddr);
+
+	/**
+	 * Switch to a new log file
+	 * @param logFilePath New log file path
+	 */
+	static void setLogFile(std::string logFilePath);
+
+	/**
+	 * Switch to a new log file
+	 * @param logFilePath New log file path
+	 */
+	static void setLogFile(const char* logFilePath);
+
+	/**
+	 * Enable log to STDOUT
+	 * @param b If true, log will be written also to STDOUT
+	 */
+	static void enableStdoutDebug(bool b);
+
+	/**
+	 * Update settings from config
+	 */
 	static void updateFromConfig();
+
+	/**
+	 * Rotate log
+	 */
 	static void rotate();
+
+	/**
+	 * Close log class
+	 */
 	static void close();
 
 private:

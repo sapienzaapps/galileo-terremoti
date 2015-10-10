@@ -34,15 +34,47 @@ typedef struct {
 	double nthresz;
 } THRESHOLDS;
 
+/**
+ * Seismometer class
+ */
 class Seismometer {
 public:
+	/**
+	 * Init seismometer class
+	 */
 	void init();
+
+	/**
+	 * Tick (if no threaded)
+	 */
 	void tick();
+
+	/**
+	 * Calibrate if needed
+	 * @param force If true, device will recalibrate
+	 */
 	void calibrate(bool force);
+
+	/**
+	 * Calibrate if needed
+	 */
 	void calibrateIfNeeded();
+
+	/**
+	 * Get seismometer threshold
+	 * @return Threshold values
+	 */
 	THRESHOLDS getThresholds();
+
+	/**
+	 * Get accelerometer name
+	 * @return Get accelerometer name
+	 */
 	std::string getAccelerometerName();
 
+	/**
+	 * Get Seismometer instance (singleton)
+	 */
 	static Seismometer* getInstance();
 
 private:
