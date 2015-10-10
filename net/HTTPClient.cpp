@@ -2,9 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
+#include <pthread.h>
 #include "HTTPClient.h"
 #include "../Log.h"
 #include "../Utils.h"
+
+pthread_t sendcrashreport_thread;
 
 unsigned long HTTPClient::nextContact = 5000;
 #ifdef DEBUG_SERVER
@@ -363,11 +366,12 @@ std::string HTTPClient::getBaseURL() {
 	return baseUrl;
 }
 
-void HTTPClient::sendCrashReports() {
+void *sendCrashReportDoWork(void* mem) {
+
 	struct dirent *entry;
 	DIR *dp = opendir(WATCHDOG_CRASHDIR);
 	if(dp == NULL) {
-		return;
+		pthread_exit(NULL);
 	}
 
 	while((entry = readdir(dp))) {
@@ -377,14 +381,23 @@ void HTTPClient::sendCrashReports() {
 
 		Log::d("Doing %s", filename.c_str());
 
-		HTTPResponse *resp = httpPostFile(baseUrl + "crashreport.php?deviceid=" + Utils::getInterfaceMAC(), filename);
+		HTTPResponse *resp = HTTPClient::httpPostFile(HTTPClient::getBaseURL() + "crashreport.php?deviceid=" + Utils::getInterfaceMAC(), filename);
 		if(resp != NULL) {
 			if (resp->error == HTTP_OK && resp->responseCode == 200) {
 				unlink(filename.c_str());
 			}
-			freeHTTPResponse(resp);
+			HTTPClient::freeHTTPResponse(resp);
 		}
 	}
 
 	closedir(dp);
+
+	pthread_exit(NULL);
+}
+
+void HTTPClient::sendCrashReports() {
+	int rc = pthread_create(&sendcrashreport_thread, NULL, sendCrashReportDoWork, NULL);
+	if(rc) {
+		Log::e("Error during LED thread creation");
+	}
 }
