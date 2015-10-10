@@ -14,19 +14,22 @@ bool yellowLedStatus = false;
 bool redLedStatus = false;
 
 volatile bool LED::ledAnimation = false;
-volatile uint8_t singleBlink = 0;
-bool singleBlinkLastStatus = false;
+volatile bool greenBlinkStatus = false;
+volatile bool redBlinkStatus = false;
+volatile bool yellowBlinkStatus = false;
 
 pthread_t led_thread;
 
 void *led_doWork(void* mem) {
 	int i = 0;
-	bool singleBlinkLastStatus = false;
+	bool lastBlinkStatus = false;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 	while(true) {
 		if(LED::getLedAnimation()) {
-			singleBlink = 0;
+			greenBlinkStatus = false;
+			redBlinkStatus = false;
+			yellowBlinkStatus = false;
 			i = (++i) % 3;
 			switch(i) {
 				default:
@@ -47,9 +50,17 @@ void *led_doWork(void* mem) {
 					break;
 			}
 			Utils::delay(100);
-		} else if(singleBlink != 0) {
-			LED::set(singleBlink, !singleBlinkLastStatus);
-			singleBlinkLastStatus = !singleBlinkLastStatus;
+		} else if(greenBlinkStatus || redBlinkStatus || yellowBlinkStatus) {
+			lastBlinkStatus = !lastBlinkStatus;
+			if(greenBlinkStatus) {
+				LED::green(lastBlinkStatus);
+			}
+			if(redBlinkStatus) {
+				LED::red(lastBlinkStatus);
+			}
+			if(yellowBlinkStatus) {
+				LED::yellow(lastBlinkStatus);
+			}
 			Utils::delay(500);
 		} else {
 			Utils::delay(100);
@@ -112,19 +123,21 @@ void LED::set(uint8_t pin, bool isOn) {
 }
 
 void LED::clearLedBlinking() {
-	if(singleBlink != 0) {
-		LED::set(singleBlink, singleBlinkLastStatus);
-		singleBlink = 0;
-	}
+	greenBlinkStatus = false;
+	redBlinkStatus = false;
+	yellowBlinkStatus = false;
 }
 
 void LED::setLedBlinking(uint8_t pin) {
-	clearLedBlinking();
-	if(pin != greenLedPin && pin != redLedPin && pin != yellowLedPin) {
-		return;
+	if(pin == greenLedPin) {
+		greenBlinkStatus = true;
 	}
-	singleBlinkLastStatus = LED::get(singleBlink);
-	singleBlink = pin;
+	if(pin == redLedPin) {
+		redBlinkStatus = true;
+	}
+	if(pin == yellowLedPin) {
+		yellowBlinkStatus = true;
+	}
 }
 
 void LED::startupBlink() {
