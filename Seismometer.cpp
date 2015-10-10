@@ -149,7 +149,7 @@ void Seismometer::calibrateForHour(HOUR currentHour) {
 	thresholds.nthresy = avgy - (sdevy + ORANGEZONE);
 	thresholds.nthresz = avgz - (sdevz + ORANGEZONE);
 
-	LED::clearLedBlinking();
+	LED::clearLedBlinking(LED_YELLOW_PIN);
 }
 
 void Seismometer::calibrateIfNeeded() {

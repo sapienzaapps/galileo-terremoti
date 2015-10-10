@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 
 	LED::setLedBlinking(LED_RED_PIN);
 	HTTPClient::sendCrashReports();
-	LED::clearLedBlinking();
+	LED::clearLedBlinking(LED_RED_PIN);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 	while(1) {
@@ -150,7 +150,7 @@ void setup() {
 			Utils::delay(200);
 		} while(!Config::hasPosition());
 		Config::printConfig();
-		LED::clearLedBlinking();
+		LED::clearLedBlinking(LED_YELLOW_PIN);
 		LED::setLedAnimation(true);
 	} else {
 		Log::i("GPS coords: %f %f", Config::getLatitude(), Config::getLongitude());

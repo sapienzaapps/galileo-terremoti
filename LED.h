@@ -76,9 +76,10 @@ public:
 	static void setLedBlinking(uint8_t pin);
 
 	/**
-	 * Clear blinking status
+	 * Clear blinking status for pin
+	 * @param pin LED to shut off
 	 */
-	static void clearLedBlinking();
+	static void clearLedBlinking(uint8_t pin);
 
 	/**
 	 * Get PIN status

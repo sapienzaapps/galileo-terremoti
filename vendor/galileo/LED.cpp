@@ -119,10 +119,16 @@ void LED::set(uint8_t pin, bool isOn) {
 	digitalWrite(pin, isOn ? (uint8_t)HIGH : (uint8_t)LOW);
 }
 
-void LED::clearLedBlinking() {
-	greenBlinkStatus = false;
-	redBlinkStatus = false;
-	yellowBlinkStatus = false;
+void LED::clearLedBlinking(uint8_t pin) {
+	if(pin == greenLedPin) {
+		greenBlinkStatus = false;
+	}
+	if(pin == redLedPin) {
+		redBlinkStatus = false;
+	}
+	if(pin == yellowLedPin) {
+		yellowBlinkStatus = false;
+	}
 }
 
 void LED::setLedBlinking(uint8_t pin) {
