@@ -15,6 +15,7 @@
 #include "Utils.h"
 #include "Log.h"
 #include "generic.h"
+#include "Config.h"
 
 unsigned long Watchdog::lastBeat = 0;
 
