@@ -177,7 +177,7 @@ void Watchdog::storeCrashInfos(std::string reason) {
 
 	reason = "reason:" + reason + "\n";
 
-	std::string macstr = "mac:" + Utils::getInterfaceMAC() + "\n";
+	std::string macstr = "mac:" + Config::getMacAddress() + "\n";
 	std::string unixtime = "time:" + Utils::toString(time(NULL)) + "\n";
 	std::string freemem = "freeram:" + Utils::toString(Utils::getFreeRam()) + "\n";
 	std::string uptime = "uptime:" + Utils::toString(Utils::uptime()) + "\n";
