@@ -94,6 +94,12 @@ void setup() {
 
 	Log::i("Starting.........");
 
+	// If no MAC Address detect we presume that ethernet interface is down, so we'll reboot
+	std::string macAddress = Utils::getInterfaceMAC();
+	if(macAddress.empty()) {
+		platformReboot();
+	}
+
 	Log::i("Loading config");
 	// Load saved config - if not available, load defaults
 	Config::init();
@@ -173,6 +179,13 @@ void loop() {
 	CommandInterface::checkCommandPacket();
 
 	if(Utils::millis() - netLastMs >= CHECK_NETWORK_INTERVAL) {
+
+		// If no MAC Address detect we presume that ethernet interface is down, so we'll reboot
+		std::string macAddress = Utils::getInterfaceMAC();
+		if(macAddress.empty()) {
+			platformReboot();
+		}
+
 		LED::yellow(!NetworkManager::isConnectedToInternet(true));
 		netLastMs = Utils::millis();
 	}

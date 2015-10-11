@@ -5,6 +5,8 @@
 #include "../../generic.h"
 #include "AcceleroMMA7361.h"
 #include "../../Log.h"
+#include "../../LED.h"
+#include "../../common.h"
 #include <Arduino.h>
 #include <trace.h>
 #include <interrupt.h>
@@ -110,6 +112,11 @@ std::string getPlatformName() {
 }
 
 void platformReboot() {
+	LED::green(false);
+	LED::yellow(false);
+	LED::red(false);
+	LED::clearLedBlinking();
+	LED::setLedBlinking(LED_RED_PIN);
 	while(1) {
 		system("reboot");
 		sleep(5);

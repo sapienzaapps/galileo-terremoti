@@ -15,6 +15,7 @@
 #include "NetworkManager.h"
 #include "../Log.h"
 #include "../Utils.h"
+#include "../generic.h"
 
 struct ICMP_PACKET {
 #if defined(OPENBSD) || defined(FREEBSD) ||defined(__APPLE__) || defined(__darwin__)
@@ -69,6 +70,7 @@ bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequence
 
 	if(proto == NULL) {
 		Log::e("Error during getprotobyname()");
+		platformReboot();
 		return false;
 	}
 

@@ -69,12 +69,9 @@ void Log::log(LogLevel level, const char *msg, va_list argptr) {
 		levelC = 'E';
 	}
 	std::string macAddress = Config::getMacAddress();
-	//if(macAddress.empty()) {
-		char intfname[50+1];
-		memset(intfname, 0, 50+1);
-		macAddress = Utils::getInterfaceMAC(intfname, 50);
-		macAddress.append("%").append(intfname);
-	//}
+	if(macAddress.empty()) {
+		macAddress = Utils::getInterfaceMAC();
+	}
 	snprintf(logentry, 1024, "[%s] [%c] [%s] %s", Log::getDateTime().c_str(), levelC, macAddress.c_str(), realmsg);
 
 	if (Log::stdoutDebug) {
