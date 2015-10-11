@@ -9,9 +9,9 @@ uint8_t LED::greenLedPin;
 uint8_t LED::yellowLedPin;
 uint8_t LED::redLedPin;
 
-bool greenLedStatus = false;
-bool yellowLedStatus = false;
-bool redLedStatus = false;
+volatile bool greenLedStatus = false;
+volatile bool yellowLedStatus = false;
+volatile bool redLedStatus = false;
 
 volatile bool LED::ledAnimation = false;
 volatile bool greenBlinkStatus = false;
@@ -49,13 +49,13 @@ void *led_doWork(void* mem) {
 			Utils::delay(100);
 		} else if(greenBlinkStatus || redBlinkStatus || yellowBlinkStatus) {
 			lastBlinkStatus = !lastBlinkStatus;
-			if(greenBlinkStatus) {
+			if (greenBlinkStatus) {
 				LED::green(lastBlinkStatus);
 			}
-			if(redBlinkStatus) {
+			if (redBlinkStatus) {
 				LED::red(lastBlinkStatus);
 			}
-			if(yellowBlinkStatus) {
+			if (yellowBlinkStatus) {
 				LED::yellow(lastBlinkStatus);
 			}
 			Utils::delay(500);
@@ -128,12 +128,15 @@ void LED::clearLedBlinking() {
 void LED::clearLedBlinking(uint8_t pin) {
 	if(pin == greenLedPin) {
 		greenBlinkStatus = false;
+		LED::green(false);
 	}
 	if(pin == redLedPin) {
 		redBlinkStatus = false;
+		LED::red(false);
 	}
 	if(pin == yellowLedPin) {
 		yellowBlinkStatus = false;
+		LED::yellow(false);
 	}
 }
 
