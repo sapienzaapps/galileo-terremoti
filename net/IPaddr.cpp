@@ -71,7 +71,7 @@ IPaddr IPaddr::localIP() {
 
 	close(fd);
 
-	return IPaddr(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr);
+	return IPaddr(htonl(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr));
 }
 
 std::string IPaddr::asString() {

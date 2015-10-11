@@ -36,7 +36,7 @@ bool NetworkManager::isConnectedToInternet(bool force) {
 
 		// Try again - packet loss occurred?
 		if(!NetworkManager::connectionAvailable) {
-			NetworkManager::connectionAvailable = ping(IPaddr(8, 8, 8, 8), 1000, 1);
+			NetworkManager::connectionAvailable = ping(IPaddr(8, 8, 8, 8), 1000, 2);
 		}
 
 		NetworkManager::connectionChecked = true;
@@ -55,7 +55,7 @@ float NetworkManager::latency() {
 	// Try again - packet loss occurred?
 	if(!c) {
 		startms = Utils::millis();
-		c = ping(IPaddr(8, 8, 8, 8), 1000, 1);
+		c = ping(IPaddr(8, 8, 8, 8), 1000, 2);
 	}
 	return (c ? (float)(Utils::millis() - startms) : (float)-1);
 }
