@@ -100,6 +100,14 @@ public:
 	static std::string getInterfaceMAC();
 
 	/**
+	 * Get interface MAC address and name
+	 * @param intfname Buffer where place interface name
+	 * @param intfnamesize Buffer size
+	 * @return MAC Address
+	 */
+	static std::string getInterfaceMAC(char* intfname, size_t intfnamesize);
+
+	/**
 	 * Get device uptime
 	 * @return Uptime in seconds
 	 */

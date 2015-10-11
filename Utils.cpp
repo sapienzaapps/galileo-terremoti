@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include "common.h"
 #include "Utils.h"
-
+#include "Log.h"
 
 
 #ifdef __linux__
@@ -202,6 +202,10 @@ std::string Utils::toString(int d) {
 }
 
 std::string Utils::getInterfaceMAC() {
+	return getInterfaceMAC(NULL, 0);
+}
+
+std::string Utils::getInterfaceMAC(char *intfname, size_t intfmax) {
 	bool success = false;
 	unsigned char mac_address[6];
 
@@ -230,6 +234,9 @@ std::string Utils::getInterfaceMAC() {
 			if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
 				if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
 					memcpy(mac_address, ifr.ifr_hwaddr.sa_data, 6);
+					if(intfname != NULL) {
+						strncpy(intfname, ifr.ifr_name, intfmax);
+					}
 					success = true;
 					break;
 				}
@@ -249,6 +256,9 @@ std::string Utils::getInterfaceMAC() {
 					&& cur->ifa_addr) {
 				sockaddr_dl* sdl = (sockaddr_dl*)cur->ifa_addr;
 				memcpy(mac_address, LLADDR(sdl), sdl->sdl_alen);
+				if(intfname != NULL) {
+					strncpy(intfname, cur->ifa_name, intfmax);
+				}
 				success = true;
 				break;
 			}
@@ -261,12 +271,13 @@ std::string Utils::getInterfaceMAC() {
 #endif
 
 	if (success) {
-		char buf1[100];
+		char buf1[50];
 		memset(buf1, 0, 50);
 		snprintf(buf1, 50, "%02x%02x%02x%02x%02x%02x",
 				 mac_address[0], mac_address[1], mac_address[2],
 				 mac_address[3], mac_address[4], mac_address[5]
 		);
+
 		return std::string(buf1);
 	} else {
 		return std::string("");
