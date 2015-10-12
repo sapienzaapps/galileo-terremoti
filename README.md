@@ -43,8 +43,9 @@ You should issue `make` command into project root directory. You should use thes
 	* **galileo_fab_d** : Galileo Gen 1 (default)
 	* **galileo_fab_g** : Galileo Gen 2
 * **SDK_ROOT** : SDK root path (see "Toolchains") if it's not in `/opt` (or /Applications for OS X)
-* **DEBUG** : if set, enables debug options (i.e. debug messages and commands)
-* **DEBUG_URL** : if set, device will use testing APIs
+* **DEBUG** : if nonempty, enables debug options (i.e. debug messages and commands, crash reports)
+* **DEBUG_URL** : if nonempty, device will use testing APIs
+* **NOWATCHDOG** : if nonempty, watchdog will not be compiled
 
 # How to build Arduino Galileo SD Image (Linux-only)
 

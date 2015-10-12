@@ -15,9 +15,12 @@
 #include "net/NTP.h"
 #include "net/NetworkManager.h"
 #include "CommandInterface.h"
-#include "Watchdog.h"
 #include "generic.h"
 #include "net/HTTPClient.h"
+
+#ifndef NOWATCHDOG
+#include "Watchdog.h"
+#endif
 
 Seismometer *seismometer;
 unsigned long netLastMs = 0;
@@ -25,11 +28,14 @@ unsigned long ntpLastMs = 0;
 unsigned long cfgLastMs = 0;
 unsigned long seismoLastMs = 0;
 unsigned long logRotationMs = 0;
+#ifdef DEBUG
 unsigned long valgrindMs = 0;
+#endif
 
 void setup();
 void loop();
 
+#ifdef DEBUG
 void crashHandler(int sig) {
 	void *array[10];
 
@@ -52,23 +58,31 @@ void crashHandler(int sig) {
 
 	exit(1);
 }
+#endif
 
 int main(int argc, char** argv) {
 	vendor_init(argc, argv);
 
+#ifdef DEBUG
 	if(argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
 		valgrindMs = Utils::millis();
 		Config::setMacAddress("000000000000");
 		Config::setLatitude(0.1);
 		Config::setLongitude(0.1);
 	} else {
-		Watchdog::launch();
 		signal(SIGSEGV, crashHandler);
 	}
+#endif
+
+#ifndef NOWATCHDOG
+	Watchdog::launch();
+#endif
 
 	setup();
 
+#ifdef DEBUG
 	HTTPClient::sendCrashReports();
+#endif
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 	while(1) {
@@ -111,13 +125,8 @@ void setup() {
 	NetworkManager::init();
 
 	if(!Config::hasMACAddress()) {
-		std::string macAddress = Utils::getInterfaceMAC();
-		if(!macAddress.empty()) {
-			Log::i("Using default MAC Address: %s", macAddress.c_str());
-			Config::setMacAddress(macAddress);
-		} else {
-			Log::e("Cannot detect MAC Address");
-		}
+		Log::i("Using default MAC Address: %s", macAddress.c_str());
+		Config::setMacAddress(macAddress);
 	} else {
 		Log::i("Configured MAC Address: %s", Config::getMacAddress().c_str());
 	}
@@ -149,7 +158,9 @@ void setup() {
 		LED::setLedAnimation(false);
 		LED::setLedBlinking(LED_YELLOW_PIN);
 		do {
+#ifndef NOWATCHDOG
 			Watchdog::heartBeat();
+#endif
 			CommandInterface::checkCommandPacket();
 			Utils::delay(200);
 		} while(!Config::hasPosition());
@@ -174,7 +185,9 @@ void setup() {
 
 void loop() {
 	LED::tick();
+#ifndef NOWATCHDOG
 	Watchdog::heartBeat();
+#endif
 
 	CommandInterface::checkCommandPacket();
 
@@ -211,9 +224,11 @@ void loop() {
 		Log::rotate();
 	}
 
+#ifdef DEBUG
 	if(valgrindMs > 0 && Utils::millis() - valgrindMs > 1000 * 60 * 1) {
 		exit(EXIT_SUCCESS);
 	}
+#endif
 }
 
 #endif

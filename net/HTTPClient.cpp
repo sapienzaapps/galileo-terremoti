@@ -8,7 +8,10 @@
 #include "../Utils.h"
 #include "../LED.h"
 
+#ifdef DEBUG
 pthread_t HTTPClient::sendCrashReportThread;
+#endif
+
 unsigned long HTTPClient::nextContact = 5000;
 #ifdef DEBUG_SERVER
 std::string HTTPClient::baseUrl = "http://192.0.2.20/seismocloud/";
@@ -367,6 +370,7 @@ std::string HTTPClient::getBaseURL() {
 	return baseUrl;
 }
 
+#ifdef DEBUG
 void HTTPClient::sendCrashReports() {
 	int rc = pthread_create(&sendCrashReportThread, NULL, sendCrashReportDoWork, NULL);
 	if(rc) {
@@ -408,3 +412,4 @@ void *HTTPClient::sendCrashReportDoWork(void *mem) {
 
 	pthread_exit(NULL);
 }
+#endif

@@ -16,7 +16,14 @@ endif
 
 include vendor/${PLATFORM}/toolchain.mk
 
-MODULES := avg CommandInterface Config Log Seismometer Utils Watchdog galileo-core
+MODULES := avg CommandInterface Config Log Seismometer Utils galileo-core
+
+ifneq (, ${NOWATCHDOG})
+MAINFLAGS += -DNOWATCHDOG
+else
+MODULES += Watchdog
+endif
+
 SOURCES := $(MODULES:%=%.cpp)
 OBJECTS := $(MODULES:%=${OBJDIR}/%.o)
 
@@ -49,7 +56,7 @@ ${OBJDIR}/%.o: %.cpp
 ifeq (, ${DEBUG})
 ${OUTDIR}/sketch.elf: $(OBJECTS)
 	${CPP} ${OBJDIR}/*.o ${LFLAGS} ${MAINFLAGS} -o ${OUTDIR}/sketch.elf
-	${STRIP} ${OUTDIR}/sketch.elf7
+	${STRIP} ${OUTDIR}/sketch.elf
 else
 ${OUTDIR}/sketch.elf: $(OBJECTS)
 	${CPP} ${OBJDIR}/*.o ${LFLAGS} ${MAINFLAGS} -o ${OUTDIR}/sketch.elf

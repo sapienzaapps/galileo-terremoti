@@ -50,10 +50,12 @@ public:
 	 */
 	static void setBaseURL(std::string baseUrl);
 
+#ifdef DEBUG
 	/**
 	 * Send crash reports to server
 	 */
 	static void sendCrashReports();
+#endif
 
 	/**
 	 * Returns the base URL used
@@ -61,11 +63,15 @@ public:
 	 */
 	static std::string getBaseURL();
 
+#ifdef DEBUG
 	static void *sendCrashReportDoWork(void* mem);
+#endif
 private:
 	static unsigned long nextContact;
 	static std::string baseUrl;
+#ifdef DEBUG
 	static pthread_t sendCrashReportThread;
+#endif
 
 	static void freeHTTPResponse(HTTPResponse *resp);
 	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);

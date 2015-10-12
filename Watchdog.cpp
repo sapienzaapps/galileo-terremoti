@@ -2,6 +2,8 @@
 // Created by ebassetti on 16/09/15.
 //
 
+#ifndef NOWATCHDOG
+
 #include <sys/types.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -120,9 +122,11 @@ void Watchdog::launch() {
 				Log::d("Unable to get sketch PID");
 				reason.append("Unable to get sketch PID");
 			}
-			Log::i("Sketch is not running");
+			Log::i("Sketch is not running: %s", reason.c_str());
 			Log::close();
+#ifdef DEBUG
 			storeCrashInfos(reason);
+#endif
 			platformReboot();
 		}
 	}
@@ -174,6 +178,7 @@ void Watchdog::heartBeat() {
 	}
 }
 
+#ifdef DEBUG
 void Watchdog::storeCrashInfos(std::string reason) {
 
 	reason = "reason:" + reason + "\n";
@@ -239,3 +244,5 @@ void Watchdog::storeCrashInfos(std::string reason) {
 
 	fclose(fp);
 }
+#endif
+#endif

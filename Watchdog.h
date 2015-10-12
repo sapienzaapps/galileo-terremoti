@@ -2,6 +2,7 @@
 // Created by ebassetti on 16/09/15.
 //
 
+#ifndef NOWATCHDOG
 #ifndef GALILEO_TERREMOTI_WATCHDOG_H
 #define GALILEO_TERREMOTI_WATCHDOG_H
 
@@ -30,3 +31,4 @@ private:
 
 
 #endif //GALILEO_TERREMOTI_WATCHDOG_H
+#endif
