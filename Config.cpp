@@ -20,7 +20,7 @@ bool Config::hasMACAddress() {
 
 bool Config::hasPosition() {
 	return Config::lat != 0.0 && Config::lon != 0.0;
-};
+}
 
 std::string Config::getMacAddress() {
 	return Config::macAddress;
@@ -106,10 +106,10 @@ void Config::save() {
 	snprintf(buf, 200, "deviceid:%s\n", Config::macAddress.c_str());
 	fwrite(buf, 1, strlen(buf), fp);
 
-	snprintf(buf, 200, "lat:%lf\n", Config::lat);
+	snprintf(buf, 200, "lat:%f\n", Config::lat);
 	fwrite(buf, 1, strlen(buf), fp);
 
-	snprintf(buf, 200, "lon:%lf\n", Config::lon);
+	snprintf(buf, 200, "lon:%f\n", Config::lon);
 	fwrite(buf, 1, strlen(buf), fp);
 
 	fclose(fp);
