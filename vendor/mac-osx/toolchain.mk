@@ -1,4 +1,6 @@
 
+MAINFLAGS := $(subst -rdynamic,,${MAINFLAGS})
+
 CC         = gcc
 CPP        = g++
 CFLAGS     = ${MAINFLAGS}

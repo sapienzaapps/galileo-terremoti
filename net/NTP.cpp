@@ -25,7 +25,8 @@ bool NTP::sendNTPpacket(IPaddr address) {
 
 	// Initialize values needed to form NTP request
 	// (see URL above for details on the packets)
-	packetBuffer[0] = 0b11100011;   // LI, Version, Mode
+	//packetBuffer[0] = 0b11100011;   // LI, Version, Mode
+	packetBuffer[0] = 0xE3;   // LI, Version, Mode
 	packetBuffer[1] = 0;     // Stratum, or type of clock
 	packetBuffer[2] = 6;     // Polling Interval
 	packetBuffer[3] = 0xEC;  // Peer Clock Precision

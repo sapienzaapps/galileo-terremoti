@@ -102,8 +102,8 @@ std::string Utils::readFirstLine(std::string filename) {
 
 double Utils::atofn(const char *str, size_t max)  {
 	size_t bufLen = strlen(str);
-	char buf[bufLen+1];
-	buf[bufLen] = 0;
+	char *buf = (char *)malloc(bufLen+1);
+	memset(buf, 0, bufLen+1);
 
 	memcpy(buf, str, bufLen);
 
@@ -112,6 +112,8 @@ double Utils::atofn(const char *str, size_t max)  {
 	buf[max] = 0;
 	double ret = atof(buf);
 	buf[max] = termination;
+
+	free(buf);
 	return ret;
 }
 
