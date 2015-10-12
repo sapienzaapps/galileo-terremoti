@@ -3,10 +3,14 @@
 //
 
 #include "../../generic.h"
+#include "../../Log.h"
 #include "DummyAccelerometer.h"
 
 
 void vendor_init(int argc, char** argv) {
+	if(argv != NULL) {
+		Log::d("vendor_init called with %i arguments", argc);
+	}
 }
 
 Accelerometer* getAccelerometer() {

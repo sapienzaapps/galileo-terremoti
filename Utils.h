@@ -32,7 +32,7 @@ public:
 	 * @param filename File name/path
 	 * @return File size
 	 */
-	static size_t fileSize(const char *filename);
+	static ssize_t fileSize(const char *filename);
 
 	/**
 	 * Ascii to float/double

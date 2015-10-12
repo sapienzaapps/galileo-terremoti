@@ -44,6 +44,7 @@ void HTTPClient::httpSendAlert1(RECORD *db, THRESHOLDS *td) {
 	// New Event ----------------------------------------------------------
 	Log::d("---- httpSendAlert1 ---------START-------");
 	Log::i("New Event, values (X-Y-Z): %lu - %lu - %lu", db->valx, db->valy, db->valz);
+	Log::i("New Event, positive thresholds (X-Y-Z): %lu - %lu - %lu", td->pthresx, td->pthresy, td->pthresz);
 
 	std::map<std::string, std::string> postValues;
 	postValues["tsstart"] = Utils::toString(db->ms);
@@ -208,7 +209,7 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 }
 
 HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
-	size_t fileSize = Utils::fileSize(file.c_str());
+	ssize_t fileSize = Utils::fileSize(file.c_str());
 	if(fileSize == -1) return NULL;
 
 	FILE *fp = fopen(file.c_str(), "r");
@@ -375,6 +376,9 @@ void HTTPClient::sendCrashReports() {
 
 
 void *HTTPClient::sendCrashReportDoWork(void *mem) {
+	if(mem != NULL) {
+		Log::e("sendCrashReportDoWork called with an unknown argument");
+	}
 	struct dirent *entry;
 	DIR *dp = opendir(WATCHDOG_CRASHDIR);
 	if(dp == NULL) {
