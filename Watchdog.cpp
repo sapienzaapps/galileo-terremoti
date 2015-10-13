@@ -226,7 +226,7 @@ void Watchdog::storeCrashInfos(std::string reason) {
 	}
 
 	if(Utils::fileExists("/media/realroot/core")) {
-		size_t fileSize = Utils::fileSize("/media/realroot/core");
+		ssize_t fileSize = Utils::fileSize("/media/realroot/core");
 		fwrite("Core dump:\n", 11, 1, fp);
 		uint8_t *buf = (uint8_t *)malloc(fileSize);
 		memset(buf, 0, fileSize);
