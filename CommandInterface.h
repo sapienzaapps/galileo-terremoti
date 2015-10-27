@@ -46,6 +46,7 @@ typedef struct _PACKET {
 	std::string httpBaseAddress;
 	std::string platformName;
 	std::string accelerometerName;
+	uint32_t statProbeSpeed;
 } PACKET;
 
 /**

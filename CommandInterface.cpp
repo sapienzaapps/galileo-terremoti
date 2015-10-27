@@ -111,6 +111,9 @@ void CommandInterface::sendPacket(PACKET pkt) {
 
 		strncpy((char*)(pktbuf + offset), pkt.accelerometerName.c_str(), 9);
 		offset += MINVAL(pkt.accelerometerName.length(), 9) + 1;
+
+		memcpy(pktbuf + offset, &pkt.statProbeSpeed, 4);
+		offset += 4;
 	}
 
 	cmdc.send(pktbuf, (size_t)PACKET_SIZE, pkt.source, CMD_INTERFACE_PORT);
@@ -199,12 +202,14 @@ void CommandInterface::checkCommandPacket() {
 			pkt.uptime = Utils::uptime();
 			pkt.unixts = (uint32_t)NTP::getUNIXTime();
 			memcpy(pkt.softwareVersion, SOFTWARE_VERSION, 4);
-			pkt.freeRam = Utils::getFreeRam()/1024;
+			pkt.freeRam = (uint32_t)(Utils::getFreeRam()/1024);
 			pkt.latency = NetworkManager::latency();
 			pkt.ntpServer = NTP::getLastNTPServer();
 			pkt.httpBaseAddress = HTTPClient::getBaseURL();
 			pkt.platformName = getPlatformName();
 			pkt.accelerometerName = Seismometer::getInstance()->getAccelerometerName();
+			pkt.statProbeSpeed = Seismometer::getInstance()->getStatProbeSpeed();
+			Log::d("Probe/sec: %i", pkt.statProbeSpeed);
 
 			pkt.type = PKTTYPE_GETINFO_REPLY;
 			sendPacket(pkt);

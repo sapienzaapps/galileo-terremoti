@@ -174,6 +174,9 @@ function seismoproto.dissector(buffer, pinfo, tree)
 
             subtree:add(buffer(i, strsize), i .. ": Accelerometer name")
             i = i + strsize
+
+			subtree:add(buffer(i, 4), i .. ": Probe Speed (values/sec)");
+			i = i + 4
 		end
 	end
 end

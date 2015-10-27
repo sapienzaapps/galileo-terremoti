@@ -52,6 +52,13 @@ void Seismometer::tick() {
 	int valy = (int)accelero->getYAccel();
 	int valz = (int)accelero->getZAccel();
 
+	statLastCounter++;
+	if(Utils::millis() - statLastCounterTime > 1000) {
+		statProbeSpeed = statLastCounter;
+		statLastCounter = 0;
+		statLastCounterTime = Utils::millis();
+	}
+
 	// Skipping detections for 5 seconds
 	if(inEvent && Utils::millis()-lastEventWas >= 5000) {
 		LED::red(false);
@@ -269,4 +276,8 @@ Seismometer* Seismometer::getInstance() {
 
 std::string Seismometer::getAccelerometerName() {
 	return accelero->getAccelerometerName();
+}
+
+unsigned int Seismometer::getStatProbeSpeed() {
+	return statProbeSpeed;
 }

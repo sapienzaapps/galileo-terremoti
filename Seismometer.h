@@ -77,6 +77,8 @@ public:
 	 */
 	static Seismometer* getInstance();
 
+	unsigned int getStatProbeSpeed();
+
 private:
 	Seismometer();
 	ThresholdAlgorithm_t thresholdAlgorithm;
@@ -86,6 +88,10 @@ private:
 	bool inEvent;
 	unsigned long lastEventWas;
 	HOUR nextHour = 0;
+
+	unsigned long statLastCounterTime = 0;
+	unsigned int statLastCounter = 0;
+	unsigned int statProbeSpeed = 0;
 
 	static bool isOverThresholdBasic(RECORD *db, THRESHOLDS *td);
 	static bool isOverThresholdFixed(RECORD *db, THRESHOLDS *td);
