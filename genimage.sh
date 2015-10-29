@@ -57,7 +57,9 @@ mkdir -p $MOUNTDIR
 rm -rf build/image-full-galileo/
 
 echo "Copying necessary files..."
+tar xvf SDCard.1.0.4.tar.bz2
 cp -r image-full-galileo build/
+rm -rf image-full-galileo
 
 echo "Modifying image filesystem..."
 $MOUNTCMD build/image-full-galileo/image-full-galileo-clanton.ext3 $MOUNTDIR ${MOUNTOPTS}

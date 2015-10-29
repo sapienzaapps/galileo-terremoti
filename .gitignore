@@ -7,3 +7,4 @@ cmake_install.cmake
 .DS_Store
 doc/
 build.log
+image-full-galileo/
