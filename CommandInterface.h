@@ -79,6 +79,7 @@ typedef struct _PACKET {
  * 52     -      GETINFO_REPLY    HTTP base address (MAX: 170 chars including ZERO)
  * -      -      GETINFO_REPLY    Platform name (+ variant if any) (MAX: 20 chars including ZERO)
  * -      -      GETINFO_REPLY    Accelerometer name (MAX: 10 chars including ZERO)
+ * ?      4      GETINFO_REPLY    Accelerometer probe speed
  * String max size (sum): 200
  *
  */
