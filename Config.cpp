@@ -152,7 +152,7 @@ bool Config::checkServerConfig() {
 			if(fp != NULL) {
 				memset(cmd, 0, 1024);
 				snprintf(cmd, 1023,
-						 "#!/bin/bash\nkillall sketch.elf; mv /sketch/sketch.new /sketch/sketch.elf; sleep 1; reboot");
+						 "#!/bin/bash\nkillall sketch.elf; mv /media/realroot/sketch.new /sketch/sketch.elf; sleep 1; reboot");
 				fwrite(cmd, strlen(cmd), 1, fp);
 				fclose(fp);
 
