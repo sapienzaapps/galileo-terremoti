@@ -65,7 +65,7 @@ You should implement these classes as a .cpp file into platform specific directo
 You'll find definitions into `.h` files in project root directory.
 Also you may need to create a child class of `Accelerometer.h` and a `vendor_specific.h` into vendor directory.
 
-See `linux-x86` and `galileo` for more infos.
+See `linux-x86`, `mac-osx` and `galileo` for more infos.
 
 # Platform specific informations
 

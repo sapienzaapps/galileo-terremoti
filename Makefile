@@ -54,11 +54,11 @@ ${OBJDIR}/%.o: %.cpp
 	$(CPP) $(CPPFLAGS) ${MAINFLAGS} -c -o $@ $<
 
 ifeq (, ${DEBUG})
-${OUTDIR}/sketch.elf: $(OBJECTS)
+${OUTDIR}/sketch.elf: $(OBJECTS) $(NET_OBJECTS) $(VENDOR_OBJECTS)
 	${CPP} ${OBJDIR}/*.o ${LFLAGS} ${MAINFLAGS} -o ${OUTDIR}/sketch.elf
 	${STRIP} ${OUTDIR}/sketch.elf
 else
-${OUTDIR}/sketch.elf: $(OBJECTS)
+${OUTDIR}/sketch.elf: $(OBJECTS) $(NET_OBJECTS) $(VENDOR_OBJECTS)
 	${CPP} ${OBJDIR}/*.o ${LFLAGS} ${MAINFLAGS} -o ${OUTDIR}/sketch.elf
 endif
 
