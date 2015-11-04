@@ -5,7 +5,8 @@
 * Galileo toolchain (if you plan to compile for Arduino), you can find it here: http://www.intel.com/support/galileo/sb/CS-035101.htm
 * GCC compiler (if you plan to compile for linux-x86)
 
-# LED outputs
+# Hardware
+## LED outputs
 
 LEDs can be in these different states:
 
@@ -17,6 +18,19 @@ LEDs can be in these different states:
 * **Red ONLY** still: reboot/upgrade in progress
 * **Green + Yellow + Red - ALL rotating**: software is loading
 * **Green + Yellow + Red - ALL blinking fast**: software is loaded, starting accelerometer
+
+## Link Accelerometer MMA7361 to Galileo
+
+Link these pins from Accelerometer MMA7361 to Arduino Galileo board:
+
+* Vin: 5v
+* GND: GND
+* SEL: GND
+* X: A0
+* Y: A1
+* Z: A2
+
+Loop back **3v3** pin to **SLP** on Accelerometer.
 
 # Toolchains
 ## Galileo
@@ -36,7 +50,9 @@ If you don't have root access, you can place these files to any path you like (r
 
 # How to build from command line
 
-You should issue `make` command into project root directory. You should use these options to compile a particular version:
+You should issue `make` command into project root directory. Make targets availables are: `all`, `clean` and `upload` (see below).
+
+You may use these options to compile a particular version:
 
 * **PLATFORM** : can be `linux-x86` (default), `mac-osx` or `galileo` depending on your target system
 * **VARIANT** : platform variant; for "galileo" variants are:
@@ -46,6 +62,12 @@ You should issue `make` command into project root directory. You should use thes
 * **DEBUG** : if nonempty, enables debug options (i.e. debug messages and commands, crash reports)
 * **DEBUG_SERVER** : if nonempty, device will use testing APIs
 * **NOWATCHDOG** : if nonempty, watchdog will not be compiled
+* **REMOTEHOST** : if nonempty, enables `upload` target
+
+## First time compilation with Arduino Galileo toolchain
+
+On first time you need to use Arduino Galileo IDE to "relocate" (eg. setting up some paths).
+To do so, please open Arduino IDE, select "Arduino Galileo" board from menu and click on "verify/compile" (tick icon).
 
 # How to build Arduino Galileo SD Image (Linux-only)
 
