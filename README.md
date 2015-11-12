@@ -32,6 +32,12 @@ Link these pins from Accelerometer MMA7361 to Arduino Galileo board:
 
 Loop back **3v3** pin to **SLP** on Accelerometer.
 
+## LEDs
+
+* Pin 8 : Yellow
+* Pin 10 : Green
+* Pin 12 : Red
+
 # Toolchains
 ## Galileo
 
