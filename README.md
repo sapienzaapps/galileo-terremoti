@@ -6,7 +6,7 @@
 * GCC compiler (if you plan to compile for linux-x86)
 
 # Hardware
-## LED outputs
+## LEDs
 
 LEDs can be in these different states:
 
@@ -18,6 +18,12 @@ LEDs can be in these different states:
 * **Red ONLY** still: reboot/upgrade in progress
 * **Green + Yellow + Red - ALL rotating**: software is loading
 * **Green + Yellow + Red - ALL blinking fast**: software is loaded, starting accelerometer
+
+### LED pins (on Arduino Galileo)
+
+* Pin 8 : Yellow
+* Pin 10 : Green
+* Pin 12 : Red
 
 ## Link Accelerometer MMA7361 to Galileo
 
@@ -31,12 +37,6 @@ Link these pins from Accelerometer MMA7361 to Arduino Galileo board:
 * Z: A2
 
 Loop back **3v3** pin to **SLP** on Accelerometer.
-
-## LEDs
-
-* Pin 8 : Yellow
-* Pin 10 : Green
-* Pin 12 : Red
 
 # Toolchains
 ## Galileo
