@@ -8,3 +8,6 @@ vendor:: $(VENDOR_OBJECTS)
 
 ${OBJDIR}/${PLATFORM}_%.o: vendor/${PLATFORM}/%.cpp
 	$(CPP) $(CPPFLAGS) ${MAINFLAGS} -c -o $@ $<
+
+${OBJDIR}/${PLATFORM}_%.o: vendor/${PLATFORM}/%.c
+	$(CC) $(CFLAGS) ${MAINFLAGS} -c -o $@ $<

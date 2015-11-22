@@ -4,7 +4,7 @@
 
 #include "../../generic.h"
 #include "../../Log.h"
-#include "DummyAccelerometer.h"
+#include "ADXL345Accelerometer.h"
 
 
 void vendor_init(int argc, char** argv) {
@@ -14,7 +14,7 @@ void vendor_init(int argc, char** argv) {
 }
 
 Accelerometer* getAccelerometer() {
-	return new DummyAccelerometer();
+	return new ADXL345Accelerometer(0x53);
 }
 
 std::string getPlatformName() {

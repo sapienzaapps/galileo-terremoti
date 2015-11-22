@@ -10,6 +10,8 @@
 #include <math.h>
 #include "ADXL345Accelerometer.h"
 
+#define I2C_SLAVE       0x0703  /* Use this slave address */
+
 ADXL345Accelerometer::ADXL345Accelerometer(uint8_t i2caddress) {
 	_i2caddress = i2caddress;
 

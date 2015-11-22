@@ -1,5 +1,8 @@
-//http://www.lm-sensors.org/browser/i2c-tools/trunk/lib/smbus.c
-//http://www.lm-sensors.org/export/6127/i2c-tools/trunk/lib/smbus.c
+/*
+ * http://www.lm-sensors.org/browser/i2c-tools/trunk/lib/smbus.c
+ * http://www.lm-sensors.org/export/6127/i2c-tools/trunk/lib/smbus.c
+ */
+
 /*
     smbus.c - SMBus level access helper functions
 

@@ -1,6 +1,9 @@
-//http://www.lm-sensors.org/browser/i2c-tools/trunk/include/i2c/smbus.h
-//http://www.lm-sensors.org/export/6127/i2c-tools/trunk/include/i2c/smbus.h
-//http://www.john.geek.nz/2012/12/update-reading-data-from-a-bosch-bmp085-with-a-raspberry-pi/
+/*
+ * http://www.lm-sensors.org/browser/i2c-tools/trunk/include/i2c/smbus.h
+ * http://www.lm-sensors.org/export/6127/i2c-tools/trunk/include/i2c/smbus.h
+ * http://www.john.geek.nz/2012/12/update-reading-data-from-a-bosch-bmp085-with-a-raspberry-pi/
+ */
+
 /*
     smbus.h - SMBus level access helper functions
 
@@ -28,6 +31,7 @@
 
 #include <linux/types.h>
 #include <linux/i2c.h>
+#include <stdint.h>
 
 typedef int32_t  __s32;
 typedef uint8_t  __u8;
