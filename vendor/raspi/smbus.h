@@ -23,9 +23,8 @@
 #ifndef LIB_I2C_SMBUS_H
 #define LIB_I2C_SMBUS_H
 
-#include <linux/i2c.h>
-#include <linux/i2c-dev.h>
 #include <linux/types.h>
+#include <linux/i2c.h>
 #include <stdint.h>
 
 typedef int32_t  __s32;

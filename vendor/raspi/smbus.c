@@ -22,7 +22,7 @@
 */
 
 #include <errno.h>
-#include "smbus.h"	// NB: Path changed!
+#include "smbus.h"
 #include <sys/ioctl.h>
 #include <linux/types.h>
 #include <linux/i2c.h>

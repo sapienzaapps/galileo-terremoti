@@ -65,15 +65,15 @@ AxesInfos ADXL345Accelerometer::getAxes(bool gforce) {
 	i2c_smbus_read_i2c_block_data(_fd, _i2caddress, 6, bytes);
 
 	uint16_t x = bytes[0] | (bytes[1] << 8);
-	if(x & (1 << 16 - 1))
+	if(x & ((1 << 16) - 1))
 		ret.x = x - (1<<16);
 
 	uint16_t y = bytes[2] | (bytes[3] << 8);
-	if(y & (1 << 16 - 1))
+	if(y & ((1 << 16) - 1))
 		ret.y = y - (1<<16);
 
 	uint16_t z = bytes[4] | (bytes[5] << 8);
-	if(z & (1 << 16 - 1))
+	if(z & ((1 << 16) - 1))
 		ret.z = z - (1<<16);
 
 	ret.x = ret.x * SCALE_MULTIPLIER;
