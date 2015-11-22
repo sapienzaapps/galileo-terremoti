@@ -4,8 +4,8 @@
 
 #include <sys/fcntl.h>
 #include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
 #include "smbus.h"
+#include <linux/i2c-dev.h>
 #include <string>
 #include <vector>
 #include <math.h>
