@@ -49,6 +49,13 @@
       <sourceFolder url="file://$MODULE_DIR$/vendor/mac-osx/LED.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/mac-osx/generic.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/mac-osx/vendor_specific.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor/raspi/ADXL345Accelerometer.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor/raspi/ADXL345Accelerometer.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor/raspi/LED.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor/raspi/generic.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor/raspi/smbus.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor/raspi/smbus.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor/raspi/vendor_specific.h" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

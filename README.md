@@ -1,11 +1,28 @@
+# Arduino/Genuino?
+
+To use Arduino/Genuino boards you must use sketch at https://github.com/sapienzaapps/seismoclouddevice-arduino . This code is for Arduino Galileo / Raspberry only.
+
 # Requirements
 
 * GNU/Linux or OSX (others \*BSD are not supported but it should works)
 * GNU make
-* Galileo toolchain (if you plan to compile for Arduino), you can find it here: http://www.intel.com/support/galileo/sb/CS-035101.htm
-* GCC compiler (if you plan to compile for linux-x86)
+* Galileo toolchain (if you plan to compile for Arduino Galileo), you can find it here: http://www.intel.com/support/galileo/sb/CS-035101.htm
+* GCC compiler (if you plan to compile for `linux-x86`)
+* Raspberry PI cross-compilation toolchain (if you plan to compile for `raspi`)
 
 # Hardware
+## Hardware needed
+
+* 3 LEDs (Red, Green, Blue) with 3 resistor
+* 1 Accelerometer (MMA7361 if you have analog inputs, ADXL345 for i2c)
+* Arduino Galileo / Raspberry PI
+* Donuts cables
+* Ethernet wired connection
+
+If you plan to use Arduino Uno or Arduino Galileo you should use MMA7361 accelerometer and analog pins on-board. If you use Raspberry, you should choose ADXL345 accelerometer instead (because Raspberry PI uses I2C bus to communicate with ADXL345).
+
+**Raspberry PI users**: if `i2c` bus is not enabled, please refer to `Platform specific` chapter of this README to enable i2c on Raspberry PI.
+
 ## LEDs
 
 LEDs can be in these different states:
@@ -19,13 +36,19 @@ LEDs can be in these different states:
 * **Green + Yellow + Red - ALL rotating**: software is loading
 * **Green + Yellow + Red - ALL blinking fast**: software is loaded, starting accelerometer
 
-### LED pins (on Arduino Galileo)
+### LED pins on Arduino Galileo
 
 * Pin 8 : Yellow
 * Pin 10 : Green
 * Pin 12 : Red
 
-## Link Accelerometer MMA7361 to Galileo
+### LED pins on Raspberry PI
+
+* GPIO-17 (addr #0) : Green
+* GPIO-18 (addr #0) : Yellow
+* GPIO-21 (addr #0) : Red
+
+## Link MMA7361 Accelerometer to Galileo
 
 Link these pins from Accelerometer MMA7361 to Arduino Galileo board:
 
@@ -38,14 +61,23 @@ Link these pins from Accelerometer MMA7361 to Arduino Galileo board:
 
 Loop back **3v3** pin to **SLP** on Accelerometer.
 
-# Toolchains
-## Galileo
+## Link ADXL345 Accelerometer to Raspberry PI
 
-## OS X
+* 3.3v : 3.3v
+* GND : GND
+* SDA : SDA
+* SCL : SCL
+
+Refer to Raspberry PI pinout, as https://jeffskinnerbox.files.wordpress.com/2012/11/raspberry-pi-rev-1-gpio-pin-out1.jpg 
+
+# Setup your build environment
+## Cross compile for Galileo
+
+### on OS X
 
 You should have Arduino Galileo IDE installed into `/Applications`. If not you can use the `GNU/Linux` guide to create a toolchain in a custom path.
 
-### GNU/Linux
+#### on GNU/Linux
 
 To create a toolchain for Galileo:
 
@@ -54,21 +86,27 @@ To create a toolchain for Galileo:
 
 If you don't have root access, you can place these files to any path you like (remember to use **SDK_ROOT** make option to specify different path)
 
+## Compile on Raspberry Pi (Raspbian Jessie)
+
+Make sure that you have these (debian) packages: `build-essential git wiringpi libi2c-dev ` and you're good to go.
+
+## Cross-compile for Raspberry Pi (Raspbian Jessie) on GNU/Linux
+
 # How to build from command line
 
 You should issue `make` command into project root directory. Make targets availables are: `all`, `clean` and `upload` (see below).
 
 You may use these options to compile a particular version:
 
-* **PLATFORM** : can be `linux-x86` (default), `mac-osx` or `galileo` depending on your target system
-* **VARIANT** : platform variant; for "galileo" variants are:
+* **PLATFORM** : can be `linux-x86`, `mac-osx`, `raspi` or `galileo` depending on your target system
+* **VARIANT** : platform variant; `galileo` has two "variants":
 	* **galileo_fab_d** : Galileo Gen 1 (default)
 	* **galileo_fab_g** : Galileo Gen 2
-* **SDK_ROOT** : SDK root path (see "Toolchains") if it's not in `/opt` (or /Applications for OS X)
+* **SDK_ROOT** : SDK/Toolchain root path (see "Toolchains") if it's not in default paths (`/opt` for GNU/Linux, /Applications for OS X)
 * **DEBUG** : if nonempty, enables debug options (i.e. debug messages and commands, crash reports)
 * **DEBUG_SERVER** : if nonempty, device will use testing APIs
-* **NOWATCHDOG** : if nonempty, watchdog will not be compiled
-* **REMOTEHOST** : if nonempty, enables `upload` target
+* **NOWATCHDOG** : if nonempty, watchdog will be disabled
+* **REMOTEHOST** : if nonempty, enables `upload` target (Galileo only)
 
 ## First time compilation with Arduino Galileo toolchain
 
@@ -102,6 +140,12 @@ See `linux-x86`, `mac-osx` and `galileo` for more infos.
 In order to test latency you need to run `sketch.elf` as root OR grant `CAP_NET_RAW` capability with a command like:
 
     $ sudo setcap cap_net_raw=ep build/out_linux-x86/sketch.elf
+
+## I2C bus not available on latest Raspbian releases
+
+Please refer to this post: https://www.raspberrypi.org/forums/viewtopic.php?f=28&t=97314
+
+In short, you should run `raspi-config` and enable `i2c` under `Advanced Options` menu (and then reboot).
 
 ## GDB Debug (cross)
 

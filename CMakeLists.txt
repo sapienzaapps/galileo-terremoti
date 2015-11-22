@@ -62,6 +62,13 @@ set(SOURCE_FILES
         vendor/mac-osx/LED.cpp
         vendor/mac-osx/generic.cpp
         vendor/mac-osx/vendor_specific.h
+		vendor/raspi/ADXL345Accelerometer.cpp
+		vendor/raspi/ADXL345Accelerometer.h
+		vendor/raspi/LED.cpp
+		vendor/raspi/generic.cpp
+		vendor/raspi/smbus.c
+		vendor/raspi/smbus.h
+		vendor/raspi/vendor_specific.h
         generic.h
 		Watchdog.cpp
         Watchdog.h
