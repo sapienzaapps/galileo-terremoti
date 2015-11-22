@@ -1,6 +1,6 @@
 
 
-VENDOR_MODULES := LED DummyAccelerometer generic
+VENDOR_MODULES := LED ADXL345Accelerometer generic
 VENDOR_SOURCES := $(VENDOR_MODULES:%=vendor/${PLATFORM}/%.cpp)
 VENDOR_OBJECTS := $(VENDOR_MODULES:%=${OBJDIR}/${PLATFORM}_%.o)
 
