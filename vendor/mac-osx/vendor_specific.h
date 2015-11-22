@@ -15,4 +15,8 @@
 #define WATCHDOG_CRASHDIR    "/tmp/watchdog/"
 #define STACKTRACEINFO       "/tmp/stacktrace.txt"
 
+#define LED_YELLOW_PIN       0
+#define LED_RED_PIN          0
+#define LED_GREEN_PIN        0
+
 #endif //GALILEO_TERREMOTI_VENDOR_SPECIFIC_H

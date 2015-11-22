@@ -24,10 +24,6 @@ typedef uint8_t byte;
 
 #define SOFTWARE_VERSION "2.00"
 
-#define LED_YELLOW_PIN 8
-#define LED_RED_PIN 12
-#define LED_GREEN_PIN 10
-
 #define NTP_SYNC_INTERVAL            60*60*1000
 #define CHECK_NETWORK_INTERVAL       30*1000  // when to check for Internet connection availability
 #define CHECK_CONFIG_INTERVAL        15*60*1000  // when to check for Internet connection availability

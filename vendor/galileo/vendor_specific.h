@@ -20,4 +20,8 @@
 #define WATCHDOG_CRASHDIR    "/media/realroot/watchdog/"
 #define STACKTRACEINFO       "/media/realroot/stacktrace.txt"
 
+#define LED_YELLOW_PIN       8
+#define LED_RED_PIN          12
+#define LED_GREEN_PIN        10
+
 #endif //GALILEO_TERREMOTI_VENDOR_SPECIFIC_H
