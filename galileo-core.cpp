@@ -69,6 +69,24 @@ int main(int argc, char** argv) {
 		Config::setMacAddress("000000000000");
 		Config::setLatitude(0.1);
 		Config::setLongitude(0.1);
+	} else if(argc > 1 && strcmp("--raw", argv[1]) == 0) {
+		Accelerometer* accel = getAccelerometer();
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
+		while(true) {
+			if(Utils::millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
+
+				double x = accel->getXAccel();
+				double y = accel->getYAccel();
+				double z = accel->getZAccel();
+
+				printf("%i - %f - %f - %f\n", Utils::millis(), x, y, z);
+
+				seismoLastMs = Utils::millis();
+			}
+		}
+#pragma clang diagnostic pop
 	} else {
 		signal(SIGSEGV, crashHandler);
 	}

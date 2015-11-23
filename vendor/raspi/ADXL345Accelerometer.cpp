@@ -43,43 +43,33 @@ double ADXL345Accelerometer::getZAccel() {
 }
 
 void ADXL345Accelerometer::enableMeasurement() {
-	i2c_smbus_write_byte_data(_i2caddress, POWER_CTL, MEASURE);
+	i2c_smbus_write_byte_data(_fd, POWER_CTL, MEASURE);
 }
 
 void ADXL345Accelerometer::setBandwidthRate(uint8_t refreshRate) {
-	i2c_smbus_write_byte_data(_i2caddress, BW_RATE, refreshRate);
+	i2c_smbus_write_byte_data(_fd, BW_RATE, refreshRate);
 }
 
 
 void ADXL345Accelerometer::setRange(uint8_t rangeFlags) {
-	__s32 value = i2c_smbus_read_byte_data(_i2caddress, DATA_FORMAT);
+	__s32 value = i2c_smbus_read_byte_data(_fd, DATA_FORMAT);
 
 	value &= ~0x0F;
 	value |= rangeFlags;
 	value |= 0x08;
 
-	i2c_smbus_write_byte_data(_i2caddress, DATA_FORMAT, value);
+	i2c_smbus_write_byte_data(_fd, DATA_FORMAT, value);
 }
 
 AxesInfos ADXL345Accelerometer::getAxes(bool gforce) {
 	AxesInfos ret = { 0, 0, 0 };
 
-	i2c_smbus_write_byte_data(_i2caddress, AXES_DATA, 6);
-
 	uint8_t bytes[6];
-	i2c_smbus_read_i2c_block_data(_fd, _i2caddress, 6, bytes);
+	i2c_smbus_read_i2c_block_data(_fd, AXES_DATA, 6, bytes);
 
-	uint16_t x = bytes[0] | (bytes[1] << 8);
-	if(x & ((1 << 16) - 1))
-		ret.x = x - (1<<16);
-
-	uint16_t y = bytes[2] | (bytes[3] << 8);
-	if(y & ((1 << 16) - 1))
-		ret.y = y - (1<<16);
-
-	uint16_t z = bytes[4] | (bytes[5] << 8);
-	if(z & ((1 << 16) - 1))
-		ret.z = z - (1<<16);
+	ret.x = bytes[0] | ((int8_t)bytes[1] << 8);
+	ret.y = bytes[2] | ((int8_t)bytes[3] << 8);
+	ret.z = bytes[4] | ((int8_t)bytes[5] << 8);
 
 	ret.x = ret.x * SCALE_MULTIPLIER;
 	ret.y = ret.y * SCALE_MULTIPLIER;
@@ -90,10 +80,6 @@ AxesInfos ADXL345Accelerometer::getAxes(bool gforce) {
 		ret.y = ret.y * EARTH_GRAVITY_MS2;
 		ret.z = ret.z * EARTH_GRAVITY_MS2;
 	}
-
-	ret.x = round(ret.x);
-	ret.y = round(ret.y);
-	ret.z = round(ret.z);
 
 	return ret;
 }

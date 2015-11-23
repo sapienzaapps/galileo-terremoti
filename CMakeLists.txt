@@ -66,7 +66,7 @@ set(SOURCE_FILES
 		vendor/raspi/ADXL345Accelerometer.h
 		vendor/raspi/LED.cpp
 		vendor/raspi/generic.cpp
-		vendor/raspi/smbus.c
+		vendor/raspi/smbus.cpp
 		vendor/raspi/smbus.h
 		vendor/raspi/vendor_specific.h
         generic.h
