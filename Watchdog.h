@@ -26,7 +26,7 @@ public:
 private:
 	static void storeCrashInfos(std::string reason);
 	static unsigned long lastBeat;
-	static pid_t getSketchPid();
+	static bool checkSketchPid(pid_t pid);
 };
 
 

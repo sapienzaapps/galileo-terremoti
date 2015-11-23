@@ -22,7 +22,7 @@
 unsigned long Watchdog::lastBeat = 0;
 
 void Watchdog::launch() {
-	pid_t pid, sid;
+	pid_t pid, sid, parentpid = getpid();
 	int fd;
 
 	// already a daemon
@@ -89,7 +89,7 @@ void Watchdog::launch() {
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 	while(true) {
 		sleep(15);
-		pid_t sketchpid = Watchdog::getSketchPid();
+		bool sketchPidRunning = Watchdog::checkSketchPid(parentpid);
 		struct stat fileinfo;
 
 		bool heartbeat = true;
@@ -112,17 +112,15 @@ void Watchdog::launch() {
 		} else {
 			heartbeat = true;
 		}
-		if (sketchpid == 0 || !heartbeat) {
+		if (sketchPidRunning == 0 || !heartbeat) {
 			std::string reason = "";
 			if(!heartbeat) {
-				Log::d("Heartbeat missed");
 				reason.append("Heartbeat missed;");
 			}
-			if(sketchpid == 0) {
-				Log::d("Unable to get sketch PID");
-				reason.append("Unable to get sketch PID");
+			if(sketchPidRunning) {
+				reason.append("Sketch is not running");
 			}
-			Log::i("Sketch is not running: %s", reason.c_str());
+			Log::i("Reboot reason: %s", reason.c_str());
 			Log::close();
 #ifdef DEBUG
 			storeCrashInfos(reason);
@@ -133,31 +131,10 @@ void Watchdog::launch() {
 #pragma clang diagnostic pop
 }
 
-pid_t Watchdog::getSketchPid() {
-	pid_t ret = 0;
-	struct dirent *dir;
-
-	DIR *d = opendir("/proc/");
-	if(d) {
-		while((dir = readdir(d)) != NULL && ret == 0) {
-			if(dir->d_type == DT_DIR) {
-				pid_t temppid = atoi(dir->d_name);
-				if(temppid == 0) continue;
-				char path[1024];
-				snprintf(path, 1024, "/proc/%i/cmdline", temppid);
-				if(Utils::fileExists(path)) {
-					std::string cmdline = Utils::readFirstLine(path);
-					if(strncmp("/sketch/sketch.elf", cmdline.c_str(), strlen("/sketch/sketch.elf")) == 0 && getpid() != temppid) {
-						ret = temppid;
-					}
-				}
-			}
-
-		}
-		closedir(d);
-	}
-
-	return ret;
+bool Watchdog::checkSketchPid(pid_t pid) {
+	char path[1024];
+	snprintf(path, 1024, "/proc/%i/cmdline", pid);
+	return Utils::fileExists(path);
 }
 
 void Watchdog::heartBeat() {
