@@ -57,9 +57,9 @@ public:
 	long getXVolt();
 	long getYVolt();
 	long getZVolt();
-	long getXAccel();
-	long getYAccel();
-	long getZAccel();
+	double getXAccel();
+	double getYAccel();
+	double getZAccel();
 	void test_voltage();
 	void getAccelXYZ(long *_XAxis, long *_YAxis, long *_ZAxis);
 	double getTotalVector();

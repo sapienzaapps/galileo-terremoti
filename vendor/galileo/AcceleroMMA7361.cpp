@@ -108,7 +108,7 @@ long AcceleroMMA7361::getZVolt() {
 }
 
 /// getXAccel(): Returns the acceleration of the X-axis as a int (1 G = 100.00)
-long AcceleroMMA7361::getXAccel() {
+double AcceleroMMA7361::getXAccel() {
 	long sum = 0;
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getXRaw());
@@ -117,7 +117,7 @@ long AcceleroMMA7361::getXAccel() {
 }
 
 /// getYAccel(): Returns the acceleration of the Y-axis as a int (1 G = 100.00)
-long AcceleroMMA7361::getYAccel() {
+double AcceleroMMA7361::getYAccel() {
 	long sum = 0;
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getYRaw());
@@ -126,7 +126,7 @@ long AcceleroMMA7361::getYAccel() {
 }
 
 /// getZAccel(): Returns the acceleration of the Z-axis as a int (1 G = 100.00)
-long AcceleroMMA7361::getZAccel() {
+double AcceleroMMA7361::getZAccel() {
 	long sum = 0;
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getZRaw());

@@ -4,15 +4,15 @@
 
 #include "DummyAccelerometer.h"
 
-long DummyAccelerometer::getXAccel() {
+double DummyAccelerometer::getXAccel() {
 	return 0;
 }
 
-long DummyAccelerometer::getYAccel() {
+double DummyAccelerometer::getYAccel() {
 	return 0;
 }
 
-long DummyAccelerometer::getZAccel() {
+double DummyAccelerometer::getZAccel() {
 	return 0;
 }
 

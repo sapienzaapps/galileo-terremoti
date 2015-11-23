@@ -39,9 +39,9 @@ typedef struct {
 class ADXL345Accelerometer : public Accelerometer {
 public:
 	ADXL345Accelerometer(uint8_t i2caddress);
-	long getXAccel();
-	long getYAccel();
-	long getZAccel();
+	double getXAccel();
+	double getYAccel();
+	double getZAccel();
 	std::string getAccelerometerName();
 
 	void enableMeasurement();

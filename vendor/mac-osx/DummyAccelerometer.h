@@ -11,9 +11,9 @@
 class DummyAccelerometer : public Accelerometer {
 public:
 	DummyAccelerometer();
-	virtual long getXAccel();
-	virtual long getYAccel();
-	virtual long getZAccel();
+	virtual double getXAccel();
+	virtual double getYAccel();
+	virtual double getZAccel();
 	virtual std::string getAccelerometerName();
 };
 

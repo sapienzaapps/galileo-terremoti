@@ -27,16 +27,19 @@ std::string ADXL345Accelerometer::getAccelerometerName() {
 	return std::string("ADXL345");
 }
 
-long ADXL345Accelerometer::getXAccel() {
-	return 0;
+double ADXL345Accelerometer::getXAccel() {
+	AxesInfos ax = getAxes(false);
+	return ax.x;
 }
 
-long ADXL345Accelerometer::getYAccel() {
-	return 0;
+double ADXL345Accelerometer::getYAccel() {
+	AxesInfos ax = getAxes(false);
+	return ax.y;
 }
 
-long ADXL345Accelerometer::getZAccel() {
-	return 0;
+double ADXL345Accelerometer::getZAccel() {
+	AxesInfos ax = getAxes(false);
+	return ax.z;
 }
 
 void ADXL345Accelerometer::enableMeasurement() {
