@@ -3,6 +3,7 @@ include build-cfg.mk
 
 OUTDIR        = $(shell pwd)/build/out_$(PLATFORM)$(VARIANT)
 OBJDIR        = $(shell pwd)/build/tmp_$(PLATFORM)$(VARIANT)
+BUILDOPTFILE  = $(shell pwd)/build/buildopt_$(PLATFORM)$(VARIANT)
 BUILDVERSION := $(shell git describe --tags)
 MAINFLAGS    := -DPLATFORM=\"${PLATFORM}\" -Wall -Wextra -pedantic-errors -fdiagnostics-show-option -Wno-unknown-pragmas -DBUILD_VERSION=\"${BUILDVERSION}\"
 
@@ -24,10 +25,16 @@ else
 MODULES += Watchdog
 endif
 
+STOREDFLAGS := $(shell cat ${BUILDOPTFILE} 2>/dev/null)
+
 SOURCES := $(MODULES:%=%.cpp)
 OBJECTS := $(MODULES:%=${OBJDIR}/%.o)
 
+ifeq (${STOREDFLAGS}, ${MAINFLAGS})
 all: createdir vendor net ${OUTDIR}/sketch.elf
+else
+all: clean createdir vendor net ${OUTDIR}/sketch.elf
+endif
 
 ifeq (, ${REMOTEHOST})
 upload: all
@@ -42,6 +49,7 @@ endif
 createdir:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(OUTDIR)
+	echo "${MAINFLAGS}" > $(BUILDOPTFILE)
 
 vendor::
 
