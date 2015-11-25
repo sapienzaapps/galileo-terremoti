@@ -88,9 +88,9 @@ If you don't have root access, you can place these files to any path you like (r
 
 ## Compile on Raspberry Pi (Raspbian Jessie)
 
-Make sure that you have these (debian) packages: `build-essential git wiringpi libi2c-dev ` and you're good to go.
+Make sure that you have these (debian) packages: `build-essential git wiringpi` and you're good to go.
 
-## Cross-compile for Raspberry Pi (Raspbian Jessie) on GNU/Linux
+**Note**: you need to remove `libi2c-dev` if you have it because there are compatibility issues with some headers (you need to use i2c headers that are bundled with Linux kernel headers/source).
 
 # How to build from command line
 
