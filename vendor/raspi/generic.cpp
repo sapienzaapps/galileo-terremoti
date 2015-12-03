@@ -9,6 +9,10 @@
 #include "../../LED.h"
 #include <string.h>
 
+#ifdef SDL_DEMO
+#include "../../LCDMonitor.h"
+#endif
+
 std::string executablePath = "";
 
 void vendor_init(int argc, char** argv) {
@@ -20,6 +24,9 @@ void vendor_init(int argc, char** argv) {
 		readlink("/proc/self/exe", executableBuf, 1023);
 		executablePath = std::string(executableBuf);
 	}
+#ifdef SDL_DEMO
+	LCDMonitor::getInstance();
+#endif
 }
 
 Accelerometer* getAccelerometer() {

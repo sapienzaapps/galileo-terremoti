@@ -7,6 +7,10 @@ BUILDOPTFILE  = $(shell pwd)/build/buildopt_$(PLATFORM)$(VARIANT)
 BUILDVERSION := $(shell git describe --tags)
 MAINFLAGS    := -DPLATFORM=\"${PLATFORM}\" -Wall -Wextra -pedantic-errors -fdiagnostics-show-option -Wno-unknown-pragmas -DBUILD_VERSION=\"${BUILDVERSION}\"
 
+ifneq (, ${SDLDEMO})
+MAINFLAGS += -DSDL_DEMO
+endif
+
 ifneq (, ${DEBUG})
 MAINFLAGS += -g -rdynamic -DDEBUG
 endif
@@ -18,6 +22,10 @@ endif
 include vendor/${PLATFORM}/toolchain.mk
 
 MODULES := CommandInterface Config Log Seismometer Utils galileo-core
+
+ifneq (, ${SDLDEMO})
+MODULES += LCDMonitor
+endif
 
 ifeq (${PLATFORM}, raspi)
 NOWATCHDOG=y

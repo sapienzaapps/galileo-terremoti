@@ -5,6 +5,10 @@
 # galileo_fab_d - Galileo
 # galileo_fab_g - Galileo Gen 2
 
+ifneq (, ${SDLDEMO})
+$(error SDL not supported on Galileo)
+endif
+
 VARIANT        ?= galileo_fab_d
 
 GALILEO_GEN    := 1

@@ -11,6 +11,7 @@
 #include "Utils.h"
 #include "generic.h"
 #include "net/TraceAccumulator.h"
+#include "LCDMonitor.h"
 
 Seismometer *Seismometer::instance = NULL;
 
@@ -58,6 +59,10 @@ void Seismometer::tick() {
 		// In event, skipping detections for 5 seconds
 		return;
 	}
+
+#ifdef SDL_DEMO
+	LCDMonitor::sendNewValue((float)db.accel);
+#endif
 
 	// if the values of the accelerometer have passed the threshold
 	//  or if an "event" is currently running
