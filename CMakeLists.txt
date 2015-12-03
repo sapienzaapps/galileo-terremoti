@@ -5,6 +5,7 @@ project(galileo_terremoti)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 add_Definitions(-DDEBUG)
+add_Definitions(-DSDL_DEMO)
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -55,6 +56,8 @@ set(SOURCE_FILES
 		vendor/linux-x86/LED.cpp
 		vendor/linux-x86/generic.cpp
 		vendor/linux-x86/vendor_specific.h
+        LCDMonitor.h
+        LCDMonitor.cpp
         vendor/mac-osx/DummyAccelerometer.cpp
         vendor/mac-osx/DummyAccelerometer.h
         vendor/mac-osx/LED.cpp
