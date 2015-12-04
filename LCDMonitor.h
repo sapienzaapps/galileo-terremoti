@@ -5,8 +5,8 @@
 #include <SDL2/SDL.h>
 #include <pthread.h>
 
-#define LCDMONITOR_WIDTH   640
-#define LCDMONITOR_HEIGHT  480
+#define LCDMONITOR_WIDTH   320
+#define LCDMONITOR_HEIGHT  240
 
 class LCDMonitor {
 public:
