@@ -19,7 +19,6 @@ LCDMonitor::~LCDMonitor() {
 
 void *LCDMonitor::uiWorker(void *mem) {
 	SDL_Window* window = NULL;
-	//SDL_Surface* screenSurface = NULL;
 	if (SDL_Init( SDL_INIT_VIDEO ) < 0) {
 		Log::e("Error during SDL init: %s", SDL_GetError());
 		pthread_exit(NULL);
@@ -36,8 +35,12 @@ void *LCDMonitor::uiWorker(void *mem) {
 
 	SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
 
-	//SDL_RenderDrawLine(renderer, 0, LCDMONITOR_HEIGHT/2, LCDMONITOR_WIDTH, LCDMONITOR_HEIGHT/2);
-	//SDL_RenderPresent(renderer);
+	// OSX seems to need these lines
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 	bool quit = false;
 	SDL_Event evt;
