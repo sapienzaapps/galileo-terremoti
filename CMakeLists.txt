@@ -88,6 +88,7 @@ add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
 #add_custom_target(gen1image COMMAND genimage.sh ${PROJECT_SOURCE_DIR})
 
 include_directories(vendor/linux-x86/)
+include_directories($ENV{HOME}/homebrew/Cellar/sdl2/2.0.3/include)
 
 add_custom_target(generic_x86 ALL
 		COMMAND make PLATFORM="linux-x86" -C ${PROJECT_SOURCE_DIR}
