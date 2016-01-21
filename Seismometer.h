@@ -9,11 +9,8 @@
 #include "Config.h"
 #include "net/Collector.h"
 
-typedef uint8_t HOUR;
-
 typedef struct {
 	unsigned long ts;
-	uint64_t ms;
 	double accel;
 	bool overThreshold;
 } RECORD;

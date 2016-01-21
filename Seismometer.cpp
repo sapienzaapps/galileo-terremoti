@@ -56,10 +56,9 @@ void Seismometer::tick() {
 		return;
 	}
 
-	RECORD db = {0, 0, 0, false};
+	RECORD db = {0, 0, false};
 
 	db.ts = NTP::getUNIXTime();
-	db.ms = NTP::getUNIXTimeMS();
 	db.accel = accelero->getTotalVector();
 	db.overThreshold = db.accel > quakeThreshold;
 
