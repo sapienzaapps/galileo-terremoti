@@ -44,11 +44,11 @@ public:
 
 	/**
 	 * Absolute average
-	 * @param buf Array of integers
+	 * @param buf Array of float
 	 * @param size Size
 	 * @param Average
 	 */
-	static float absavg(int *buf, int size);
+	static float absavg(float *buf, int size);
 
 	/**
 	 * Standard dev
@@ -57,7 +57,7 @@ public:
 	 * @param avg Average
 	 * @param Standard dev
 	 */
-	static double stddev(int *buf, int size, float avg);
+	static double stddev(float *buf, int size, float avg);
 
 	/**
 	 * Delay for a specified amount of milliseconds
@@ -147,6 +147,13 @@ public:
 	 * @param String value
 	 */
 	static std::string toString(unsigned long d);
+
+	/**
+	 * Generate a string from native value
+	 * @param d Value to convert to string
+	 * @param String value
+	 */
+	static std::string Utils::toString(uint64_t d);
 
 	/**
 	 * Generate a string from native value

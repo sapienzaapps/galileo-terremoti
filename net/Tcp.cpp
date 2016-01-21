@@ -106,7 +106,7 @@ bool Tcp::connectTo(IPaddr ipaddr, unsigned short port) {
 	// Restore blocking mode
 	fcntl(fd, F_SETFL, flags);
 
-	return true;
+	return connected();
 }
 
 ssize_t Tcp::readall(uint8_t *buf, size_t len) {
@@ -122,7 +122,22 @@ void Tcp::stop() {
 }
 
 bool Tcp::connected() const {
-	return fd > 0;
+	bool ret = false;
+	if(fd > 0) {
+		ret = true;
+		// Nonblocking
+		int flags = fcntl(fd, F_GETFL, 0);
+		fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+
+		char buf;
+		ssize_t err = recv(fd, &buf, 1, MSG_PEEK);
+		if(err == 0) {
+			ret = false;
+		}
+		// Restore blocking mode
+		fcntl(fd, F_SETFL, flags);
+	}
+	return ret;
 }
 
 int Tcp::readchar() {

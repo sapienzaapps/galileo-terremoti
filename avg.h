@@ -9,21 +9,21 @@
  * @param currsize Array size
  * @return Average value
  */
-int getAverage(int bfr[], int currsize);
+float getAverage(float bfr[], int currsize);
 
 /**
  * Add an X value to cyclic buffer and returns the new avg
  */
-int getAvgX(int x);
+float getAvgX(float x);
 
 /**
  * Add an Y value to cyclic buffer and returns the new avg
  */
-int getAvgY(int y);
+float getAvgY(float y);
 
 /**
  * Add an Z value to cyclic buffer and returns the new avg
  */
-int getAvgZ(int z);
+float getAvgZ(float z);
 
 #endif

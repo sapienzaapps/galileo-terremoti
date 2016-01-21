@@ -132,17 +132,17 @@ void Seismometer::calibrateForHour(HOUR currentHour) {
 
 	LED::setLedBlinking(LED_YELLOW_PIN);
 
-	int cbufx[CALIBRATIONITER];
-	int cbufy[CALIBRATIONITER];
-	int cbufz[CALIBRATIONITER];
+	float cbufx[CALIBRATIONITER];
+	float cbufy[CALIBRATIONITER];
+	float cbufz[CALIBRATIONITER];
 
 	Log::d("Begin calibration for hour: %i", currentHour);
 
 	int i = 0;
 	for (i = 0; i < CALIBRATIONITER; i++) {
-		cbufx[i] = accelero->getXAccel();
-		cbufy[i] = accelero->getYAccel();
-		cbufz[i] = accelero->getZAccel();
+		cbufx[i] = (float)accelero->getXAccel();
+		cbufy[i] = (float)accelero->getYAccel();
+		cbufz[i] = (float)accelero->getZAccel();
 	}
 
 	float avgx = Utils::absavg(cbufx, CALIBRATIONITER);

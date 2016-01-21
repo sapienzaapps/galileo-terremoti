@@ -117,7 +117,7 @@ double Utils::atofn(const char *str, size_t max)  {
 	return ret;
 }
 
-float Utils::absavg(int *buf, int size) {
+float Utils::absavg(float *buf, int size) {
 	float ret = 0;
 	for (int i = 0; i < size; i++) {
 		ret += (buf[i] < 0 ? buf[i] * -1 : buf[i]);
@@ -126,7 +126,7 @@ float Utils::absavg(int *buf, int size) {
 }
 
 // Standard Deviation
-double Utils::stddev(int *buf, int size, float avg) {
+double Utils::stddev(float *buf, int size, float avg) {
 	// Formula: RAD ( SUM{i,size}( (x[i] - avg)^2 ) / (size - 1) )
 	double sum = 0;
 	for (int i = 0; i < size; i++) {
@@ -192,6 +192,11 @@ std::string Utils::toString(long d) {
 	return strs.str();
 }
 std::string Utils::toString(unsigned long d) {
+	std::ostringstream strs;
+	strs << d;
+	return strs.str();
+}
+std::string Utils::toString(uint64_t d) {
 	std::ostringstream strs;
 	strs << d;
 	return strs.str();

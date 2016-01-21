@@ -70,9 +70,9 @@ unsigned long NTP::getUNIXTime() {
 	return (NTP::unixTimeTS + (diff / 1000));
 }
 
-unsigned long int NTP::getUNIXTimeMS() {
-	unsigned long diff = Utils::millis() - NTP::unixTimeUpdate;
-	return (((NTP::unixTimeTS) + (diff / 1000) + 1));
+uint64_t NTP::getUNIXTimeMS() {
+	uint64_t diff = Utils::millis() - NTP::unixTimeUpdate;
+	return (((uint64_t)NTP::unixTimeTS*(uint64_t)1000) + diff);
 }
 
 void NTP::setNTPServer(std::string ntpserver) {

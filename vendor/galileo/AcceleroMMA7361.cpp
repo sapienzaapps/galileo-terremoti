@@ -109,29 +109,29 @@ long AcceleroMMA7361::getZVolt() {
 
 /// getXAccel(): Returns the acceleration of the X-axis as a int (1 G = 100.00)
 double AcceleroMMA7361::getXAccel() {
-	long sum = 0;
+	float sum = 0;
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getXRaw());
 	}
-	return sum / _average;
+	return sum / (float)_average;
 }
 
 /// getYAccel(): Returns the acceleration of the Y-axis as a int (1 G = 100.00)
 double AcceleroMMA7361::getYAccel() {
-	long sum = 0;
+	float sum = 0;
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getYRaw());
 	}
-	return sum / _average;
+	return sum / (float)_average;
 }
 
 /// getZAccel(): Returns the acceleration of the Z-axis as a int (1 G = 100.00)
 double AcceleroMMA7361::getZAccel() {
-	long sum = 0;
+	float sum = 0;
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getZRaw());
 	}
-	return sum / _average;
+	return (sum / (float)_average);
 }
 
 /// getAccelXYZ(int *_XAxis, int *_YAxis, int *_ZAxis) returns all axis at once as pointers
@@ -145,9 +145,9 @@ void AcceleroMMA7361::getAccelXYZ(long *_XAxis, long *_YAxis, long *_ZAxis) {
 		sum[1] = sum[1] + _mapMMA7361G(getYRaw());
 		sum[2] = sum[2] + _mapMMA7361G(getZRaw());
 	}
-	*_XAxis = sum[0] / _average;
-	*_YAxis = sum[1] / _average;
-	*_ZAxis = sum[2] / _average;
+	*_XAxis = sum[0] / (float)_average;
+	*_YAxis = sum[1] / (float)_average;
+	*_ZAxis = sum[2] / (float)_average;
 }
 
 /// mapMMA7361V: calculates and returns the voltage value derived from the raw data. Used in getXVoltage, getYVoltage, getZVoltage
@@ -162,7 +162,7 @@ long AcceleroMMA7361::_mapMMA7361V(long value) {
 }
 
 /// mapMMA7361G: calculates and returns the accelerometer value in degrees derived from the raw data. Used in getXAccel, getYAccel, getZAccel
-long AcceleroMMA7361::_mapMMA7361G(long value) {
+float AcceleroMMA7361::_mapMMA7361G(long value) {
 	if (!_sensi) {
 		if (_refVoltage == 3.3) {
 			return map(value, 0, 1024, -825, 800);

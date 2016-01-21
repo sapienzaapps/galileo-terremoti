@@ -30,7 +30,7 @@ public:
 	 * Get time as UNIX timestamp (eg. seconds since Jan 1 1970 UTC) with milliseconds precision
 	 * @return UNIX time with millisecond precision
 	 */
-	static unsigned long int getUNIXTimeMS();
+	static uint64_t getUNIXTimeMS();
 
 	/**
 	 * Sync with NTP server

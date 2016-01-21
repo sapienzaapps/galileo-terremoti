@@ -5,11 +5,11 @@ int currsizeX = 0;
 int currsizeY = 0;
 int currsizeZ = 0;
 
-int bfrX[K];
-int bfrY[K];
-int bfrZ[K];
+float bfrX[K];
+float bfrY[K];
+float bfrZ[K];
 
-int getAverage(int bfr[], int currsize) {
+float getAverage(float bfr[], int currsize) {
 	int i;
 	int sum = 0;
 
@@ -19,7 +19,7 @@ int getAverage(int bfr[], int currsize) {
 	return (sum / currsize);
 }
 
-int getAvgX(int x) {
+float getAvgX(float x) {
 	if (currsizeX >= K) {
 		currsizeX = 0;
 		bfrX[currsizeX] = x;
@@ -31,7 +31,7 @@ int getAvgX(int x) {
 	return getAverage(bfrX, currsizeX);
 }
 
-int getAvgY(int y) {
+float getAvgY(float y) {
 	if (currsizeY >= K) {
 		currsizeY = 0;
 		bfrY[currsizeY] = y;
@@ -43,7 +43,7 @@ int getAvgY(int y) {
 	return getAverage(bfrY, currsizeY);
 }
 
-int getAvgZ(int z) {
+float getAvgZ(float z) {
 	if (currsizeZ >= K) {
 		currsizeZ = 0;
 		bfrZ[currsizeZ] = z;

@@ -8,7 +8,7 @@
 #include "IPaddr.h"
 
 typedef struct {
-	unsigned long ts;
+	uint64_t ts;
 	float x;
 	float y;
 	float z;
@@ -24,12 +24,11 @@ private:
 	static Collector *instance;
 
 	Collector();
-	void *threadWorker(void* mem);
 
+	bool threadStarted;
 	pthread_t worker;
 	IPaddr remoteaddr;
-	sem_t prodcons;
-	sem_t vectorsem;
+	sem_t *prodcons;
 	std::deque<CollectorRecord> pdv;
 };
 

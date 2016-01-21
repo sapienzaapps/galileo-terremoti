@@ -19,7 +19,7 @@ typedef enum {
 
 typedef struct {
 	unsigned long ts;
-	unsigned long ms;
+	uint64_t ms;
 	long valx;
 	long valy;
 	long valz;

@@ -73,7 +73,7 @@ public:
 
 private:
 	long _mapMMA7361V(long value);
-	long _mapMMA7361G(long value);
+	float _mapMMA7361G(long value);
 	uint8_t _xPin;
 	uint8_t _yPin;
 	uint8_t _zPin;
