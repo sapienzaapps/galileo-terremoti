@@ -29,6 +29,8 @@ Seismometer::Seismometer() {
 	}
 	thresholdAlgorithm = Basic;
 
+	serverCollector = Collector::getInstance();
+
 #ifdef SAVE_THRESHOLD
 	createDBifNeeded();
 #endif
@@ -51,6 +53,8 @@ void Seismometer::tick() {
 	double valx = accelero->getXAccel();
 	double valy = accelero->getYAccel();
 	double valz = accelero->getZAccel();
+
+	serverCollector->send((float)valx, (float)valy, (float)valz);
 
 	statLastCounter++;
 	if(Utils::millis() - statLastCounterTime > 1000) {

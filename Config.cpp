@@ -136,6 +136,11 @@ bool Config::checkServerConfig() {
 			return false;
 		}
 
+		if(params.count("collector") == 1) {
+			std::string collector = params["collector"];
+			Collector::getInstance()->start(IPaddr::resolve(collector));
+		}
+
 		std::string path = params["path"];
 		if(!path.empty()) {
 			LED::green(false);

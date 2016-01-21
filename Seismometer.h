@@ -7,6 +7,7 @@
 
 #include "Accelerometer.h"
 #include "Config.h"
+#include "net/Collector.h"
 
 // #define SAVE_THRESHOLD
 
@@ -88,6 +89,7 @@ private:
 	bool inEvent;
 	unsigned long lastEventWas;
 	HOUR nextHour = 0;
+	Collector *serverCollector;
 
 	unsigned long statLastCounterTime = 0;
 	unsigned int statLastCounter = 0;
