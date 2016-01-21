@@ -48,7 +48,7 @@ void HTTPClient::httpSendAlert(RECORD *db, float threshold) {
 	Log::i("New Event, value: %lf - threshold: %f", db->accel, threshold);
 
 	std::map<std::string, std::string> postValues;
-	postValues["tsstart"] = Utils::toString(db->ms);
+	postValues["tsstart"] = Utils::toString(db->ts);
 	postValues["deviceid"] = Config::getMacAddress();
 	postValues["lat"] = Utils::toString(Config::getLatitude());
 	postValues["lon"] = Utils::toString(Config::getLongitude());
