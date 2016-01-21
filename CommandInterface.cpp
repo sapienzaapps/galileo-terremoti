@@ -79,10 +79,8 @@ void CommandInterface::sendPacket(PACKET pkt) {
 		memcpy(pktbuf + offset, &ip, 4);
 		offset += 4;
 
-		memcpy(pktbuf + offset, &pkt.thresholds.pthresx, 4);
-		memcpy(pktbuf + offset + 4, &pkt.thresholds.pthresy, 4);
-		memcpy(pktbuf + offset + 8, &pkt.thresholds.pthresz, 4);
-		offset += 12;
+		memcpy(pktbuf + offset, &pkt.threshold, 4);
+		offset += 4;
 
 		memcpy(pktbuf + offset, &pkt.uptime, 4);
 		offset += 4;
@@ -198,7 +196,7 @@ void CommandInterface::checkCommandPacket() {
 			// SEND INFO
 			Config::getMacAddressAsByte(pkt.mac);
 			pkt.syslogServer = Log::getSyslogServer();
-			pkt.thresholds = Seismometer::getInstance()->getThresholds();
+			pkt.threshold = Seismometer::getInstance()->getQuakeThreshold();
 			pkt.uptime = Utils::uptime();
 			pkt.unixts = (uint32_t)NTP::getUNIXTime();
 			memcpy(pkt.softwareVersion, SOFTWARE_VERSION, 4);
@@ -222,16 +220,13 @@ void CommandInterface::checkCommandPacket() {
 
 // send the accelerometer values to the mobile APP
 // TODO: check
-void CommandInterface::sendValues(RECORD *db) {
-	uint32_t valx = (uint32_t)db->valx;
-	uint32_t valy = (uint32_t)db->valy;
-	uint32_t valz = (uint32_t)db->valz;
+void CommandInterface::sendValues(float x, float y, float z) {
 	if (udpDest == 0) {  // if a socket connection with the mobile APP has been established
 		byte pktBuffer[PACKET_SIZE];
 
-		memcpy(pktBuffer, &valx, 4);
-		memcpy(pktBuffer+4, &valy, 4);
-		memcpy(pktBuffer+8, &valz, 4);
+		memcpy(pktBuffer, &x, 4);
+		memcpy(pktBuffer+4, &y, 4);
+		memcpy(pktBuffer+8, &z, 4);
 
 		cmdc.send(pktBuffer, 12, udpDest, CMD_INTERFACE_PORT+1);
 	}

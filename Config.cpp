@@ -139,8 +139,10 @@ bool Config::checkServerConfig() {
 		if(params.count("collector") == 1) {
 			std::string collector = params["collector"];
 			Collector::getInstance()->start(IPaddr::resolve(collector));
-		//} else { // TODO: remove in production
-		//	Collector::getInstance()->start(IPaddr::resolve("192.168.1.200"));
+		}
+
+		if(params.count("accTreshold") == 1) {
+			Seismometer::getInstance()->setQuakeThreshold((float)atof(params["accTreshold"].c_str()));
 		}
 
 		std::string path = params["path"];

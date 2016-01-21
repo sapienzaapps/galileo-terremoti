@@ -231,8 +231,6 @@ void loop() {
 		ntpLastMs = Utils::millis();
 	}
 
-	seismometer->calibrateIfNeeded();
-
 	if(Utils::millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
 		seismometer->tick();
 		seismoLastMs = Utils::millis();

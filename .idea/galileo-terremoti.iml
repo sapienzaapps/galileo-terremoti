@@ -32,8 +32,6 @@
       <sourceFolder url="file://$MODULE_DIR$/Config.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Config.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Utils.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/avg.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/avg.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/vendor_specific.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/generic.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/LED.cpp" isTestSource="false" />

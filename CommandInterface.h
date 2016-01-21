@@ -36,7 +36,7 @@ typedef struct _PACKET {
 	float longitude;
 	byte mac[6];
 
-	THRESHOLDS thresholds;
+	float threshold;
 	uint32_t uptime;
 	uint32_t unixts;
 	uint8_t softwareVersion[4+1];
@@ -94,7 +94,7 @@ public:
 	 * Send accelerometer values to Android
 	 * @param db Accelerometer values
 	 */
-	static void sendValues(RECORD *db);
+	static void sendValues(float x, float y, float z);
 
 	/**
 	 * Init command interface

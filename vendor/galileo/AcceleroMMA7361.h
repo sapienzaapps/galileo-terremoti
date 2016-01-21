@@ -61,12 +61,9 @@ public:
 	double getYAccel();
 	double getZAccel();
 	void test_voltage();
-	void getAccelXYZ(long *_XAxis, long *_YAxis, long *_ZAxis);
-	double getTotalVector();
 	void setOffSets(int xOffSet, int yOffSet, int zOffSet);
 	void calibrate();                             // only to be executed when Z-axis is oriented to the ground
 // it calculates the offset values by assuming  Z = +1 G ; X and Y  = 0 G
-	void setARefVoltage(double _refV);
 	void setAveraging(int avg);
 	int getOrientation();
 	std::string getAccelerometerName();
@@ -74,6 +71,11 @@ public:
 private:
 	long _mapMMA7361V(long value);
 	float _mapMMA7361G(long value);
+
+	float xlevel = 0;
+	float ylevel = 0;
+	float zlevel = 0;
+
 	uint8_t _xPin;
 	uint8_t _yPin;
 	uint8_t _zPin;

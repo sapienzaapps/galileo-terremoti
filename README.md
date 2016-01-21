@@ -61,6 +61,8 @@ Link these pins from Accelerometer MMA7361 to Arduino Galileo board:
 
 Loop back **3v3** pin to **SLP** on Accelerometer.
 
+**Note**: the accelerometer should be aligned with Z perpendicular to the ground.
+
 ## Link ADXL345 Accelerometer to Raspberry PI
 
 * 3.3v : 3.3v

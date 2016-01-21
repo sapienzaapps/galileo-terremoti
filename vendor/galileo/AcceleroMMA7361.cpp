@@ -72,8 +72,8 @@ void AcceleroMMA7361::setAveraging(int avg) {
 void AcceleroMMA7361::test_voltage() {
 	Log::i("VOLTAGE TEST ++++++++++++++START+++++++++++++++ ");
 	Log::i("VOLTAGE X: %i", analogRead(_xPin));
-	Log::i("VOLTAGE X: %i", analogRead(_yPin));
-	Log::i("VOLTAGE X: %i", analogRead(_zPin));
+	Log::i("VOLTAGE Y: %i", analogRead(_yPin));
+	Log::i("VOLTAGE Z: %i", analogRead(_zPin));
 	Log::i("VOLTAGE TEST ++++++++++++++END+++++++++++++ ");
 }
 
@@ -113,7 +113,7 @@ double AcceleroMMA7361::getXAccel() {
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getXRaw());
 	}
-	return sum / (float)_average;
+	return ((sum / (float)_average)/10.0f) - xlevel;
 }
 
 /// getYAccel(): Returns the acceleration of the Y-axis as a int (1 G = 100.00)
@@ -122,7 +122,7 @@ double AcceleroMMA7361::getYAccel() {
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getYRaw());
 	}
-	return sum / (float)_average;
+	return ((sum / (float)_average)/10.0f) - ylevel;
 }
 
 /// getZAccel(): Returns the acceleration of the Z-axis as a int (1 G = 100.00)
@@ -131,23 +131,7 @@ double AcceleroMMA7361::getZAccel() {
 	for (int i = 0; i < _average; i++) {
 		sum = sum + _mapMMA7361G(getZRaw());
 	}
-	return (sum / (float)_average);
-}
-
-/// getAccelXYZ(int *_XAxis, int *_YAxis, int *_ZAxis) returns all axis at once as pointers
-void AcceleroMMA7361::getAccelXYZ(long *_XAxis, long *_YAxis, long *_ZAxis) {
-	long sum[3];
-	sum[0] = 0;
-	sum[1] = 0;
-	sum[2] = 0;
-	for (int i = 0; i < _average; i++) {
-		sum[0] = sum[0] + _mapMMA7361G(getXRaw());
-		sum[1] = sum[1] + _mapMMA7361G(getYRaw());
-		sum[2] = sum[2] + _mapMMA7361G(getZRaw());
-	}
-	*_XAxis = sum[0] / (float)_average;
-	*_YAxis = sum[1] / (float)_average;
-	*_ZAxis = sum[2] / (float)_average;
+	return (((sum / (float)_average)/10.0f) - 10) - zlevel;
 }
 
 /// mapMMA7361V: calculates and returns the voltage value derived from the raw data. Used in getXVoltage, getYVoltage, getZVoltage
@@ -216,6 +200,25 @@ void AcceleroMMA7361::calibrate() {
 		Log::i(" sum: X:%lf Y:%lf Z:%lf", sumX / var, sumY / var, sumZ / var);
 		Log::i("Calibration DONE");
 	}
+
+	float xavg = 0;
+	float yavg = 0;
+	float zavg = 0;
+
+	for(int i=0; i < 100; i++) {
+		xavg = xavg + (float)getXAccel();
+	}
+	xlevel = xavg / 100.0f;
+
+	for(int i=0; i < 100; i++) {
+		yavg = yavg + (float)getXAccel();
+	}
+	ylevel = yavg / 100.0f;
+
+	for(int i=0; i < 100; i++) {
+		zavg = zavg + (float)getXAccel();
+	}
+	zlevel = zavg / 100.0f;
 }
 
 /// getOrientation returns which axis perpendicular with the earths surface x=1,y=2,z=3 is positive or
@@ -231,7 +234,7 @@ int AcceleroMMA7361::getOrientation() {
 	for (int i = 0; i < gemiddelde; i++) {  // We take in this case 10 measurements to average the error a little bit
 		x = x + getXAccel();
 		y = y + getYAccel();
-		z = z + getZAccel();
+		z = z + getZAccel()+10;
 	}
 	x = x / gemiddelde;
 	y = y / gemiddelde;
@@ -258,14 +261,6 @@ int AcceleroMMA7361::getOrientation() {
 		return -3;
 	}
 	return 0;
-}
-
-/* manually added because not available anymore in math.h */
-double square(double x) { return x * x; }
-
-// getTotalVector returns the magnitude of the total acceleration vector as an integer
-double AcceleroMMA7361::getTotalVector() {
-	return sqrt(square(_mapMMA7361G(getXRaw())) + square(_mapMMA7361G(getYRaw())) + square(_mapMMA7361G(getZRaw())));
 }
 
 std::string AcceleroMMA7361::getAccelerometerName() {

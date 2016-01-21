@@ -6,6 +6,8 @@
 #define GALILEO_TERREMOTI_ACCELEROMETER_H
 
 #include <string>
+#include <cmath>
+#include "common.h"
 
 /**
  * Accelerometer base class
@@ -35,6 +37,10 @@ public:
 	 * @return Accelerometer name
 	 */
 	virtual std::string getAccelerometerName() = 0;
+
+	double getTotalVector() {
+		return sqrt(pow(getXAccel(), 2) + pow(getYAccel(), 2) + pow(getZAccel(), 2));
+	}
 };
 
 #endif //GALILEO_TERREMOTI_ACCELEROMETER_H

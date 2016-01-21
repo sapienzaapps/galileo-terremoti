@@ -7,6 +7,7 @@
 #include "../Log.h"
 #include "../Utils.h"
 #include "../LED.h"
+#include "../Seismometer.h"
 
 #ifdef DEBUG
 pthread_t HTTPClient::sendCrashReportThread;
@@ -42,12 +43,9 @@ std::string HTTPClient::getConfig() {
 	return cfg;
 }
 
-// send the accelerometer values that got over the threshold
-void HTTPClient::httpSendAlert1(RECORD *db, THRESHOLDS *td) {
-	// New Event ----------------------------------------------------------
-	Log::d("---- httpSendAlert1 ---------START-------");
-	Log::i("New Event, values (X-Y-Z): %lu - %lu - %lu", db->valx, db->valy, db->valz);
-	Log::i("New Event, positive thresholds (X-Y-Z): %lu - %lu - %lu", td->pthresx, td->pthresy, td->pthresz);
+void HTTPClient::httpSendAlert(RECORD *db, float threshold) {
+	Log::d("---- httpSendAlert ---------START-------");
+	Log::i("New Event, value: %lf - threshold: %f", db->accel, threshold);
 
 	std::map<std::string, std::string> postValues;
 	postValues["tsstart"] = Utils::toString(db->ms);

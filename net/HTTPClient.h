@@ -40,9 +40,9 @@ public:
 	/**
 	 * Send alert to server
 	 * @param db Accelerometer values
-	 * @param td Threshold values
+	 * @param threshold Threshold value
 	 */
-	static void httpSendAlert1(RECORD *db, THRESHOLDS *td);
+	static void httpSendAlert(RECORD *db, float threshold);
 
 	/**
 	 * Set server base URL

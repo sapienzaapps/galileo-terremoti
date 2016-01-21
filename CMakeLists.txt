@@ -18,12 +18,10 @@ add_Definitions(-DDEBUG)
 
 set(SOURCE_FILES
 		galileo-core.cpp
-		avg.h
 		Config.h
 		Log.h
 		net/NTP.h
 		net/HTTPClient.h
-		avg.cpp
 		Log.cpp
 		Config.cpp
 		net/NTP.cpp

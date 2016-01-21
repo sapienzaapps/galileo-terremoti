@@ -17,7 +17,7 @@ endif
 
 include vendor/${PLATFORM}/toolchain.mk
 
-MODULES := avg CommandInterface Config Log Seismometer Utils galileo-core
+MODULES := CommandInterface Config Log Seismometer Utils galileo-core
 
 ifneq (, ${NOWATCHDOG})
 MAINFLAGS += -DNOWATCHDOG
