@@ -22,7 +22,7 @@ typedef uint8_t byte;
 
 #define GFORCE 9.81
 
-#define SOFTWARE_VERSION "2.00"
+#define SOFTWARE_VERSION "2.10"
 
 #define NTP_SYNC_INTERVAL            60*60*1000
 #define CHECK_NETWORK_INTERVAL       30*1000  // when to check for Internet connection availability
