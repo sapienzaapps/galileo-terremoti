@@ -142,7 +142,8 @@ bool Config::checkServerConfig() {
 		}
 
 		if(params.count("accTreshold") == 1) {
-			Seismometer::getInstance()->setQuakeThreshold((float)atof(params["accTreshold"].c_str()));
+			float accTreshold = (float)atof(params["accTreshold"].c_str());
+			Seismometer::getInstance()->setQuakeThreshold(accTreshold);
 		}
 
 		std::string path = params["path"];

@@ -65,7 +65,7 @@ void Seismometer::tick() {
 	// if the values of the accelerometer have passed the threshold
 	//  or if an "event" is currently running
 	if (db.overThreshold && !inEvent) {
-		Log::i(db.overThreshold ? "overThreshold" : "inEvent");
+		Log::i("Over threshold: %f > %f", db.accel, quakeThreshold);
 
 		LED::red(true);
 
@@ -92,7 +92,7 @@ unsigned int Seismometer::getStatProbeSpeed() {
 }
 
 void Seismometer::setQuakeThreshold(float d) {
-	this->quakeThreshold = quakeThreshold;
+	this->quakeThreshold = d;
 }
 
 float Seismometer::getQuakeThreshold() {
