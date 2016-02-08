@@ -153,13 +153,6 @@ public:
 	 * @param d Value to convert to string
 	 * @param String value
 	 */
-	static std::string toString(uint64_t d);
-
-	/**
-	 * Generate a string from native value
-	 * @param d Value to convert to string
-	 * @param String value
-	 */
 	static std::string toString(uint32_t d);
 
 	/**

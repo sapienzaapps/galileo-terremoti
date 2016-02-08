@@ -196,11 +196,6 @@ std::string Utils::toString(unsigned long d) {
 	strs << d;
 	return strs.str();
 }
-std::string Utils::toString(uint64_t d) {
-	std::ostringstream strs;
-	strs << d;
-	return strs.str();
-}
 
 std::string Utils::toString(int d) {
 	std::ostringstream strs;
