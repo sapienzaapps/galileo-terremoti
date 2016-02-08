@@ -153,7 +153,7 @@ public:
 	 * @param d Value to convert to string
 	 * @param String value
 	 */
-	static std::string Utils::toString(uint64_t d);
+	static std::string toString(uint64_t d);
 
 	/**
 	 * Generate a string from native value
