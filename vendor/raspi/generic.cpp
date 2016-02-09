@@ -31,6 +31,7 @@ std::string getPlatformName() {
 }
 
 void platformReboot() {
+	Log::close();
 	system("reboot");
 	while(true) {};
 }
@@ -59,6 +60,7 @@ void platformUpgrade(std::string path) {
 			// TODO: we can do better than that...
 			platformReboot();
 		}
+		Log::close();
 		while(true) {};
 	} else {
 		// Old methods - also known as "Windows-style upgrades"

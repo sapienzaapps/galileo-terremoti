@@ -117,6 +117,7 @@ void platformReboot() {
 	LED::red(false);
 	LED::clearLedBlinking();
 	LED::setLedBlinking(LED_RED_PIN);
+	Log::close();
 	sleep(1);
 	while(1) {
 		system("reboot");
