@@ -7,6 +7,7 @@
 #include "ADXL345Accelerometer.h"
 #include "../../Utils.h"
 #include "../../LED.h"
+#include <string.h>
 
 std::string executablePath = "";
 
