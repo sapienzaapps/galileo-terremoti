@@ -8,3 +8,10 @@ cmake_install.cmake
 doc/
 build.log
 image-full-galileo/
+debian/galileo-terremoti/
+debian/galileo-terremoti.log
+debian/galileo-terremoti.substvars
+debian/galileo-terremoti.*.debhelper
+debian/galileo-terremoti.*.debhelper.log
+debian/galileo-terremoti.debhelper.log
+debian/files
