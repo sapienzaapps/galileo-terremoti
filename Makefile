@@ -19,6 +19,10 @@ include vendor/${PLATFORM}/toolchain.mk
 
 MODULES := CommandInterface Config Log Seismometer Utils galileo-core
 
+ifeq (${PLATFORM}, raspi)
+NOWATCHDOG=y
+endif
+
 ifneq (, ${NOWATCHDOG})
 MAINFLAGS += -DNOWATCHDOG
 else
