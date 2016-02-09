@@ -8,5 +8,5 @@ Homepage: http://www.seismocloud.com/
 
 Package: galileo-terremoti
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ntp, curl
+Depends: ${shlibs:Depends}, ${misc:Depends}, ntp, curl, wiringpi
 Description: SeismoCloud
