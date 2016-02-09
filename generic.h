@@ -31,4 +31,6 @@ std::string getPlatformName();
  */
 void platformReboot();
 
+void platformUpgrade(std::string path);
+
 #endif //GALILEO_TERREMOTI_VENDOR_H

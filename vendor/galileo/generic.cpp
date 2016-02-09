@@ -123,3 +123,30 @@ void platformReboot() {
 		sleep(5);
 	}
 }
+
+void platformUpgrade(std::string path) {
+	LED::green(false);
+	LED::yellow(false);
+	LED::red(false);
+	LED::setLedBlinking(LED_RED_PIN);
+
+	Log::d("Download sketch upgrade: %s", path.c_str());
+
+	char cmd[1024];
+	memset(cmd, 0, 1024);
+	snprintf(cmd, 1023, "curl -o /media/realroot/sketch.new %s", path.c_str());
+	system(cmd);
+
+	FILE *fp = fopen("/sketch/update.sh", "w");
+	if(fp != NULL) {
+		memset(cmd, 0, 1024);
+		snprintf(cmd, 1023,
+				 "#!/bin/bash\nkillall sketch.elf; mv /media/realroot/sketch.new /sketch/sketch.elf; sleep 1; reboot");
+		fwrite(cmd, strlen(cmd), 1, fp);
+		fclose(fp);
+
+		system("/bin/bash /sketch/update.sh");
+		while(1) {};
+	}
+	platformReboot();
+}

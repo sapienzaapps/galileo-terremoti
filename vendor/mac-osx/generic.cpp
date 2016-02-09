@@ -25,3 +25,7 @@ std::string getPlatformName() {
 void platformReboot() {
 	exit(0);
 }
+
+void platformUpgrade(std::string path) {
+	Log::d("Received upgrade hint for %s", path.c_str());
+}
