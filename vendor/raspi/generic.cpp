@@ -31,6 +31,7 @@ std::string getPlatformName() {
 }
 
 void platformReboot() {
+	Log::d("Rebooting");
 	Log::close();
 	system("reboot");
 	while(true) {};
@@ -50,7 +51,11 @@ void platformUpgrade(std::string path) {
 	system(cmd);
 
 	memset(cmd, 0, 1024);
-	snprintf(cmd, 1023, "mv /tmp/sketch.elf %s", executablePath.c_str());
+	snprintf(cmd, 1023, "mv /tmp/sketch.new %s", executablePath.c_str());
+	system(cmd);
+
+	memset(cmd, 0, 1024);
+	snprintf(cmd, 1023, "chmod a+x %s", executablePath.c_str());
 	system(cmd);
 
 	if(Utils::fileExists("/bin/systemctl")) {
