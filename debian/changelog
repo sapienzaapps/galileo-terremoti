@@ -1,3 +1,9 @@
+galileo-terremoti (2.13) unstable; urgency=low
+
+  * Fixed upgrading from network
+
+ -- Enrico204 <enrico204@gmail.com>  Wed, 08 Feb 2016 01:40:00 +0100
+
 galileo-terremoti (2.12) unstable; urgency=low
 
   * Initial Release.
