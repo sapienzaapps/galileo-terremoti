@@ -59,9 +59,11 @@ void platformUpgrade(std::string path) {
 	system(cmd);
 
 	if(Utils::fileExists("/bin/systemctl")) {
+		Log::d("Systemctl detected");
 		// Assuming that we're on a systemd installation (eg. Raspbian Jessie)
-		int retval = system("systemctl galileo-terremoti restart");
+		int retval = system("systemctl restart galileo-terremoti");
 		if(retval != 0) {
+			Log::d("Systemctl restart error, trying the hard way");
 			// TODO: we can do better than that...
 			platformReboot();
 		}
