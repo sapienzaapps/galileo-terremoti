@@ -1,0 +1,68 @@
+#!/bin/sh 
+
+### BEGIN INIT INFO
+# Provides:          galileo-terremoti
+# Required-Start:    $remote_fs $syslog $local_fs $network
+# Required-Stop:     $remote_fs $syslog $local_fs $network
+# Should-Start:      $named
+# Should-Stop:       $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts SeismoCloud daemon
+# Description:       This script runs the SeismoCloud daemon
+### END INIT INFO
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin
+DAEMON=/usr/local/bin/sketch.elf
+NAME=galileo-terremoti
+PIDFILE=/var/run/galileo-terremoti.pid
+
+trap "" 1
+trap "" 15
+
+. /lib/lsb/init-functions
+
+start() {
+	if [ -e "$PIDFILE" ]; then
+		stop
+	fi
+	log_daemon_msg "Starting SeismoCloud" "$NAME"
+	start-stop-daemon --start --background --quiet --pidfile "$PIDFILE" --oknodo --exec $DAEMON
+	if [ $? != 0 ]; then
+		log_end_msg 1
+		exit 1
+	else
+		log_end_msg 0
+	fi
+}
+
+stop() {
+	log_daemon_msg "Stopping SeismoCloud" "$NAME"
+	start-stop-daemon --stop --signal "TERM" --quiet --pidfile "$PIDFILE" --retry TERM/15/KILL/30
+	if [ $? = 0 ]; then
+		log_end_msg 0
+	else
+		killall sketch.elf -9
+		log_end_msg 0
+	fi
+	rm -f $PIDFILE > /dev/null 2>&1
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		stop
+		start
+		;;
+	*)
+		echo "Usage: /etc/init.d/$NAME {start|stop|restart}"
+		exit 1
+		;;
+esac
+
+exit 0

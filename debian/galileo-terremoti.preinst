@@ -1,0 +1,11 @@
+#!/bin/sh 
+
+set -e
+
+if [ "$1" = "upgrade" ]; then
+	/etc/init.d/galileo-terremoti stop >/dev/null 2>&1 || true
+fi
+
+exit 0
+
+#DEBHELPER#

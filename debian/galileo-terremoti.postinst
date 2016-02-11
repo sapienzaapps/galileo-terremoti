@@ -1,0 +1,6 @@
+#!/bin/sh -e
+
+# update-rc.d galileo-terremoti defaults 50 >/dev/null
+# invoke-rc.d galileo-terremoti start || true
+
+#DEBHELPER#
