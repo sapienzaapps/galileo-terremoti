@@ -187,3 +187,20 @@ To disable `connmand` and revert plain old `networking` script, use these comman
 
     # rm /etc/rc5.d/S05connman
     # ln -s ../init.d/networking /etc/rc5.d/S05networking
+
+## Add LCD screen to Raspberry PI for Seismograph
+
+Requirements:
+
+* TFT28'' LCD/Touch screen : TFT ILI9340
+
+Screen pinout:
+
+* GPIO25, GPIO24 (LCD control)
+* SPI bus (screen data)
+* (optional) GPIO23, GPIO22, GPIO21, GPIO18 : buttons (switches below LCD screen)
+
+Power supply from Raspberry PI: 5v
+
+Datasheet: https://www.adafruit.com/datasheets/ILI9340.pdf
+
