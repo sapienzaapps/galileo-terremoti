@@ -53,7 +53,7 @@ endif
 createdir:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(OUTDIR)
-	echo "${MAINFLAGS}" > $(BUILDOPTFILE)
+	echo -n '${MAINFLAGS}' > $(BUILDOPTFILE)
 
 vendor::
 
@@ -75,5 +75,5 @@ ${OUTDIR}/sketch.elf: $(OBJECTS) $(NET_OBJECTS) $(VENDOR_OBJECTS)
 endif
 
 clean:
-	rm -f ${OUTDIR}/* ${OBJDIR}/*
+	rm -f ${OUTDIR}/* ${OBJDIR}/* $(BUILDOPTFILE)
 
