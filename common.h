@@ -20,7 +20,7 @@
 
 typedef uint8_t byte;
 
-#define SOFTWARE_VERSION "2.13"
+#define SOFTWARE_VERSION "2.14"
 
 #define NTP_SYNC_INTERVAL            60*60*1000
 #define CHECK_NETWORK_INTERVAL       30*1000  // when to check for Internet connection availability
