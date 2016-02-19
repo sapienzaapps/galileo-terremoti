@@ -159,6 +159,11 @@ void setup() {
 		Log::i("Configured MAC Address: %s", Config::getMacAddress().c_str());
 	}
 
+	Log::i("Init seismometer");
+	seismometer = Seismometer::getInstance();
+	seismometer->init();
+	seismometer->firstTimeThresholdCalculation();
+
 	Log::i("Check new config");
 	// Download new config from server
 	while(!Config::checkServerConfig()) {
@@ -198,10 +203,6 @@ void setup() {
 	} else {
 		Log::i("GPS coords: %f %f", Config::getLatitude(), Config::getLongitude());
 	}
-
-	Log::i("Init seismometer");
-	seismometer = Seismometer::getInstance();
-	seismometer->init();
 
 	Log::d("Free RAM: %lu", Utils::getFreeRam());
 	Log::d("INIZIALIZATION COMPLETE!");

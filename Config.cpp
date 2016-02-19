@@ -136,14 +136,11 @@ bool Config::checkServerConfig() {
 			return false;
 		}
 
+		Seismometer *seismometer = Seismometer::getInstance();
+
 		if(params.count("collector") == 1) {
 			std::string collector = params["collector"];
 			Collector::getInstance()->start(IPaddr::resolve(collector));
-		}
-
-		if(params.count("accTreshold") == 1) {
-			float accTreshold = (float)atof(params["accTreshold"].c_str());
-			Seismometer::getInstance()->setQuakeThreshold(accTreshold);
 		}
 
 		std::string path = params["path"];
@@ -158,6 +155,13 @@ bool Config::checkServerConfig() {
 		}
 
 		NTP::setNTPServer(params["ntpserver"]);
+
+		if(params.count("sigma") == 1) {
+			seismometer->setSigmaIter(atof(params["sigma"].c_str()));
+		} else {
+			seismometer->setSigmaIter(seismometer->getSigmaIter());
+		}
+		seismometer->resetLastPeriod();
 
 		return true;
 	} else {

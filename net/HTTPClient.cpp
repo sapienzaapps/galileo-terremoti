@@ -31,6 +31,8 @@ std::string HTTPClient::getConfig() {
 	postValues["uptime"] = Utils::toString(Utils::uptime());
 	postValues["model"] = PLATFORM_TAG;
 	postValues["sensor"] = Seismometer::getInstance()->getAccelerometerName();
+	postValues["avg"] = Utils::toString(Seismometer::getInstance()->getLastPeriodAVG());
+	postValues["var"] = Utils::toString(Seismometer::getInstance()->getLastPeriodVAR());
 
 	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "alive.php", postValues);
 	Log::d("Response received, code: %i", resp->responseCode);
@@ -43,7 +45,7 @@ std::string HTTPClient::getConfig() {
 	return cfg;
 }
 
-void HTTPClient::httpSendAlert(RECORD *db, float threshold) {
+void HTTPClient::httpSendAlert(RECORD *db, double threshold) {
 	Log::d("---- httpSendAlert ---------START-------");
 	Log::i("New Event, value: %lf - threshold: %f", db->accel, threshold);
 

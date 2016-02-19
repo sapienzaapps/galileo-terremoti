@@ -62,6 +62,8 @@ void Seismometer::tick() {
 	db.accel = accelero->getTotalVector();
 	db.overThreshold = db.accel > quakeThreshold;
 
+	addValueToAvgVar(db.accel);
+
 	// if the values of the accelerometer have passed the threshold
 	//  or if an "event" is currently running
 	if (db.overThreshold && !inEvent) {
@@ -91,10 +93,50 @@ unsigned int Seismometer::getStatProbeSpeed() {
 	return statProbeSpeed;
 }
 
-void Seismometer::setQuakeThreshold(float d) {
-	this->quakeThreshold = d;
+double Seismometer::getQuakeThreshold() {
+	return quakeThreshold;
 }
 
-float Seismometer::getQuakeThreshold() {
-	return quakeThreshold;
+void Seismometer::setSigmaIter(double i) {
+	double newquakeThreshold = getLastPeriodAVG() + (getLastPeriodVAR() * i);
+	if(newquakeThreshold != NAN) {
+		Log::d("Attempting to set quake threshold to %f (old %f) iter %f elem %i", newquakeThreshold, quakeThreshold, i, elements);
+		//this->sigmaIter = i;
+		//quakeThreshold = newquakeThreshold;
+	}
+}
+
+double Seismometer::getLastPeriodAVG() {
+	return lastPeriodAvg;
+}
+
+double Seismometer::getLastPeriodVAR() {
+	return lastPeriodSQM / elements;
+}
+
+void Seismometer::addValueToAvgVar(double val) {
+	double precAvg = lastPeriodAvg;
+
+	elements++;
+	lastPeriodAvg = precAvg + ((val - precAvg)/elements);
+	lastPeriodSQM = lastPeriodSQM + ((val - precAvg)*(val - lastPeriodAvg));
+}
+
+void Seismometer::resetLastPeriod() {
+	lastPeriodAvg = 0;
+	lastPeriodSQM = 0;
+	elements = 0;
+}
+
+double Seismometer::getSigmaIter() {
+	return sigmaIter;
+}
+
+void Seismometer::firstTimeThresholdCalculation() {
+	for(int i=0; i < 200; i++) {
+		addValueToAvgVar(accelero->getTotalVector());
+		Utils::delay(SEISMOMETER_TICK_INTERVAL);
+	}
+	setSigmaIter(getSigmaIter());
+	Log::d("First time AVG, VAR and Threshold: %lf %lf %lf", getLastPeriodAVG(), getLastPeriodVAR(), quakeThreshold);
 }

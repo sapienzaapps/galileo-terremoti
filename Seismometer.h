@@ -37,8 +37,16 @@ public:
 	std::string getAccelerometerName();
 
 	unsigned int getStatProbeSpeed();
-	void setQuakeThreshold(float);
-	float getQuakeThreshold();
+	void setQuakeThreshold(double);
+	void firstTimeThresholdCalculation();
+	double getQuakeThreshold();
+
+	void setSigmaIter(double);
+	double getSigmaIter();
+
+	double getLastPeriodAVG();
+	double getLastPeriodVAR();
+	void resetLastPeriod();
 
 	/**
 	 * Get Seismometer instance (singleton)
@@ -47,15 +55,23 @@ public:
 
 private:
 	Seismometer();
+
+	void addValueToAvgVar(double val);
+
 	Accelerometer *accelero;
 	bool inEvent;
 	unsigned long lastEventWas;
 	Collector *serverCollector;
 
+	double lastPeriodAvg = 0;
+	double lastPeriodSQM = 0;
+	unsigned int elements = 0;
+
 	unsigned long statLastCounterTime = 0;
 	unsigned int statLastCounter = 0;
 	unsigned int statProbeSpeed = 0;
-	float quakeThreshold = 0.3;
+	double quakeThreshold = 0.3;
+	double sigmaIter = 1;
 
 	static Seismometer* instance;
 };
