@@ -1,3 +1,9 @@
+galileo-terremoti (2.14) unstable; urgency=low
+
+  * Fixed bootloop on Raspberry PI
+
+ -- Enrico204 <enrico204@gmail.com>  Fri, 19 Feb 2016 18:50:00 +0100
+
 galileo-terremoti (2.13) unstable; urgency=low
 
   * Fixed upgrading from network
