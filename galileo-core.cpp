@@ -127,10 +127,20 @@ void setup() {
 	Log::i("Starting.........");
 
 	// If no MAC Address detect we presume that ethernet interface is down, so we'll reboot
-	std::string macAddress = Utils::getInterfaceMAC();
-	if(macAddress.empty()) {
-		platformReboot();
-	}
+	std::string macAddress;
+	int i = 0;
+	do {
+		macAddress = Utils::getInterfaceMAC();
+		if(i >= 20) {
+			Log::e("MAC Address primitive failed and timeout, rebooting");
+			platformReboot();
+		}
+		if (macAddress.empty()) {
+			Log::e("MAC Address primitive failed, retrying");
+			Utils::delay(1000 * 3);
+			i++;
+		}
+	} while(macAddress.empty());
 
 	Log::i("Loading config");
 	// Load saved config - if not available, load defaults

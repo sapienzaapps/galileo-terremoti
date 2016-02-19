@@ -217,12 +217,14 @@ std::string Utils::getInterfaceMAC(char *intfname, size_t intfmax) {
 
 	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (sock == -1) {
+		Log::d("MAC: Socket failed");
 		return std::string("");
 	}
 
 	ifc.ifc_len = sizeof(buf);
 	ifc.ifc_buf = buf;
 	if (ioctl(sock, SIOCGIFCONF, &ifc) == -1) {
+		Log::d("MAC: ioctl interface lookup failed");
 		return std::string("");
 	}
 
@@ -243,8 +245,6 @@ std::string Utils::getInterfaceMAC(char *intfname, size_t intfmax) {
 					break;
 				}
 			}
-		} else {
-			return std::string("");
 		}
 	}
 #else
@@ -282,6 +282,7 @@ std::string Utils::getInterfaceMAC(char *intfname, size_t intfmax) {
 
 		return std::string(buf1);
 	} else {
+		Log::d("MAC: address lookup failed, no such interface");
 		return std::string("");
 	}
 }
