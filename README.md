@@ -10,6 +10,13 @@ To use Arduino/Genuino boards you must use sketch at https://github.com/sapienza
 * GCC compiler (if you plan to compile for `linux-x86`)
 * Raspberry PI cross-compilation toolchain (if you plan to compile for `raspi`)
 
+## Network requirements
+
+If you have any firewall in your network, please allow these ports:
+
+* TCP: 80, 443
+* UDP: 123
+
 # Hardware
 ## Hardware needed
 
