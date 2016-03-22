@@ -8,53 +8,30 @@
 #include "net/NTP.h"
 #include "net/HTTPClient.h"
 #include "LED.h"
-#include "CommandInterface.h"
 #include "Utils.h"
 #include "generic.h"
 
-Seismometer* Seismometer::instance = NULL;
+Seismometer *Seismometer::instance = NULL;
 
 Seismometer::Seismometer() {
 	lastEventWas = 0;
 	inEvent = false;
 	accelero = getAccelerometer();
-	serverCollector = Collector::getInstance();
 }
 
 void Seismometer::init() {
-	if(accelero == NULL) {
+	if (accelero == NULL) {
 		Log::e("Accelerometer is NULL");
 	}
 }
 
 void Seismometer::tick() {
-	if(accelero == NULL) {
+	if (accelero == NULL) {
 		return;
 	}
 
-	// Let's read and throw away if needed (to empty read queue if needed)
-	double valx = accelero->getXAccel();
-	double valy = accelero->getYAccel();
-	double valz = accelero->getZAccel();
-
-	serverCollector->send((float)valx, (float)valy, (float)valz);
-	CommandInterface::sendValues((float)valx, (float)valy, (float)valz);
-
-	statLastCounter++;
-	if(Utils::millis() - statLastCounterTime > 1000) {
-		statProbeSpeed = statLastCounter;
-		statLastCounter = 0;
-		statLastCounterTime = Utils::millis();
-	}
-
-	if(inEvent && Utils::millis()-lastEventWas >= 5000) {
-		// Out of event
-		LED::red(false);
-		inEvent = false;
-	} else if(inEvent && Utils::millis()-lastEventWas < 5000) {
-		// In event, skipping detections for 5 seconds
-		return;
-	}
+	double detectionAVG = getCurrentAVG();
+	double detectionStdDev = getCurrentSTDDEV();
 
 	RECORD db = {0, 0, false};
 
@@ -64,22 +41,39 @@ void Seismometer::tick() {
 
 	addValueToAvgVar(db.accel);
 
+	statLastCounter++;
+	if (Utils::millis() - statLastCounterTime > 1000) {
+		statProbeSpeed = statLastCounter;
+		statLastCounter = 0;
+		statLastCounterTime = Utils::millis();
+	}
+
+	if (inEvent && Utils::millis() - lastEventWas >= 5000) {
+		// Out of event
+		LED::red(false);
+		inEvent = false;
+	} else if (inEvent && Utils::millis() - lastEventWas < 5000) {
+		// In event, skipping detections for 5 seconds
+		return;
+	}
+
 	// if the values of the accelerometer have passed the threshold
 	//  or if an "event" is currently running
 	if (db.overThreshold && !inEvent) {
-		Log::i("Over threshold: %f > %f", db.accel, quakeThreshold);
+		Log::i("New Event: v:%lf - thr:%f - iter:%f - avg:%f - stddev:%f", db.accel, quakeThreshold,
+			   getSigmaIter(), detectionAVG, detectionStdDev);
 
 		LED::red(true);
 
 		inEvent = true;
 		lastEventWas = Utils::millis();
 
-		HTTPClient::httpSendAlert(&db, quakeThreshold);
+		HTTPClient::httpSendAlert(&db);
 	}
 }
 
-Seismometer* Seismometer::getInstance() {
-	if(Seismometer::instance == NULL) {
+Seismometer *Seismometer::getInstance() {
+	if (Seismometer::instance == NULL) {
 		Seismometer::instance = new Seismometer();
 	}
 	return Seismometer::instance;
@@ -98,33 +92,25 @@ double Seismometer::getQuakeThreshold() {
 }
 
 void Seismometer::setSigmaIter(double i) {
-	double newquakeThreshold = getLastPeriodAVG() + (getLastPeriodVAR() * i);
-	if(newquakeThreshold != NAN) {
-		Log::d("Attempting to set quake threshold to %f (old %f) iter %f elem %i", newquakeThreshold, quakeThreshold, i, elements);
-		//this->sigmaIter = i;
-		//quakeThreshold = newquakeThreshold;
-	}
-}
-
-double Seismometer::getLastPeriodAVG() {
-	return lastPeriodAvg;
-}
-
-double Seismometer::getLastPeriodVAR() {
-	return lastPeriodSQM / elements;
+	this->sigmaIter = i;
 }
 
 void Seismometer::addValueToAvgVar(double val) {
-	double precAvg = lastPeriodAvg;
-
 	elements++;
-	lastPeriodAvg = precAvg + ((val - precAvg)/elements);
-	lastPeriodSQM = lastPeriodSQM + ((val - precAvg)*(val - lastPeriodAvg));
+	// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+	double delta = val - partialAvg;
+	partialAvg += delta / elements;
+	partialStdDev += delta * (val - partialAvg);
+	if (elements > 1) {
+		quakeThreshold = partialAvg + (getCurrentSTDDEV() * getSigmaIter());
+	}
+	//Log::d("AddValueToAvgVar: EL:%f D:%f AVG:%f VAR:%f THR:%f I:%i", val, delta, getCurrentAVG(), getCurrentSTDDEV(),
+	//	   quakeThreshold, elements);
 }
 
 void Seismometer::resetLastPeriod() {
-	lastPeriodAvg = 0;
-	lastPeriodSQM = 0;
+	partialAvg = 0;
+	partialStdDev = 0;
 	elements = 0;
 }
 
@@ -132,11 +118,10 @@ double Seismometer::getSigmaIter() {
 	return sigmaIter;
 }
 
-void Seismometer::firstTimeThresholdCalculation() {
-	for(int i=0; i < 200; i++) {
-		addValueToAvgVar(accelero->getTotalVector());
-		Utils::delay(SEISMOMETER_TICK_INTERVAL);
-	}
-	setSigmaIter(getSigmaIter());
-	Log::d("First time AVG, VAR and Threshold: %lf %lf %lf", getLastPeriodAVG(), getLastPeriodVAR(), quakeThreshold);
+double Seismometer::getCurrentAVG() {
+	return partialAvg;
+}
+
+double Seismometer::getCurrentSTDDEV() {
+	return sqrt(partialStdDev / (elements - 1));
 }

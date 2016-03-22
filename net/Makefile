@@ -1,5 +1,5 @@
 
-NET_MODULES := HTTPClient IPaddr NetworkManager NTP Tcp Udp Collector
+NET_MODULES := HTTPClient IPaddr NetworkManager NTP Tcp Udp
 NET_SOURCES := $(NET_MODULES:%=net/%.cpp)
 NET_OBJECTS := $(NET_MODULES:%=${OBJDIR}/net_%.o)
 

@@ -5,7 +5,7 @@
 #ifndef GALILEO_TERREMOTI_COMMON_H
 #define GALILEO_TERREMOTI_COMMON_H
 
-#define MINVAL(a,b) ((a) < (b) ? (a) : (b))
+#define MINVAL(a, b) ((a) < (b) ? (a) : (b))
 
 #ifndef PLATFORM
 #define PLATFORM "unknown"
@@ -20,7 +20,7 @@
 
 typedef uint8_t byte;
 
-#define SOFTWARE_VERSION "2.14"
+#define SOFTWARE_VERSION "2.15"
 
 #define NTP_SYNC_INTERVAL            60*60*1000
 #define CHECK_NETWORK_INTERVAL       30*1000  // when to check for Internet connection availability
@@ -29,6 +29,5 @@ typedef uint8_t byte;
 #define HTTP_RESPONSE_TIMEOUT_VALUE  10*1000
 #define NTP_RESPONSE_TIMEOUT_VALUE   5*1000
 #define WATCHDOG_TIMER               60*1000
-#define SEISMOMETER_THRESHOLD_V      5
 
 #endif //GALILEO_TERREMOTI_COMMON_H

@@ -42,7 +42,7 @@ public:
 	 * @param db Accelerometer values
 	 * @param threshold Threshold value
 	 */
-	static void httpSendAlert(RECORD *db, double threshold);
+	static void httpSendAlert(RECORD *db);
 
 	/**
 	 * Set server base URL
@@ -51,10 +51,12 @@ public:
 	static void setBaseURL(std::string baseUrl);
 
 #ifdef DEBUG
+
 	/**
 	 * Send crash reports to server
 	 */
 	static void sendCrashReports();
+
 #endif
 
 	/**
@@ -64,7 +66,9 @@ public:
 	static std::string getBaseURL();
 
 #ifdef DEBUG
-	static void *sendCrashReportDoWork(void* mem);
+
+	static void *sendCrashReportDoWork(void *mem);
+
 #endif
 private:
 	static unsigned long nextContact;
@@ -74,11 +78,17 @@ private:
 #endif
 
 	static void freeHTTPResponse(HTTPResponse *resp);
+
 	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);
+
 	static HTTPResponse *httpPostFile(std::string URL, std::string file);
+
 	static size_t hostFromURL(const char *url, char *hostname, unsigned short *port);
+
 	static unsigned short getResponseCode(char *line);
+
 	static int getLine(Tcp c, uint8_t *buffer, size_t maxsize, int toRead);
+
 	static int getLine(Tcp c, uint8_t *buffer, size_t maxsize);
 };
 
