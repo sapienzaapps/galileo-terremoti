@@ -7,19 +7,17 @@
       <sourceFolder url="file://$MODULE_DIR$/CommandInterface.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Seismometer.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/common.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/NTP.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/Collector.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/IPaddr.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/Udp.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/HTTPClient.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/IPaddr.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/net/NTP.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/Tcp.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/Tcp.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/HTTPClient.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/NetworkManager.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/Collector.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/Udp.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/net/IPaddr.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/NTP.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/net/IPaddr.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/net/NetworkManager.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/net/HTTPClient.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/net/Udp.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/net/HTTPClient.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/net/Tcp.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/NetworkManager.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Watchdog.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/galileo-core.cpp" isTestSource="false" />

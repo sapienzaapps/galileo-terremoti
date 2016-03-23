@@ -70,8 +70,6 @@ set(SOURCE_FILES
         generic.h
 		Watchdog.cpp
         Watchdog.h
-        net/Collector.h
-        net/Collector.cpp
 )
 
 add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
