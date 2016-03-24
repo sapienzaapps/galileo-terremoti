@@ -10,6 +10,7 @@
 #include "LED.h"
 #include "Utils.h"
 #include "generic.h"
+#include "net/TraceAccumulator.h"
 
 Seismometer *Seismometer::instance = NULL;
 
@@ -39,6 +40,7 @@ void Seismometer::tick() {
 	db.accel = accelero->getTotalVector();
 	db.overThreshold = db.accel > quakeThreshold;
 
+	TraceAccumulator::traceValue(db.ts, db.accel, quakeThreshold, getCurrentAVG(), getCurrentSTDDEV(), getSigmaIter());
 	addValueToAvgVar(db.accel);
 
 	statLastCounter++;

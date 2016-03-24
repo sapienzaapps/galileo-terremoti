@@ -13,11 +13,10 @@
 #include "net/NetworkManager.h"
 #include "net/HTTPClient.h"
 #include "generic.h"
-#include "Seismometer.h"
 #include "LED.h"
+#include "net/TraceAccumulator.h"
 
 Udp CommandInterface::cmdc;
-// IPaddr CommandInterface::udpDest(0);
 
 bool CommandInterface::readPacket(PACKET *pkt) {
 	byte pktBuffer[PACKET_SIZE];
@@ -194,7 +193,7 @@ void CommandInterface::checkCommandPacket() {
 			// SEND INFO
 			Config::getMacAddressAsByte(pkt.mac);
 			pkt.syslogServer = Log::getSyslogServer();
-			pkt.threshold = Seismometer::getInstance()->getQuakeThreshold();
+			pkt.threshold = (float)Seismometer::getInstance()->getQuakeThreshold();
 			pkt.uptime = Utils::uptime();
 			pkt.unixts = (uint32_t) NTP::getUNIXTime();
 			memcpy(pkt.softwareVersion, SOFTWARE_VERSION, 4);
@@ -210,6 +209,12 @@ void CommandInterface::checkCommandPacket() {
 			pkt.type = PKTTYPE_GETINFO_REPLY;
 			sendPacket(pkt);
 		}
+		case PKTTYPE_TRACE: // temporary tracing mechanism
+#ifdef DEBUG
+		{
+			TraceAccumulator::setTrace(true);
+		}
+#endif
 			break;
 		default:
 			break;

@@ -70,6 +70,9 @@ public:
 	static void *sendCrashReportDoWork(void *mem);
 
 #endif
+
+	static HTTPResponse *httpPostFile(std::string URL, std::string file);
+
 private:
 	static unsigned long nextContact;
 	static std::string baseUrl;
@@ -80,8 +83,6 @@ private:
 	static void freeHTTPResponse(HTTPResponse *resp);
 
 	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);
-
-	static HTTPResponse *httpPostFile(std::string URL, std::string file);
 
 	static size_t hostFromURL(const char *url, char *hostname, unsigned short *port);
 

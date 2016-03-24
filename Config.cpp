@@ -6,6 +6,7 @@
 #include "Utils.h"
 #include "LED.h"
 #include "generic.h"
+#include "net/TraceAccumulator.h"
 #include <string.h>
 
 std::string Config::macAddress = "";
@@ -156,6 +157,10 @@ bool Config::checkServerConfig() {
 			seismometer->setSigmaIter(seismometer->getSigmaIter());
 		}
 		seismometer->resetLastPeriod();
+
+		if (params.count("trace") == 1) {
+			TraceAccumulator::setTrace(true);
+		}
 
 		return true;
 	} else {

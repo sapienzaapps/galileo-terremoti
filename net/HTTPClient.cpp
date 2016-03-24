@@ -6,7 +6,7 @@
 #include "../Log.h"
 #include "../Utils.h"
 #include "../LED.h"
-#include "../Seismometer.h"
+#include "../Watchdog.h"
 
 #ifdef DEBUG
 pthread_t HTTPClient::sendCrashReportThread;
@@ -256,7 +256,9 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 
 		// Request sent, wait for reply
 		unsigned long reqTime = Utils::millis();
-		while (!client.available() && (Utils::millis() - reqTime < HTTP_RESPONSE_TIMEOUT_VALUE)) { ; }
+		while (!client.available() && (Utils::millis() - reqTime < HTTP_RESPONSE_TIMEOUT_VALUE)) {
+			Watchdog::heartBeat();
+		}
 
 		if (client.available()) {
 			char rBuffer[300 + 1];
