@@ -209,8 +209,14 @@ void CommandInterface::checkCommandPacket() {
 			pkt.type = PKTTYPE_GETINFO_REPLY;
 			sendPacket(pkt);
 		}
-		case PKTTYPE_TRACE: // temporary tracing mechanism
 #ifdef DEBUG
+		case PKTTYPE_RESET:
+		{
+			unlink(DEFAULT_CONFIG_PATH);
+			platformReboot();
+		}
+			break;
+		case PKTTYPE_TRACE:
 		{
 			TraceAccumulator::setTrace(true);
 		}
