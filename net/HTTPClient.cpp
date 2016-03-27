@@ -257,7 +257,9 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 		// Request sent, wait for reply
 		unsigned long reqTime = Utils::millis();
 		while (!client.available() && (Utils::millis() - reqTime < HTTP_RESPONSE_TIMEOUT_VALUE)) {
+#ifndef NOWATCHDOG
 			Watchdog::heartBeat();
+#endif
 		}
 
 		if (client.available()) {
