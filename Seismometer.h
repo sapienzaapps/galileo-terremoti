@@ -7,7 +7,6 @@
 
 #include "Accelerometer.h"
 #include "Config.h"
-#include "net/Collector.h"
 
 typedef struct {
 	unsigned long ts;
@@ -37,27 +36,46 @@ public:
 	std::string getAccelerometerName();
 
 	unsigned int getStatProbeSpeed();
-	void setQuakeThreshold(float);
-	float getQuakeThreshold();
+
+	double getQuakeThreshold();
+
+	double getCurrentAVG();
+
+	double getCurrentSTDDEV();
+
+	void setSigmaIter(double);
+
+	double getSigmaIter();
+
+	void resetLastPeriod();
 
 	/**
 	 * Get Seismometer instance (singleton)
 	 */
-	static Seismometer* getInstance();
+	static Seismometer *getInstance();
 
 private:
 	Seismometer();
+
+	void addValueToAvgVar(double val);
+
 	Accelerometer *accelero;
 	bool inEvent;
 	unsigned long lastEventWas;
-	Collector *serverCollector;
+	//Collector *serverCollector;
+
+	double partialAvg = 0;
+	double partialStdDev = 0;
+	unsigned int elements = 0;
+
+	double quakeThreshold = 1;
+	double sigmaIter = 3;
 
 	unsigned long statLastCounterTime = 0;
 	unsigned int statLastCounter = 0;
 	unsigned int statProbeSpeed = 0;
-	float quakeThreshold = 0.3;
 
-	static Seismometer* instance;
+	static Seismometer *instance;
 };
 
 

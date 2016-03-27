@@ -51,9 +51,9 @@ LEDs can be in these different states:
 
 ### LED pins on Raspberry PI
 
-* GPIO-17 (addr #0) : Green
-* GPIO-18 (addr #0) : Yellow
-* GPIO-21 (addr #0) : Red
+* GPIO-17 (wiringpi addr #0) : Green
+* GPIO-18 (wiringpi addr #1) : Yellow
+* GPIO-21 (wiringpi addr #2) : Red
 
 ## Link MMA7361 Accelerometer to Galileo
 

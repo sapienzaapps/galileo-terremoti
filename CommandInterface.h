@@ -23,7 +23,9 @@ typedef enum {
 	PKTTYPE_SETSYSLOG = 9,
 	PKTTYPE_REBOOT = 10,
 	PKTTYPE_GETINFO = 11,
-	PKTTYPE_GETINFO_REPLY = 12
+	PKTTYPE_GETINFO_REPLY = 12,
+	PKTTYPE_RESET = 13,
+	PKTTYPE_TRACE = 14
 } PacketType;
 
 typedef struct _PACKET {
@@ -39,7 +41,7 @@ typedef struct _PACKET {
 	float threshold;
 	uint32_t uptime;
 	uint32_t unixts;
-	uint8_t softwareVersion[4+1];
+	uint8_t softwareVersion[4 + 1];
 	uint32_t freeRam;
 	float latency;
 	IPaddr ntpServer;
@@ -94,17 +96,20 @@ public:
 	 * Send accelerometer values to Android
 	 * @param db Accelerometer values
 	 */
-	static void sendValues(float x, float y, float z);
+	// static void sendValues(float x, float y, float z);
 
 	/**
 	 * Init command interface
 	 */
 	static bool commandInterfaceInit();
+
 private:
-	static bool readPacket(PACKET*);
+	static bool readPacket(PACKET *);
+
 	static void sendPacket(PACKET);
+
 	static Udp cmdc;
-	static IPaddr udpDest;
+	// static IPaddr udpDest;
 };
 
 

@@ -1,4 +1,3 @@
-
 #include "common.h"
 #include "Config.h"
 #include "net/HTTPClient.h"
@@ -7,6 +6,7 @@
 #include "Utils.h"
 #include "LED.h"
 #include "generic.h"
+#include "net/TraceAccumulator.h"
 #include <string.h>
 
 std::string Config::macAddress = "";
@@ -100,8 +100,8 @@ void Config::save() {
 		return;
 	}
 
-	char buf[200+1];
-	memset(buf, 0, 200+1);
+	char buf[200 + 1];
+	memset(buf, 0, 200 + 1);
 
 	snprintf(buf, 200, "deviceid:%s\n", Config::macAddress.c_str());
 	fwrite(buf, 1, strlen(buf), fp);
@@ -117,7 +117,7 @@ void Config::save() {
 
 void Config::init() {
 	bool cfgOk = readConfigFile(DEFAULT_CONFIG_PATH);
-	if(!cfgOk) {
+	if (!cfgOk) {
 		loadDefault();
 	}
 }
@@ -130,34 +130,37 @@ void Config::loadDefault() {
 
 bool Config::checkServerConfig() {
 	std::string cfg = HTTPClient::getConfig();
-	if(!cfg.empty()) {
+	if (!cfg.empty()) {
 		std::map<std::string, std::string> params = configSplit(cfg, '|');
-		if(params.empty()) {
+		if (params.empty()) {
 			return false;
 		}
 
-		if(params.count("collector") == 1) {
-			std::string collector = params["collector"];
-			Collector::getInstance()->start(IPaddr::resolve(collector));
-		}
-
-		if(params.count("accTreshold") == 1) {
-			float accTreshold = (float)atof(params["accTreshold"].c_str());
-			Seismometer::getInstance()->setQuakeThreshold(accTreshold);
-		}
+		Seismometer *seismometer = Seismometer::getInstance();
 
 		std::string path = params["path"];
-		if(!path.empty()) {
+		if (!path.empty()) {
 			// Firmware update
 			platformUpgrade(path);
 		}
 
 		// Workaround for old configuration
-		if(strcmp(params["server"].c_str(), "http://") == 0) {
+		if (strcmp(params["server"].c_str(), "http://") == 0) {
 			HTTPClient::setBaseURL(params["server"]);
 		}
 
 		NTP::setNTPServer(params["ntpserver"]);
+
+		if (params.count("sigma") == 1) {
+			seismometer->setSigmaIter(atof(params["sigma"].c_str()));
+		} else {
+			seismometer->setSigmaIter(seismometer->getSigmaIter());
+		}
+		seismometer->resetLastPeriod();
+
+		if (params.count("trace") == 1) {
+			TraceAccumulator::setTrace(true);
+		}
 
 		return true;
 	} else {
@@ -166,13 +169,13 @@ bool Config::checkServerConfig() {
 }
 
 std::map<std::string, std::string> &Config::configSplit(const std::string &s, char delim,
-												std::map<std::string, std::string> &elems) {
+														std::map<std::string, std::string> &elems) {
 	std::stringstream ss(s);
 	std::string item;
 	while (std::getline(ss, item, delim)) {
 		Log::d("Splitting line: %s", item.c_str());
 		std::size_t dppos = item.find(':');
-		if(dppos == std::string::npos) {
+		if (dppos == std::string::npos) {
 			Log::d("Find result in NPOS");
 			continue;
 		}
@@ -186,7 +189,7 @@ std::map<std::string, std::string> Config::configSplit(const std::string &s, cha
 	std::map<std::string, std::string> elems;
 	try {
 		configSplit(s, delim, elems);
-	} catch(std::exception *e) {
+	} catch (std::exception *e) {
 		Log::e("Config splitting exception: %s", e->what());
 	}
 	return elems;
@@ -194,7 +197,7 @@ std::map<std::string, std::string> Config::configSplit(const std::string &s, cha
 
 void Config::file_put_contents(const char *path, std::string content) {
 	FILE *fp = fopen(path, "w");
-	if(fp != NULL) {
+	if (fp != NULL) {
 		fwrite(content.c_str(), content.size(), 1, fp);
 		fclose(fp);
 	}

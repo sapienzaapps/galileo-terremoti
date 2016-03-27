@@ -19,7 +19,9 @@
 #include "net/HTTPClient.h"
 
 #ifndef NOWATCHDOG
+
 #include "Watchdog.h"
+
 #endif
 
 Seismometer *seismometer;
@@ -33,9 +35,11 @@ unsigned long valgrindMs = 0;
 #endif
 
 void setup();
+
 void loop();
 
 #ifdef DEBUG
+
 void crashHandler(int sig) {
 	void *array[10];
 
@@ -47,7 +51,7 @@ void crashHandler(int sig) {
 	backtrace_symbols_fd(array, size, STDERR_FILENO);
 
 	int fd = open(STACKTRACEINFO, O_RDWR | O_TRUNC);
-	if(fd < 0) {
+	if (fd < 0) {
 		// Ooops! Cannot create stack trace info
 		exit(1);
 	}
@@ -58,24 +62,25 @@ void crashHandler(int sig) {
 
 	exit(1);
 }
+
 #endif
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 	vendor_init(argc, argv);
 
 #ifdef DEBUG
-	if(argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
+	if (argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
 		valgrindMs = Utils::millis();
 		Config::setMacAddress("000000000000");
 		Config::setLatitude(0.1);
 		Config::setLongitude(0.1);
-	} else if(argc > 1 && strcmp("--raw", argv[1]) == 0) {
-		Accelerometer* accel = getAccelerometer();
+	} else if (argc > 1 && strcmp("--raw", argv[1]) == 0) {
+		Accelerometer *accel = getAccelerometer();
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
-		while(true) {
-			if(Utils::millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
+		while (true) {
+			if (Utils::millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
 
 				double x = accel->getXAccel();
 				double y = accel->getYAccel();
@@ -103,7 +108,7 @@ int main(int argc, char** argv) {
 #endif
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
-	while(1) {
+	while (1) {
 		loop();
 #ifndef GALILEO_GEN
 		Utils::delay(50);
@@ -131,7 +136,7 @@ void setup() {
 	int i = 0;
 	do {
 		macAddress = Utils::getInterfaceMAC();
-		if(i >= 20) {
+		if (i >= 20) {
 			Log::e("MAC Address primitive failed and timeout, rebooting");
 			platformReboot();
 		}
@@ -140,7 +145,7 @@ void setup() {
 			Utils::delay(1000 * 3);
 			i++;
 		}
-	} while(macAddress.empty());
+	} while (macAddress.empty());
 
 	Log::i("Loading config");
 	// Load saved config - if not available, load defaults
@@ -152,18 +157,22 @@ void setup() {
 	// Network init
 	NetworkManager::init();
 
-	if(!Config::hasMACAddress()) {
+	if (!Config::hasMACAddress()) {
 		Log::i("Using default MAC Address: %s", macAddress.c_str());
 		Config::setMacAddress(macAddress);
 	} else {
 		Log::i("Configured MAC Address: %s", Config::getMacAddress().c_str());
 	}
 
+	Log::i("Init seismometer");
+	seismometer = Seismometer::getInstance();
+	seismometer->init();
+
 	Log::i("Check new config");
 	// Download new config from server
-	while(!Config::checkServerConfig()) {
+	while (!Config::checkServerConfig()) {
 		Log::e("Error checking server config");
-		Utils::delay(5*1000);
+		Utils::delay(5 * 1000);
 	}
 
 	Log::i("Update logging settings from config");
@@ -178,9 +187,8 @@ void setup() {
 	Log::i("Starting UDP local command interface");
 	CommandInterface::commandInterfaceInit();
 
-	if(!Config::hasPosition()) {
+	if (!Config::hasPosition()) {
 		Log::i("Getting position information");
-		// TODO: Get position if not avail
 		// Wait for location from App if not avail
 		Log::i("Position not available, waiting for position from App");
 		LED::setLedAnimation(false);
@@ -191,17 +199,13 @@ void setup() {
 #endif
 			CommandInterface::checkCommandPacket();
 			Utils::delay(200);
-		} while(!Config::hasPosition());
+		} while (!Config::hasPosition());
 		Config::printConfig();
 		LED::clearLedBlinking(LED_YELLOW_PIN);
 		LED::setLedAnimation(true);
 	} else {
 		Log::i("GPS coords: %f %f", Config::getLatitude(), Config::getLongitude());
 	}
-
-	Log::i("Init seismometer");
-	seismometer = Seismometer::getInstance();
-	seismometer->init();
 
 	Log::d("Free RAM: %lu", Utils::getFreeRam());
 	Log::d("INIZIALIZATION COMPLETE!");
@@ -219,11 +223,11 @@ void loop() {
 
 	CommandInterface::checkCommandPacket();
 
-	if(Utils::millis() - netLastMs >= CHECK_NETWORK_INTERVAL) {
+	if (Utils::millis() - netLastMs >= CHECK_NETWORK_INTERVAL) {
 
 		// If no MAC Address detect we presume that ethernet interface is down, so we'll reboot
 		std::string macAddress = Utils::getInterfaceMAC();
-		if(macAddress.empty()) {
+		if (macAddress.empty()) {
 			platformReboot();
 		}
 
@@ -231,27 +235,27 @@ void loop() {
 		netLastMs = Utils::millis();
 	}
 
-	if(Utils::millis() - cfgLastMs >= CHECK_CONFIG_INTERVAL) {
+	if (Utils::millis() - cfgLastMs >= CHECK_CONFIG_INTERVAL) {
 		Config::checkServerConfig();
 		cfgLastMs = Utils::millis();
 	}
 
-	if(Utils::millis() - ntpLastMs >= NTP_SYNC_INTERVAL) {
-		while(!NTP::sync());
+	if (Utils::millis() - ntpLastMs >= NTP_SYNC_INTERVAL) {
+		while (!NTP::sync());
 		ntpLastMs = Utils::millis();
 	}
 
-	if(Utils::millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
+	if (Utils::millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
 		seismometer->tick();
 		seismoLastMs = Utils::millis();
 	}
 
-	if(Utils::millis() - logRotationMs >= 1000 * 60 * 60 * 24) {
+	if (Utils::millis() - logRotationMs >= 1000 * 60 * 60 * 24) {
 		Log::rotate();
 	}
 
 #ifdef DEBUG
-	if(valgrindMs > 0 && Utils::millis() - valgrindMs > 1000 * 60 * 1) {
+	if (valgrindMs > 0 && Utils::millis() - valgrindMs > 1000 * 60 * 1) {
 		exit(EXIT_SUCCESS);
 	}
 #endif

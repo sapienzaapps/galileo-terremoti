@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
@@ -7,7 +6,7 @@
 #include "../Log.h"
 #include "../Utils.h"
 #include "../LED.h"
-#include "../Seismometer.h"
+#include "../Watchdog.h"
 
 #ifdef DEBUG
 pthread_t HTTPClient::sendCrashReportThread;
@@ -31,6 +30,8 @@ std::string HTTPClient::getConfig() {
 	postValues["uptime"] = Utils::toString(Utils::uptime());
 	postValues["model"] = PLATFORM_TAG;
 	postValues["sensor"] = Seismometer::getInstance()->getAccelerometerName();
+	postValues["avg"] = Utils::toString(Seismometer::getInstance()->getCurrentAVG());
+	postValues["stddev"] = Utils::toString(Seismometer::getInstance()->getCurrentSTDDEV());
 
 	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "alive.php", postValues);
 	Log::d("Response received, code: %i", resp->responseCode);
@@ -43,10 +44,7 @@ std::string HTTPClient::getConfig() {
 	return cfg;
 }
 
-void HTTPClient::httpSendAlert(RECORD *db, float threshold) {
-	Log::d("---- httpSendAlert ---------START-------");
-	Log::i("New Event, value: %lf - threshold: %f", db->accel, threshold);
-
+void HTTPClient::httpSendAlert(RECORD *db) {
 	std::map<std::string, std::string> postValues;
 	postValues["tsstart"] = Utils::toString(db->ts);
 	postValues["deviceid"] = Config::getMacAddress();
@@ -102,7 +100,8 @@ unsigned short HTTPClient::getResponseCode(char *line) {
 	return (unsigned short) atoi(buf);
 }
 
-HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues) {
+HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
+									  std::map<std::string, std::string> postValues) {
 	HTTPResponse *resp = new HTTPResponse();
 
 	Tcp client;
@@ -184,8 +183,8 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 				resp->body = NULL;
 				if (resp->headers.count("Content-Length") == 1) {
 					size_t bodySize = (size_t) atol(resp->headers["Content-Length"].c_str());
-					resp->body = (uint8_t *) malloc(bodySize+1);
-					memset(resp->body, 0, bodySize+1);
+					resp->body = (uint8_t *) malloc(bodySize + 1);
+					memset(resp->body, 0, bodySize + 1);
 					client.readall(resp->body, bodySize);
 				}
 			} else {
@@ -211,15 +210,15 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL, std::m
 
 HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 	ssize_t fileSize = Utils::fileSize(file.c_str());
-	if(fileSize == -1) return NULL;
+	if (fileSize == -1) return NULL;
 
 	FILE *fp = fopen(file.c_str(), "r");
-	if(fp == NULL) {
+	if (fp == NULL) {
 		// Woops!
 		return NULL;
 	}
-	uint8_t *buf = (uint8_t *)malloc(fileSize);
-	memset(buf, 0, (size_t)fileSize);
+	uint8_t *buf = (uint8_t *) malloc(fileSize);
+	memset(buf, 0, (size_t) fileSize);
 	fread(buf, fileSize, 1, fp);
 	fclose(fp);
 
@@ -247,7 +246,7 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 		client.println("Content-Type: application/octet-stream");
 		client.println("Connection: close");
 
-		std::string contentLength = "Content-Length: " + Utils::toString((int)fileSize);
+		std::string contentLength = "Content-Length: " + Utils::toString((int) fileSize);
 		client.println(contentLength.c_str());
 		client.println("");
 
@@ -257,7 +256,9 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 
 		// Request sent, wait for reply
 		unsigned long reqTime = Utils::millis();
-		while (!client.available() && (Utils::millis() - reqTime < HTTP_RESPONSE_TIMEOUT_VALUE)) { ; }
+		while (!client.available() && (Utils::millis() - reqTime < HTTP_RESPONSE_TIMEOUT_VALUE)) {
+			Watchdog::heartBeat();
+		}
 
 		if (client.available()) {
 			char rBuffer[300 + 1];
@@ -287,8 +288,8 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 				resp->body = NULL;
 				if (resp->headers.count("Content-Length") == 1) {
 					size_t bodySize = (size_t) atol(resp->headers["Content-Length"].c_str());
-					resp->body = (uint8_t *) malloc(bodySize+1);
-					memset(resp->body, 0, bodySize+1);
+					resp->body = (uint8_t *) malloc(bodySize + 1);
+					memset(resp->body, 0, bodySize + 1);
 					client.readall(resp->body, bodySize);
 				}
 			} else {
@@ -358,7 +359,7 @@ int HTTPClient::getLine(Tcp c, uint8_t *buffer, size_t maxsize) {
 
 void HTTPClient::setBaseURL(std::string baseUrl) {
 	size_t len = baseUrl.size();
-	if(baseUrl[len-1] != '/') {
+	if (baseUrl[len - 1] != '/') {
 		baseUrl.append("/");
 	}
 	HTTPClient::baseUrl = baseUrl;
@@ -369,35 +370,37 @@ std::string HTTPClient::getBaseURL() {
 }
 
 #ifdef DEBUG
+
 void HTTPClient::sendCrashReports() {
 	int rc = pthread_create(&sendCrashReportThread, NULL, sendCrashReportDoWork, NULL);
-	if(rc) {
+	if (rc) {
 		Log::e("Error during LED thread creation");
 	}
 }
 
 
 void *HTTPClient::sendCrashReportDoWork(void *mem) {
-	if(mem != NULL) {
+	if (mem != NULL) {
 		Log::e("sendCrashReportDoWork called with an unknown argument");
 	}
 	struct dirent *entry;
 	DIR *dp = opendir(WATCHDOG_CRASHDIR);
-	if(dp == NULL) {
+	if (dp == NULL) {
 		pthread_exit(NULL);
 	}
 
 	LED::setLedBlinking(LED_RED_PIN);
 
-	while((entry = readdir(dp))) {
-		if(strcmp("..", entry->d_name) == 0 || strcmp(".", entry->d_name) == 0) continue;
+	while ((entry = readdir(dp))) {
+		if (strcmp("..", entry->d_name) == 0 || strcmp(".", entry->d_name) == 0) continue;
 
 		std::string filename = std::string(WATCHDOG_CRASHDIR) + "/" + entry->d_name;
 
 		Log::d("Doing %s", filename.c_str());
 
-		HTTPResponse *resp = HTTPClient::httpPostFile(baseUrl + "crashreport.php?deviceid=" + Utils::getInterfaceMAC(), filename);
-		if(resp != NULL) {
+		HTTPResponse *resp = HTTPClient::httpPostFile(baseUrl + "crashreport.php?deviceid=" + Utils::getInterfaceMAC(),
+													  filename);
+		if (resp != NULL) {
 			if (resp->error == HTTP_OK && resp->responseCode == 200) {
 				unlink(filename.c_str());
 			}
@@ -410,4 +413,5 @@ void *HTTPClient::sendCrashReportDoWork(void *mem) {
 
 	pthread_exit(NULL);
 }
+
 #endif

@@ -2,22 +2,23 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/Log.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/LED.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Accelerometer.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CommandInterface.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Seismometer.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/common.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/NTP.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/Collector.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/net/TraceAccumulator.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/IPaddr.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/Udp.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/net/TraceAccumulator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/HTTPClient.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/IPaddr.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/Tcp.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/Tcp.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/HTTPClient.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/NetworkManager.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/net/Collector.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/Udp.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/NTP.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/net/NetworkManager.h" isTestSource="false" />
@@ -28,10 +29,9 @@
       <sourceFolder url="file://$MODULE_DIR$/generic.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CommandInterface.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Seismometer.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/Log.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Utils.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Config.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Config.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/Utils.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/vendor_specific.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/generic.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/vendor/galileo/LED.cpp" isTestSource="false" />
@@ -222,7 +222,6 @@
           <root url="file:///System/Library/Frameworks/MediaLibrary.framework/Headers" />
           <root url="file:///usr/include" />
           <root url="file:///usr/local/include" />
-          <root url="file://$MODULE_DIR$/vendor/linux-x86" />
           <root url="file:///Library/Frameworks/Libmacgpg.framework/Headers" />
           <root url="file:///Library/Frameworks/OSXFUSE.framework/Headers" />
           <root url="file:///Library/Frameworks/iTunesLibrary.framework/Headers" />
@@ -391,20 +390,12 @@
           <root url="file:///System/Library/Frameworks/MediaLibrary.framework/Headers" />
           <root url="file:///usr/include" />
           <root url="file:///usr/local/include" />
-          <root url="file://$MODULE_DIR$/vendor/linux-x86" />
           <root url="file:///Library/Frameworks/Libmacgpg.framework/Headers" />
           <root url="file:///Library/Frameworks/OSXFUSE.framework/Headers" />
           <root url="file:///Library/Frameworks/iTunesLibrary.framework/Headers" />
           <root url="file:///Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include" />
           <root url="file:///Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/7.0.2/include" />
         </SOURCES>
-        <excluded>
-          <root url="file://$MODULE_DIR$/vendor/linux-x86/DummyAccelerometer.h" />
-          <root url="file://$MODULE_DIR$/vendor/linux-x86/generic.cpp" />
-          <root url="file://$MODULE_DIR$/vendor/linux-x86/LED.cpp" />
-          <root url="file://$MODULE_DIR$/vendor/linux-x86/DummyAccelerometer.cpp" />
-          <root url="file://$MODULE_DIR$/vendor/linux-x86/vendor_specific.h" />
-        </excluded>
       </library>
     </orderEntry>
   </component>

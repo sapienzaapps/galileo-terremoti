@@ -12,10 +12,10 @@
 #endif
 
 #define WATCHDOG_FILE        "/tmp/galileo_watchdog"
+#define TRACEACCUMULATOR_FILE "/media/realroot/seismo.trc"
 #define DEFAULT_LOG_PATH     "/media/realroot/sketch.log"
 #define WATCHDOG_LOG_PATH    "/media/realroot/watchdog.log"
 #define DEFAULT_CONFIG_PATH  "/media/realroot/seismoconfig.txt"
-#define CALIBRATION_FILE     "/media/realroot/calibration.dat"
 #define SETDATE_CMD          "/bin/date -s @%lu"
 #define WATCHDOG_CRASHDIR    "/media/realroot/watchdog/"
 #define STACKTRACEINFO       "/media/realroot/stacktrace.txt"

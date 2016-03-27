@@ -10,7 +10,7 @@
 #define DEFAULT_LOG_PATH     "/tmp/sketch.log"
 #define WATCHDOG_LOG_PATH    "/tmp/watchdog.log"
 #define DEFAULT_CONFIG_PATH  "/tmp/seismoconfig.txt"
-#define CALIBRATION_FILE     "/tmp/calibration.dat"
+#define TRACEACCUMULATOR_FILE "/tmp/seismo.trc"
 #define SETDATE_CMD          "/bin/date -f \"%%s\" %lu"
 #define WATCHDOG_CRASHDIR    "/tmp/watchdog/"
 #define STACKTRACEINFO       "/tmp/stacktrace.txt"

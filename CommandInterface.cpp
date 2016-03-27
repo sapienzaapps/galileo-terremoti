@@ -13,22 +13,21 @@
 #include "net/NetworkManager.h"
 #include "net/HTTPClient.h"
 #include "generic.h"
-#include "Seismometer.h"
 #include "LED.h"
+#include "net/TraceAccumulator.h"
 
 Udp CommandInterface::cmdc;
-IPaddr CommandInterface::udpDest(0);
 
-bool CommandInterface::readPacket(PACKET* pkt) {
+bool CommandInterface::readPacket(PACKET *pkt) {
 	byte pktBuffer[PACKET_SIZE];
 
 	memset(pktBuffer, 0, PACKET_SIZE);
 	IPaddr src(0);
 	unsigned short port = 0;
-	ssize_t cread = cmdc.receive(pktBuffer, (size_t)PACKET_SIZE, &src, &port);
+	ssize_t cread = cmdc.receive(pktBuffer, (size_t) PACKET_SIZE, &src, &port);
 	if (cread > 0) {  // if it received a packet
 
-		if(cread == PACKET_SIZE && memcmp("INGV\0", pktBuffer, 5) == 0) {
+		if (cread == PACKET_SIZE && memcmp("INGV\0", pktBuffer, 5) == 0) {
 
 			pkt->type = (PacketType) pktBuffer[5];
 			pkt->source = src;
@@ -43,7 +42,7 @@ bool CommandInterface::readPacket(PACKET* pkt) {
 
 				pkt->latitude = Utils::reverseFloat(latitude);
 				pkt->longitude = Utils::reverseFloat(longitude);
-			} else if(pkt->type == PKTTYPE_SETSYSLOG) {
+			} else if (pkt->type == PKTTYPE_SETSYSLOG) {
 				uint32_t ip = 0;
 				memcpy(&ip, pktBuffer + 6, 4);
 				pkt->syslogServer = IPaddr(ip);
@@ -61,7 +60,7 @@ void CommandInterface::sendPacket(PACKET pkt) {
 	memcpy(pktbuf, "INGV\0", 5);
 	pktbuf[5] = pkt.type;
 
-	if(pkt.type == PKTTYPE_DISCOVERY_REPLY) {
+	if (pkt.type == PKTTYPE_DISCOVERY_REPLY) {
 
 		byte mac[6];
 		Config::getMacAddressAsByte(mac);
@@ -70,7 +69,7 @@ void CommandInterface::sendPacket(PACKET pkt) {
 
 		memcpy(pktbuf + 12, SOFTWARE_VERSION, 4);
 		memcpy(pktbuf + 16, PLATFORM_TAG, MINVAL(strlen(PLATFORM_TAG), 8));
-	} else if(pkt.type == PKTTYPE_GETINFO_REPLY) {
+	} else if (pkt.type == PKTTYPE_GETINFO_REPLY) {
 		int offset = 6;
 		memcpy(pktbuf + offset, pkt.mac, 6);
 		offset += 6;
@@ -101,27 +100,27 @@ void CommandInterface::sendPacket(PACKET pkt) {
 		memcpy(pktbuf + offset, &ip, 4);
 		offset += 4;
 
-		strncpy((char*)(pktbuf + offset), pkt.httpBaseAddress.c_str(), 169);
+		strncpy((char *) (pktbuf + offset), pkt.httpBaseAddress.c_str(), 169);
 		offset += MINVAL(pkt.httpBaseAddress.length(), 169) + 1;
 
-		strncpy((char*)(pktbuf + offset), pkt.platformName.c_str(), 19);
+		strncpy((char *) (pktbuf + offset), pkt.platformName.c_str(), 19);
 		offset += MINVAL(pkt.platformName.length(), 19) + 1;
 
-		strncpy((char*)(pktbuf + offset), pkt.accelerometerName.c_str(), 9);
+		strncpy((char *) (pktbuf + offset), pkt.accelerometerName.c_str(), 9);
 		offset += MINVAL(pkt.accelerometerName.length(), 9) + 1;
 
 		memcpy(pktbuf + offset, &pkt.statProbeSpeed, 4);
 		offset += 4;
 	}
 
-	cmdc.send(pktbuf, (size_t)PACKET_SIZE, pkt.source, CMD_INTERFACE_PORT);
+	cmdc.send(pktbuf, (size_t) PACKET_SIZE, pkt.source, CMD_INTERFACE_PORT);
 }
 
 // check if the mobile APP sent a command to the device
 void CommandInterface::checkCommandPacket() {
 
 	PACKET pkt;
-	if(!CommandInterface::readPacket(&pkt)) {
+	if (!CommandInterface::readPacket(&pkt)) {
 		return;
 	}
 
@@ -140,7 +139,7 @@ void CommandInterface::checkCommandPacket() {
 			sendPacket(pkt);
 		}
 			break;
-		case PKTTYPE_START: // Start
+/*		case PKTTYPE_START: // Start
 		{
 			Log::d("START");
 			udpDest = pkt.source;
@@ -155,12 +154,12 @@ void CommandInterface::checkCommandPacket() {
 			pkt.type = PKTTYPE_OK;
 			sendPacket(pkt);
 		}
-			break;
+			break;*/
 		case PKTTYPE_SENDGPS: // GPS Location
 		{
 			byte myMac[6];
 			Config::getMacAddressAsByte(myMac);
-			if(memcmp(myMac, pkt.mac, 6) != 0) return;
+			if (memcmp(myMac, pkt.mac, 6) != 0) return;
 
 			// Reply
 			Config::setLongitude(pkt.longitude);
@@ -172,8 +171,7 @@ void CommandInterface::checkCommandPacket() {
 			sendPacket(pkt);
 		}
 			break;
-		case PKTTYPE_SETSYSLOG:
-		{
+		case PKTTYPE_SETSYSLOG: {
 			Log::setSyslogServer(pkt.syslogServer);
 
 			pkt.type = PKTTYPE_OK;
@@ -191,16 +189,15 @@ void CommandInterface::checkCommandPacket() {
 			LED::red(true);
 			platformReboot();
 		}
-		case PKTTYPE_GETINFO:
-		{
+		case PKTTYPE_GETINFO: {
 			// SEND INFO
 			Config::getMacAddressAsByte(pkt.mac);
 			pkt.syslogServer = Log::getSyslogServer();
-			pkt.threshold = Seismometer::getInstance()->getQuakeThreshold();
+			pkt.threshold = (float)Seismometer::getInstance()->getQuakeThreshold();
 			pkt.uptime = Utils::uptime();
-			pkt.unixts = (uint32_t)NTP::getUNIXTime();
+			pkt.unixts = (uint32_t) NTP::getUNIXTime();
 			memcpy(pkt.softwareVersion, SOFTWARE_VERSION, 4);
-			pkt.freeRam = (uint32_t)(Utils::getFreeRam()/1024);
+			pkt.freeRam = (uint32_t) (Utils::getFreeRam() / 1024);
 			pkt.latency = NetworkManager::latency();
 			pkt.ntpServer = NTP::getLastNTPServer();
 			pkt.httpBaseAddress = HTTPClient::getBaseURL();
@@ -212,23 +209,21 @@ void CommandInterface::checkCommandPacket() {
 			pkt.type = PKTTYPE_GETINFO_REPLY;
 			sendPacket(pkt);
 		}
+#ifdef DEBUG
+		case PKTTYPE_RESET:
+		{
+			unlink(DEFAULT_CONFIG_PATH);
+			platformReboot();
+		}
+			break;
+		case PKTTYPE_TRACE:
+		{
+			TraceAccumulator::setTrace(true);
+		}
+#endif
 			break;
 		default:
 			break;
-	}
-}
-
-// send the accelerometer values to the mobile APP
-// TODO: check
-void CommandInterface::sendValues(float x, float y, float z) {
-	if (udpDest == 0) {  // if a socket connection with the mobile APP has been established
-		byte pktBuffer[PACKET_SIZE];
-
-		memcpy(pktBuffer, &x, 4);
-		memcpy(pktBuffer+4, &y, 4);
-		memcpy(pktBuffer+8, &z, 4);
-
-		cmdc.send(pktBuffer, 12, udpDest, CMD_INTERFACE_PORT+1);
 	}
 }
 
@@ -236,7 +231,7 @@ void CommandInterface::sendValues(float x, float y, float z) {
 bool CommandInterface::commandInterfaceInit() {
 	bool ret = cmdc.listen(CMD_INTERFACE_PORT);
 	cmdc.setNonblocking();
-	if(!ret) {
+	if (!ret) {
 		Log::e("Error during listening");
 	}
 	return ret;
