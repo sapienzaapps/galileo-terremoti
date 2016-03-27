@@ -1,3 +1,10 @@
+galileo-terremoti (2.15) unstable; urgency=low
+
+  * New threshold algorithm
+  * Signal tracing mechanism (on server request)
+
+ -- Enrico204 <enrico204@gmail.com>  Sun, 27 Mar 2016 20:30:00 +0100
+
 galileo-terremoti (2.14) unstable; urgency=low
 
   * Fixed bootloop on Raspberry PI
