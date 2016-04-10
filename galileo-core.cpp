@@ -71,6 +71,7 @@ int main(int argc, char **argv) {
 #ifdef DEBUG
 	if (argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
 		valgrindMs = Utils::millis();
+		HTTPClient::setBaseURL("http://192.0.2.20/seismocloud/");
 		Config::setMacAddress("000000000000");
 		Config::setLatitude(0.1);
 		Config::setLongitude(0.1);
