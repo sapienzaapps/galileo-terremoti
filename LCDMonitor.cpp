@@ -1,6 +1,7 @@
 
 #include "LCDMonitor.h"
 #include "Log.h"
+#include "Utils.h"
 #include <math.h>
 
 LCDMonitor *LCDMonitor::singleton = NULL;
@@ -25,6 +26,7 @@ void *LCDMonitor::uiWorker(void *mem) {
 		Log::e("Error during SDL init: %s", SDL_GetError());
 		pthread_exit(NULL);
 	}
+	SDL_ShowCursor(SDL_DISABLE);
 
 	SDL_Renderer *renderer;
 
@@ -66,11 +68,16 @@ void *LCDMonitor::uiWorker(void *mem) {
 		SDL_SetRenderDrawColor(renderer, 0x00, 0xb8, 0x14, 0xFF);
 		SDL_RenderDrawPoint(renderer, xpos, (LCDMONITOR_HEIGHT/2)-(int)((-drawingval)*zoom));
 
+		// Drawing semi-continuos line
 		if (fabs(olddwval - drawingval) > 1) {
 			SDL_SetRenderDrawColor(renderer, 0x00, 0xb8, 0x14, 0xFF);
 			SDL_RenderDrawLine(renderer, xpos, (LCDMONITOR_HEIGHT/2)-(int)((-drawingval)*zoom), xpos, (LCDMONITOR_HEIGHT/2)-(int)((-olddwval)*zoom));
 		}
 		olddwval = drawingval;
+
+		int nextpos = xpos+1 == LCDMONITOR_WIDTH ? 0 : xpos+1;
+		SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+		SDL_RenderDrawLine(renderer, nextpos, 0, nextpos, LCDMONITOR_HEIGHT);
 
 		xpos++;
 		if(xpos == LCDMONITOR_WIDTH) {
