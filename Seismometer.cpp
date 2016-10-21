@@ -44,6 +44,10 @@ void Seismometer::tick() {
 	TraceAccumulator::traceValue(db.ts, db.accel, quakeThreshold, getCurrentAVG(), getCurrentSTDDEV(), getSigmaIter());
 	addValueToAvgVar(db.accel);
 
+#ifdef SDL_DEMO
+	LCDMonitor::sendNewValue((float)db.accel);
+#endif
+
 	statLastCounter++;
 	if (Utils::millis() - statLastCounterTime > 1000) {
 		statProbeSpeed = statLastCounter;
@@ -59,10 +63,6 @@ void Seismometer::tick() {
 		// In event, skipping detections for 5 seconds
 		return;
 	}
-
-#ifdef SDL_DEMO
-	LCDMonitor::sendNewValue((float)db.accel);
-#endif
 
 	// if the values of the accelerometer have passed the threshold
 	//  or if an "event" is currently running
