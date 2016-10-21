@@ -1,9 +1,11 @@
 
 #include "LCDMonitor.h"
 #include "Log.h"
+#include <math.h>
 
 LCDMonitor *LCDMonitor::singleton = NULL;
 volatile float LCDMonitor::curval = 0;
+float LCDMonitor::olddwval = 0;
 
 LCDMonitor::LCDMonitor() {
 	int rc = pthread_create(&uiThread, NULL, uiWorker, NULL);
@@ -52,11 +54,24 @@ void *LCDMonitor::uiWorker(void *mem) {
 			}
 		}
 
-		int zoom = 5;
+		float drawingval = sinf(xpos/1.5)*curval;
+		
+		int zoom = 10;
+
+		// Clear screen line
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
 		SDL_RenderDrawLine(renderer, xpos, 0, xpos, LCDMONITOR_HEIGHT);
+
+		// Drawing current point
 		SDL_SetRenderDrawColor(renderer, 0x00, 0xb8, 0x14, 0xFF);
-		SDL_RenderDrawPoint(renderer, xpos, (LCDMONITOR_HEIGHT/2)-(int)((-curval)*zoom));
+		SDL_RenderDrawPoint(renderer, xpos, (LCDMONITOR_HEIGHT/2)-(int)((-drawingval)*zoom));
+
+		if (fabs(olddwval - drawingval) > 1) {
+			SDL_SetRenderDrawColor(renderer, 0x00, 0xb8, 0x14, 0xFF);
+			SDL_RenderDrawLine(renderer, xpos, (LCDMONITOR_HEIGHT/2)-(int)((-drawingval)*zoom), xpos, (LCDMONITOR_HEIGHT/2)-(int)((-olddwval)*zoom));
+		}
+		olddwval = drawingval;
+
 		xpos++;
 		if(xpos == LCDMONITOR_WIDTH) {
 			xpos = 0;

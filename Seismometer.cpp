@@ -45,7 +45,7 @@ void Seismometer::tick() {
 	addValueToAvgVar(db.accel);
 
 #ifdef SDL_DEMO
-	LCDMonitor::sendNewValue((float)db.accel);
+	LCDMonitor::sendNewValue((float)(db.accel - getCurrentAVG()));
 #endif
 
 	statLastCounter++;
