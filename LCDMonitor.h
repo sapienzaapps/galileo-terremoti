@@ -22,6 +22,7 @@ private:
 
 	static LCDMonitor *singleton;
 	static volatile float curval;
+	static float olddwval;
 };
 
 #endif
