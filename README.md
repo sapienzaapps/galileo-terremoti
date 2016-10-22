@@ -2,6 +2,10 @@
 
 To use Arduino/Genuino boards you must use sketch at https://github.com/sapienzaapps/seismoclouddevice-arduino . This code is for Arduino Galileo / Raspberry only.
 
+# License
+
+See LICENSE file
+
 # Requirements
 
 * GNU/Linux or OSX (others \*BSD are not supported but it should works)
