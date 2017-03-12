@@ -70,7 +70,9 @@ set(SOURCE_FILES
         generic.h
 		Watchdog.cpp
         Watchdog.h
-		net/TraceAccumulator.cpp net/TraceAccumulator.h)
+		net/TraceAccumulator.cpp net/TraceAccumulator.h
+		net/mqtt.cpp net/mqtt.h net/mqttclient.cpp net/mqttclient.h
+		net/SCSAPI.cpp net/SCSAPI.h)
 
 add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
 #target_compile_options(galileo_gen1 PUBLIC "-DGALILEO_GEN=1")

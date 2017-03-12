@@ -32,12 +32,6 @@ class HTTPClient {
 public:
 
 	/**
-	 * Get config from server
-	 * @return The config as string (as returned to server)
-	 */
-	static std::string getConfig();
-
-	/**
 	 * Send alert to server
 	 * @param db Accelerometer values
 	 * @param threshold Threshold value

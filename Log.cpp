@@ -142,11 +142,6 @@ std::string Log::getDateTime() {
 	return std::string(buf);
 }
 
-void Log::updateFromConfig() {
-	syslogServer = Config::getSyslogServer();
-	syslogEnabled = Config::getSyslogServer() != (uint32_t)0;
-}
-
 IPaddr Log::getSyslogServer() {
 	return Log::syslogServer;
 }

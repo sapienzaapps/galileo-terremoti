@@ -21,6 +21,7 @@
 #ifndef NOWATCHDOG
 
 #include "Watchdog.h"
+#include "net/SCSAPI.h"
 
 #endif
 
@@ -169,16 +170,13 @@ void setup() {
 	seismometer = Seismometer::getInstance();
 	seismometer->init();
 
-	Log::i("Check new config");
+	Log::i("API connect");
 	// Download new config from server
-	while (!Config::checkServerConfig()) {
-		Log::e("Error checking server config");
+	if (!SCSAPI::init()) {
+		Log::e("Error connecting to server");
 		Utils::delay(5 * 1000);
+		platformReboot();
 	}
-
-	Log::i("Update logging settings from config");
-	// Re-init logging from config
-	Log::updateFromConfig();
 
 	Log::i("NTP sync");
 	// NTP SYNC with NTP server
@@ -188,27 +186,11 @@ void setup() {
 	Log::i("Starting UDP local command interface");
 	CommandInterface::commandInterfaceInit();
 
-	if (!Config::hasPosition()) {
-		Log::i("Getting position information");
-		// Wait for location from App if not avail
-		Log::i("Position not available, waiting for position from App");
-		LED::setLedAnimation(false);
-		LED::setLedBlinking(LED_YELLOW_PIN);
-		do {
-#ifndef NOWATCHDOG
-			Watchdog::heartBeat();
-#endif
-			CommandInterface::checkCommandPacket();
-			Utils::delay(200);
-		} while (!Config::hasPosition());
-		Config::printConfig();
-		LED::clearLedBlinking(LED_YELLOW_PIN);
-		LED::setLedAnimation(true);
-	} else {
-		Log::i("GPS coords: %f %f", Config::getLatitude(), Config::getLongitude());
-	}
-
 	Log::d("Free RAM: %lu", Utils::getFreeRam());
+
+	Log::d("Sending Alive");
+	SCSAPI::alive();
+
 	Log::d("INIZIALIZATION COMPLETE!");
 
 	LED::setLedAnimation(false);
@@ -238,6 +220,7 @@ void loop() {
 
 	if (Utils::millis() - cfgLastMs >= CHECK_CONFIG_INTERVAL) {
 		Config::checkServerConfig();
+		SCSAPI::alive();
 		cfgLastMs = Utils::millis();
 	}
 

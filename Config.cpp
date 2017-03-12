@@ -18,10 +18,6 @@ bool Config::hasMACAddress() {
 	return !Config::macAddress.empty();
 }
 
-bool Config::hasPosition() {
-	return Config::lat != 0.0 && Config::lon != 0.0;
-}
-
 std::string Config::getMacAddress() {
 	return Config::macAddress;
 }
@@ -38,24 +34,6 @@ void Config::getMacAddressAsByte(byte mac[6]) {
 		b[1] = Config::macAddress[(i * 2) + 1];
 		mac[i] = (byte) strtol(b, NULL, 16);
 	}
-}
-
-double Config::getLatitude() {
-	return Config::lat;
-}
-
-void Config::setLatitude(double lat) {
-	Config::lat = lat;
-	Config::save();
-}
-
-double Config::getLongitude() {
-	return Config::lon;
-}
-
-void Config::setLongitude(double lon) {
-	Config::lon = lon;
-	Config::save();
 }
 
 bool Config::readConfigFile(const char *filepath) {
@@ -80,12 +58,6 @@ bool Config::readConfigFile(const char *filepath) {
 			if (argument.size() < 12) continue;
 			Config::macAddress = argument;
 			Log::d("Device ID: %s", Config::getMacAddress().c_str());
-		} else if (strncmp("lat", buf, 3) == 0) {
-			Config::lat = Utils::atofn(argument.c_str(), 8);
-			Log::d("Latitude: %lf", Config::getLatitude());
-		} else if (strncmp("lon", buf, 3) == 0) {
-			Config::lon = Utils::atofn(argument.c_str(), 8);
-			Log::d("Longitude: %lf", Config::getLongitude());
 		}
 	}
 	fclose(fp);
@@ -129,6 +101,7 @@ void Config::loadDefault() {
 }
 
 bool Config::checkServerConfig() {
+	/*
 	std::string cfg = HTTPClient::getConfig();
 	if (!cfg.empty()) {
 		std::map<std::string, std::string> params = configSplit(cfg, '|');
@@ -165,7 +138,7 @@ bool Config::checkServerConfig() {
 		return true;
 	} else {
 		return false;
-	}
+	}*/
 }
 
 std::map<std::string, std::string> &Config::configSplit(const std::string &s, char delim,
@@ -210,8 +183,6 @@ void Config::printConfig() {
 	Log::i("Platform name: %s", PLATFORM_TAG);
 
 	Log::i("DeviceID: %s", Config::getMacAddress().c_str());
-
-	Log::i("Position (lat, lon): %lf %lf", Config::getLatitude(), Config::getLongitude());
 
 	Log::i("IP: %s", IPaddr::localIP().asString().c_str());
 

@@ -19,37 +19,11 @@ std::string HTTPClient::baseUrl = "http://192.0.2.20/seismocloud/";
 std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
 #endif
 
-std::string HTTPClient::getConfig() {
-	std::string cfg;
-	std::map<std::string, std::string> postValues;
-	postValues["deviceid"] = Config::getMacAddress();
-	postValues["lat"] = Utils::toString(Config::getLatitude());
-	postValues["lon"] = Utils::toString(Config::getLongitude());
-	postValues["version"] = SOFTWARE_VERSION;
-	postValues["memfree"] = Utils::toString(Utils::getFreeRam());
-	postValues["uptime"] = Utils::toString(Utils::uptime());
-	postValues["model"] = PLATFORM_TAG;
-	postValues["sensor"] = Seismometer::getInstance()->getAccelerometerName();
-	postValues["avg"] = Utils::toString(Seismometer::getInstance()->getCurrentAVG());
-	postValues["stddev"] = Utils::toString(Seismometer::getInstance()->getCurrentSTDDEV());
-
-	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "alive.php", postValues);
-	Log::d("Response received, code: %i", resp->responseCode);
-	if (resp->error == HTTP_OK && resp->responseCode == 200 && resp->body != NULL) {
-		cfg = std::string((char *) resp->body);
-	} else {
-		cfg = std::string("");
-	}
-	freeHTTPResponse(resp);
-	return cfg;
-}
 
 void HTTPClient::httpSendAlert(RECORD *db) {
 	std::map<std::string, std::string> postValues;
 	postValues["tsstart"] = Utils::toString(db->ts);
 	postValues["deviceid"] = Config::getMacAddress();
-	postValues["lat"] = Utils::toString(Config::getLatitude());
-	postValues["lon"] = Utils::toString(Config::getLongitude());
 	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "terremoto.php", postValues);
 	if (resp->error == HTTP_OK && resp->body != NULL) {
 		nextContact = atol((const char *) resp->body) * 1000UL;
