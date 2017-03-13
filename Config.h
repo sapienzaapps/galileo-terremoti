@@ -36,12 +36,6 @@ public:
 	static void getMacAddressAsByte(byte mac[6]);
 
 	/**
-	 * Check server config, then refresh locally
-	 * @return True if config is OK, false if an error occurred
-	 */
-	static bool checkServerConfig();
-
-	/**
 	 * Print config to log
 	 */
 	static void printConfig();
@@ -76,4 +70,4 @@ private:
 	static uint32_t syslogServer;
 };
 
-#endif 
+#endif

@@ -218,8 +218,7 @@ void loop() {
 		netLastMs = Utils::millis();
 	}
 
-	if (Utils::millis() - cfgLastMs >= CHECK_CONFIG_INTERVAL) {
-		Config::checkServerConfig();
+	if (Utils::millis() - cfgLastMs >= ALIVE_INTERVAL) {
 		SCSAPI::alive();
 		cfgLastMs = Utils::millis();
 	}

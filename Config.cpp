@@ -100,8 +100,7 @@ void Config::loadDefault() {
 	macAddress = Utils::getInterfaceMAC();
 }
 
-bool Config::checkServerConfig() {
-	/*
+/*bool Config::checkServerConfig() {
 	std::string cfg = HTTPClient::getConfig();
 	if (!cfg.empty()) {
 		std::map<std::string, std::string> params = configSplit(cfg, '|');
@@ -138,8 +137,8 @@ bool Config::checkServerConfig() {
 		return true;
 	} else {
 		return false;
-	}*/
-}
+	}
+}*/
 
 std::map<std::string, std::string> &Config::configSplit(const std::string &s, char delim,
 														std::map<std::string, std::string> &elems) {

@@ -5,6 +5,8 @@
 #include "SCSAPI.h"
 
 
+MQTT_Client* SCSAPI::mqtt = NULL;
+
 bool SCSAPI::init() {
 	if (mqtt != NULL && mqtt->connected()) {
 		return true;
@@ -13,29 +15,14 @@ bool SCSAPI::init() {
 		mqtt = new MQTT_Client("mqtt.seismocloud.com", 1883, Config::getMacAddress().c_str(), "embedded",
 							   "embedded");
 	}
-	if (mqtt->connect() == 0) {
-		std::string subtopic("device-");
-		subtopic.append(Config::getMacAddress());
-		MQTT_Subscribe mydev = MQTT_Subscribe(mqtt, subtopic.c_str(), 1);
-		mqtt->subscribe(&mydev);
-		return true;
-	} else {
-		return false;
-	}
+	std::string subtopic("device-");
+	subtopic.append(Config::getMacAddress());
+	MQTT_Subscribe mydev = MQTT_Subscribe(mqtt, subtopic.c_str(), 1);
+	mqtt->subscribe(&mydev);
+	return mqtt->connect() == 0;
 }
 
 void SCSAPI::alive() {
-	std::string cfg;
-	std::map<std::string, std::string> postValues;
-	postValues["deviceid"] = Config::getMacAddress();
-	postValues["version"] = SOFTWARE_VERSION;
-	postValues["memfree"] = Utils::toString(Utils::getFreeRam());
-	postValues["uptime"] = Utils::toString(Utils::uptime());
-	postValues["model"] = PLATFORM_TAG;
-	postValues["sensor"] = Seismometer::getInstance()->getAccelerometerName();
-	postValues["avg"] = Utils::toString(Seismometer::getInstance()->getCurrentAVG());
-	postValues["stddev"] = Utils::toString(Seismometer::getInstance()->getCurrentSTDDEV());
-
 	uint8_t buffer[MAXBUFFERSIZE];
 	memset(buffer, 0, MAXBUFFERSIZE);
 	byte j = 0;
