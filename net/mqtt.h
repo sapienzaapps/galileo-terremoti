@@ -157,7 +157,7 @@ public:
 	// Set MQTT last will topic, payload, QOS, and retain. This needs
 	// to be called before connect() because it is sent as part of the
 	// connect control packet.
-	bool will(const char *topic, const char *payload, uint8_t qos = 0, uint8_t retain = 0);
+	bool will(const char *topic, byte *payload, size_t len, uint8_t qos = 0, uint8_t retain = 0);
 
 	// Publish a message to a topic using the specified QoS level.  Returns true
 	// if the message was published, false otherwise.
@@ -215,7 +215,7 @@ protected:
 	const char *username;
 	const char *password;
 	const char *will_topic;
-	const char *will_payload;
+	uint8_t will_payload[MAXBUFFERSIZE];
 	uint8_t will_qos;
 	uint8_t will_retain;
 	uint8_t buffer[MAXBUFFERSIZE];  // one buffer, used for all incoming/outgoing

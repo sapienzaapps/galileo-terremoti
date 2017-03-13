@@ -16,7 +16,6 @@
 #define DEFAULT_LOG_PATH     "/media/realroot/sketch.log"
 #define WATCHDOG_LOG_PATH    "/media/realroot/watchdog.log"
 #define DEFAULT_CONFIG_PATH  "/media/realroot/seismoconfig.txt"
-#define SETDATE_CMD          "/bin/date -s @%lu"
 #define WATCHDOG_CRASHDIR    "/media/realroot/watchdog/"
 #define STACKTRACEINFO       "/media/realroot/stacktrace.txt"
 

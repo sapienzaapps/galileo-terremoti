@@ -12,11 +12,9 @@
 #include "Log.h"
 #include "LED.h"
 #include "Utils.h"
-#include "net/NTP.h"
 #include "net/NetworkManager.h"
 #include "CommandInterface.h"
 #include "generic.h"
-#include "net/HTTPClient.h"
 
 #ifndef NOWATCHDOG
 
@@ -72,10 +70,8 @@ int main(int argc, char **argv) {
 #ifdef DEBUG
 	if (argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
 		valgrindMs = Utils::millis();
-		HTTPClient::setBaseURL("http://192.0.2.20/seismocloud/");
+//		HTTPClient::setBaseURL("http://192.0.2.20/seismocloud/");
 		Config::setMacAddress("000000000000");
-		Config::setLatitude(0.1);
-		Config::setLongitude(0.1);
 	} else if (argc > 1 && strcmp("--raw", argv[1]) == 0) {
 		Accelerometer *accel = getAccelerometer();
 
@@ -106,7 +102,7 @@ int main(int argc, char **argv) {
 	setup();
 
 #ifdef DEBUG
-	HTTPClient::sendCrashReports();
+//	HTTPClient::sendCrashReports();
 #endif
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -178,10 +174,15 @@ void setup() {
 		platformReboot();
 	}
 
-	Log::i("NTP sync");
+	Log::i("Time sync");
 	// NTP SYNC with NTP server
-	NTP::init();
-	NTP::sync();
+	SCSAPI::requestTimeUpdate();
+	while (SCSAPI::getUNIXTime() == 0) {
+		SCSAPI::tick();
+		Utils::delay(50);
+		// TODO: timeout
+	}
+	Log::i("Time sync'ed");
 
 	Log::i("Starting UDP local command interface");
 	CommandInterface::commandInterfaceInit();
@@ -200,6 +201,7 @@ void setup() {
 
 void loop() {
 	LED::tick();
+	SCSAPI::tick();
 #ifndef NOWATCHDOG
 	Watchdog::heartBeat();
 #endif
@@ -224,7 +226,7 @@ void loop() {
 	}
 
 	if (Utils::millis() - ntpLastMs >= NTP_SYNC_INTERVAL) {
-		while (!NTP::sync());
+		SCSAPI::requestTimeUpdate();
 		ntpLastMs = Utils::millis();
 	}
 

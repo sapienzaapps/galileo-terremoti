@@ -5,12 +5,11 @@
 #include "common.h"
 #include "Seismometer.h"
 #include "Log.h"
-#include "net/NTP.h"
-#include "net/HTTPClient.h"
 #include "LED.h"
 #include "Utils.h"
 #include "generic.h"
 #include "net/TraceAccumulator.h"
+#include "net/SCSAPI.h"
 
 Seismometer *Seismometer::instance = NULL;
 
@@ -36,7 +35,7 @@ void Seismometer::tick() {
 
 	RECORD db = {0, 0, false};
 
-	db.ts = NTP::getUNIXTime();
+	db.ts = SCSAPI::getUNIXTime();
 	db.accel = accelero->getTotalVector();
 	db.overThreshold = db.accel > quakeThreshold;
 
@@ -70,7 +69,7 @@ void Seismometer::tick() {
 		inEvent = true;
 		lastEventWas = Utils::millis();
 
-		HTTPClient::httpSendAlert(&db);
+		SCSAPI::terremoto(&db);
 	}
 }
 

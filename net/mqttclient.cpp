@@ -64,8 +64,8 @@ uint16_t MQTT_Client::readPacket(uint8_t *buffer, uint16_t maxlen,
 			//Log::d((uint8_t)c, HEX);
 			len++;
 			if (len == maxlen) {  // we read all we want, bail
-				Log::d("Read data:\t");
-				DEBUG_PRINTBUFFER(buffer, len);
+//				Log::d("Read data:\t");
+//				DEBUG_PRINTBUFFER(buffer, len);
 				return len;
 			}
 		}
@@ -89,11 +89,11 @@ bool MQTT_Client::sendPacket(uint8_t *buffer, uint16_t len) {
 			len -= ret;
 
 			if (ret != sendlen) {
-				Log::d("Failed to send packet.");
+				Log::e("Failed to send packet.");
 				return false;
 			}
 		} else {
-			Log::d("Connection failed!");
+			Log::e("Connection failed!");
 			return false;
 		}
 	}

@@ -1,7 +1,5 @@
 #include "common.h"
 #include "Config.h"
-#include "net/HTTPClient.h"
-#include "net/NTP.h"
 #include "Log.h"
 #include "Utils.h"
 #include "LED.h"
@@ -185,7 +183,7 @@ void Config::printConfig() {
 
 	Log::i("IP: %s", IPaddr::localIP().asString().c_str());
 
-	Log::i("Base URL: %s", HTTPClient::getBaseURL().c_str());
+//	Log::i("Base URL: %s", HTTPClient::getBaseURL().c_str());
 
 #ifdef DEBUG
 	Log::d("Build version: %s", BUILD_VERSION);

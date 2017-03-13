@@ -80,6 +80,15 @@ static uint8_t *stringprint(uint8_t *p, char *s) {
 }
 */
 
+static uint8_t *binprint(uint8_t *p, byte *s, uint16_t len = 0) {
+	p[0] = len >> 8;
+	p++;
+	p[0] = len & 0xFF;
+	p++;
+	memcpy(p, s, len);
+	return p + len;
+}
+
 static uint8_t *stringprint(uint8_t *p, const char *s, uint16_t maxlen = 0) {
 	// If maxlen is specified (has a non-zero value) then use it as the maximum
 	// length of the source string to write to the buffer.  Otherwise write
@@ -121,7 +130,6 @@ MQTT::MQTT(const char *server,
 	}
 
 	will_topic = 0;
-	will_payload = 0;
 	will_qos = 0;
 	will_retain = 0;
 
@@ -146,7 +154,6 @@ MQTT::MQTT(const char *server,
 	}
 
 	will_topic = 0;
-	will_payload = 0;
 	will_qos = 0;
 	will_retain = 0;
 
@@ -238,8 +245,8 @@ uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeou
 	rlen = readPacket(pbuff, 1, timeout);
 	if (rlen != 1) return 0;
 
-	Log::d("Packet Type:\t");
-	DEBUG_PRINTBUFFER(pbuff, rlen);
+//	Log::d("Packet Type:\t");
+//	DEBUG_PRINTBUFFER(pbuff, rlen);
 	pbuff++;
 
 	uint32_t value = 0;
@@ -256,7 +263,7 @@ uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeou
 		value += intermediate;
 		multiplier *= 128;
 		if (multiplier > (128UL * 128UL * 128UL)) {
-			Log::d("Malformed packet len");
+			Log::i("Malformed packet len");
 			return 0;
 		}
 	} while (encodedByte & 0x80);
@@ -264,7 +271,7 @@ uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeou
 	Log::d("Packet Length: %d", value);
 
 	if (value > (maxsize - (pbuff - buffer) - 1)) {
-		Log::d("Packet too big for buffer");
+		Log::e("Packet too big for buffer");
 		rlen = readPacket(pbuff, (maxsize - (pbuff - buffer) - 1), timeout);
 	} else {
 		rlen = readPacket(pbuff, value, timeout);
@@ -304,7 +311,7 @@ bool MQTT::disconnect() {
 	// Construct and send disconnect packet.
 	uint8_t len = disconnectPacket(buffer);
 	if (!sendPacket(buffer, len))
-		Log::d("Unable to send disconnect packet");
+		Log::e("Unable to send disconnect packet");
 
 	return disconnectServer();
 
@@ -324,8 +331,8 @@ bool MQTT::publish(const char *topic, uint8_t *data, uint16_t bLen, uint8_t qos)
 	// If QOS level is high enough verify the response packet.
 	if (qos > 0) {
 		len = readFullPacket(buffer, MAXBUFFERSIZE, PUBLISH_TIMEOUT_MS);
-		Log::d("Publish QOS1+ reply:\t");
-		DEBUG_PRINTBUFFER(buffer, len);
+//		Log::d("Publish QOS1+ reply:\t");
+//		DEBUG_PRINTBUFFER(buffer, len);
 		if (len != 4)
 			return false;
 		if ((buffer[0] >> 4) != MQTT_CTRL_PUBACK)
@@ -343,20 +350,19 @@ bool MQTT::publish(const char *topic, uint8_t *data, uint16_t bLen, uint8_t qos)
 	return true;
 }
 
-bool MQTT::will(const char *topic, const char *payload, uint8_t qos, uint8_t retain) {
+bool MQTT::will(const char *topic, byte *payload, size_t len, uint8_t qos, uint8_t retain) {
 
 	if (connected()) {
-		Log::d("Will defined after connect");
+		Log::e("Will defined after connect");
 		return false;
 	}
 
 	will_topic = topic;
-	will_payload = payload;
+	memcpy(will_payload, payload, len);
 	will_qos = qos;
 	will_retain = retain;
 
 	return true;
-
 }
 
 bool MQTT::subscribe(MQTT_Subscribe *sub) {
@@ -364,7 +370,7 @@ bool MQTT::subscribe(MQTT_Subscribe *sub) {
 	// see if we are already subscribed
 	for (i = 0; i < MAXSUBSCRIPTIONS; i++) {
 		if (subscriptions[i] == sub) {
-			Log::d("Already subscribed");
+			Log::e("Already subscribed");
 			return true;
 		}
 	}
@@ -378,7 +384,7 @@ bool MQTT::subscribe(MQTT_Subscribe *sub) {
 		}
 	}
 
-	Log::d("no more subscription space :(");
+	Log::e("no more subscription space :(");
 	return false;
 }
 
@@ -405,8 +411,8 @@ bool MQTT::unsubscribe(MQTT_Subscribe *sub) {
 
 				// wait for UNSUBACK
 				len = readFullPacket(buffer, MAXBUFFERSIZE, CONNECT_TIMEOUT_MS);
-				Log::d("UNSUBACK:\t");
-				DEBUG_PRINTBUFFER(buffer, len);
+//				Log::d("UNSUBACK:\t");
+//				DEBUG_PRINTBUFFER(buffer, len);
 
 				if ((len != 5) || (buffer[0] != (MQTT_CTRL_UNSUBACK << 4))) {
 					return false;  // failure to unsubscribe
@@ -470,12 +476,12 @@ MQTT_Subscribe *MQTT::readSubscription(int16_t timeout) {
 	uint16_t len = readFullPacket(buffer, MAXBUFFERSIZE, timeout); // return one full packet
 	if (!len)
 		return NULL;  // No data available, just quit.
-	Log::d("Packet len: %d", len);
-	DEBUG_PRINTBUFFER(buffer, len);
+//	Log::d("Packet len: %d", len);
+//	DEBUG_PRINTBUFFER(buffer, len);
 
 	// Parse out length of packet.
 	topiclen = buffer[3];
-	Log::d("Looking for subscription len %d", topiclen);
+//	Log::d("Looking for subscription len %d", topiclen);
 
 	// Find subscription associated with this packet.
 	for (i = 0; i < MAXSUBSCRIPTIONS; i++) {
@@ -487,7 +493,7 @@ MQTT_Subscribe *MQTT::readSubscription(int16_t timeout) {
 			// Stop if the subscription topic matches the received topic. Be careful
 			// to make comparison case insensitive.
 			if (strncasecmp((char *) buffer + 4, subscriptions[i]->topic, topiclen) == 0) {
-				Log::d("Found sub #%d", i);
+//				Log::d("Found sub #%d", i);
 				break;
 			}
 		}
@@ -514,9 +520,9 @@ MQTT_Subscribe *MQTT::readSubscription(int16_t timeout) {
 	// extract out just the data, into the subscription object itself
 	memmove(subscriptions[i]->lastread, buffer + 4 + topiclen + packet_id_len, datalen);
 	subscriptions[i]->datalen = datalen;
-	Log::d("Data len: %d", datalen);
-	Log::d("Data: ");
-	Log::d((char *) subscriptions[i]->lastread);
+//	Log::d("Data len: %d", datalen);
+//	Log::d("Data: ");
+//	Log::d((char *) subscriptions[i]->lastread);
 
 	if ((MQTT_PROTOCOL_LEVEL > 3) && (buffer[0] & 0x6) == 0x2) {
 		uint8_t ackpacket[4];
@@ -524,7 +530,7 @@ MQTT_Subscribe *MQTT::readSubscription(int16_t timeout) {
 		// Construct and send puback packet.
 		uint8_t len = pubackPacket(ackpacket, packetid);
 		if (!sendPacket(ackpacket, len))
-			Log::d("Failed");
+			Log::e("Read Failed");
 	}
 
 	// return the valid matching subscription
@@ -627,7 +633,7 @@ uint8_t MQTT::connectPacket(uint8_t *packet) {
 
 	if (will_topic && will_topic[0] != 0) {
 		p = stringprint(p, will_topic);
-		p = stringprint(p, will_payload);
+		p = binprint(p, will_payload);
 	}
 
 	if (username[0] != 0) {
@@ -640,8 +646,8 @@ uint8_t MQTT::connectPacket(uint8_t *packet) {
 	len = p - packet;
 
 	packet[1] = len - 2;  // don't include the 2 bytes of fixed header data
-	Log::d("MQTT connect packet:");
-	DEBUG_PRINTBUFFER(buffer, len);
+//	Log::d("MQTT connect packet:");
+//	DEBUG_PRINTBUFFER(buffer, len);
 	return len;
 }
 
@@ -692,8 +698,8 @@ uint16_t MQTT::publishPacket(uint8_t *packet, const char *topic,
 	memmove(p, data, bLen);
 	p += bLen;
 	len = p - packet;
-	Log::d("MQTT publish packet:");
-	DEBUG_PRINTBUFFER(buffer, len);
+//	Log::d("MQTT publish packet:");
+//	DEBUG_PRINTBUFFER(buffer, len);
 	return len;
 }
 
@@ -721,8 +727,8 @@ uint8_t MQTT::subscribePacket(uint8_t *packet, const char *topic,
 
 	len = p - packet;
 	packet[1] = len - 2; // don't include the 2 bytes of fixed header data
-	Log::d("MQTT subscription packet:");
-	DEBUG_PRINTBUFFER(buffer, len);
+//	Log::d("MQTT subscription packet:");
+//	DEBUG_PRINTBUFFER(buffer, len);
 	return len;
 }
 
@@ -748,8 +754,8 @@ uint8_t MQTT::unsubscribePacket(uint8_t *packet, const char *topic) {
 
 	len = p - packet;
 	packet[1] = len - 2; // don't include the 2 bytes of fixed header data
-	Log::d("MQTT unsubscription packet:");
-	DEBUG_PRINTBUFFER(buffer, len);
+//	Log::d("MQTT unsubscription packet:");
+//	DEBUG_PRINTBUFFER(buffer, len);
 	return len;
 
 }
@@ -757,8 +763,8 @@ uint8_t MQTT::unsubscribePacket(uint8_t *packet, const char *topic) {
 uint8_t MQTT::pingPacket(uint8_t *packet) {
 	packet[0] = MQTT_CTRL_PINGREQ << 4;
 	packet[1] = 0;
-	Log::d("MQTT ping packet:");
-	DEBUG_PRINTBUFFER(buffer, 2);
+//	Log::d("MQTT ping packet:");
+//	DEBUG_PRINTBUFFER(buffer, 2);
 	return 2;
 }
 
@@ -767,16 +773,16 @@ uint8_t MQTT::pubackPacket(uint8_t *packet, uint16_t packetid) {
 	packet[1] = 2;
 	packet[2] = packetid >> 8;
 	packet[3] = packetid;
-	Log::d("MQTT puback packet:");
-	DEBUG_PRINTBUFFER(buffer, 4);
+//	Log::d("MQTT puback packet:");
+//	DEBUG_PRINTBUFFER(buffer, 4);
 	return 4;
 }
 
 uint8_t MQTT::disconnectPacket(uint8_t *packet) {
 	packet[0] = MQTT_CTRL_DISCONNECT << 4;
 	packet[1] = 0;
-	Log::d("MQTT disconnect packet:");
-	DEBUG_PRINTBUFFER(buffer, 2);
+//	Log::d("MQTT disconnect packet:");
+//	DEBUG_PRINTBUFFER(buffer, 2);
 	return 2;
 }
 

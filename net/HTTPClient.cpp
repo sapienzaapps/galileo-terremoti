@@ -8,28 +8,10 @@
 #include "../LED.h"
 #include "../Watchdog.h"
 
-#ifdef DEBUG
 pthread_t HTTPClient::sendCrashReportThread;
-#endif
 
-unsigned long HTTPClient::nextContact = 5000;
-#ifdef DEBUG_SERVER
-std::string HTTPClient::baseUrl = "http://192.0.2.20/seismocloud/";
-#else
 std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
-#endif
 
-
-void HTTPClient::httpSendAlert(RECORD *db) {
-	std::map<std::string, std::string> postValues;
-	postValues["tsstart"] = Utils::toString(db->ts);
-	postValues["deviceid"] = Config::getMacAddress();
-	HTTPResponse *resp = httpRequest(HTTP_POST, baseUrl + "terremoto.php", postValues);
-	if (resp->error == HTTP_OK && resp->body != NULL) {
-		nextContact = atol((const char *) resp->body) * 1000UL;
-	}
-	freeHTTPResponse(resp);
-}
 
 size_t HTTPClient::hostFromURL(const char *url, char *hostname, unsigned short *port) {
 	size_t offset = 0;
@@ -333,20 +315,6 @@ int HTTPClient::getLine(Tcp c, uint8_t *buffer, size_t maxsize) {
 	return getLine(c, buffer, maxsize, -1);
 }
 
-void HTTPClient::setBaseURL(std::string baseUrl) {
-	size_t len = baseUrl.size();
-	if (baseUrl[len - 1] != '/') {
-		baseUrl.append("/");
-	}
-	HTTPClient::baseUrl = baseUrl;
-}
-
-std::string HTTPClient::getBaseURL() {
-	return baseUrl;
-}
-
-#ifdef DEBUG
-
 void HTTPClient::sendCrashReports() {
 	int rc = pthread_create(&sendCrashReportThread, NULL, sendCrashReportDoWork, NULL);
 	if (rc) {
@@ -389,5 +357,3 @@ void *HTTPClient::sendCrashReportDoWork(void *mem) {
 
 	pthread_exit(NULL);
 }
-
-#endif

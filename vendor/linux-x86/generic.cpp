@@ -28,3 +28,6 @@ void platformReboot() {
 void platformUpgrade(std::string path) {
 	Log::d("Received upgrade hint for %s", path.c_str());
 }
+
+void execSystemTimeUpdate(time_t epoch) {
+}

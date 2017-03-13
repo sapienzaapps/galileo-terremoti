@@ -75,3 +75,6 @@ void platformUpgrade(std::string path) {
 		platformReboot();
 	}
 }
+
+void execSystemTimeUpdate(time_t epoch) {
+}

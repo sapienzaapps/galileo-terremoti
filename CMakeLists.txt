@@ -20,12 +20,10 @@ set(SOURCE_FILES
 		galileo-core.cpp
 		Config.h
 		Log.h
-		net/NTP.h
-		net/HTTPClient.h
+        net/HTTPClient.h
 		Log.cpp
 		Config.cpp
-		net/NTP.cpp
-		net/HTTPClient.cpp
+        net/HTTPClient.cpp
 		net/NetworkManager.cpp
 		net/NetworkManager.h
 		LED.h

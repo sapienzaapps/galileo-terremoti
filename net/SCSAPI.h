@@ -38,9 +38,29 @@ public:
 	 */
 	static void terremoto(RECORD *db);
 
+	/**
+	 * Packet processor
+	 */
+	static void tick();
+
+	/**
+	 * Get time as UNIX timestamp (eg. seconds since Jan 1 1970 UTC)
+	 * @return UNIX time
+	 */
+	static unsigned long getUNIXTime();
+
+	/**
+	 * Request time sync
+	 */
+	static void requestTimeUpdate();
+
 private:
 
 	static MQTT_Client *mqtt;
+	static MQTT_Subscribe *mydev;
+	static byte buffer[MAXBUFFERSIZE];
+	static unsigned long lastNTPTime;
+	static unsigned long lastNTPMillis;
 };
 
 

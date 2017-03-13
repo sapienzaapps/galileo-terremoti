@@ -7,6 +7,7 @@
 #include "../../Log.h"
 #include "../../LED.h"
 #include "../../common.h"
+#include "../../Utils.h"
 #include <Arduino.h>
 #include <trace.h>
 #include <interrupt.h>
@@ -150,4 +151,26 @@ void platformUpgrade(std::string path) {
 		while(1) {};
 	}
 	platformReboot();
+}
+
+// Set date and time to NTP's retrieved one
+void execSystemTimeUpdate(time_t epoch) {
+	char command[100];
+	snprintf(command, 100, "/bin/date -s @%lu", epoch);
+
+	char buf[64];
+	FILE *ptr;
+
+	Log::d("COMANDO: %s", command);
+	if ((ptr = popen(command, "r")) != NULL) {
+		while (fgets(buf, 64, ptr) != NULL) {
+			std::string sbuf = std::string(buf);
+			std::string nbuf = Utils::trim(sbuf, '\r');
+			std::string vbuf = Utils::trim(nbuf, '\n');
+			Log::d(Utils::trim(vbuf, ' ').c_str());
+		}
+		pclose(ptr);
+	} else {
+		Log::d("error popen");
+	}
 }

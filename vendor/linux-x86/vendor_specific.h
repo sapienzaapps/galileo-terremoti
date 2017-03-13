@@ -11,7 +11,6 @@
 #define WATCHDOG_LOG_PATH    "/tmp/watchdog.log"
 #define DEFAULT_CONFIG_PATH  "/tmp/seismoconfig.txt"
 #define TRACEACCUMULATOR_FILE "/tmp/seismo.trc"
-#define SETDATE_CMD          "/bin/date -s @%lu"
 #define WATCHDOG_CRASHDIR    "/tmp/watchdog/"
 #define STACKTRACEINFO       "/tmp/stacktrace.txt"
 
