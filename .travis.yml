@@ -1,0 +1,12 @@
+language: cpp
+script: make ci
+install: true
+env:
+  global:
+  - PLATFORM=linux-x86
+  - DEBUG=y
+  - NOWATCHDOG=y
+branches:
+  only: ci
+os: linux
+compiler: gcc
