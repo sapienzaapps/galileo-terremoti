@@ -18,9 +18,9 @@ See LICENSE file
 
 ## Network requirements
 
-If you have any firewall in your network, please allow these ports:
+If you have any firewall in your network, please allow these ports to Internet (outbound):
 
-* TCP: 80, 443
+* TCP: 80, 443, 1883
 * UDP: 123
 
 # Hardware
