@@ -1,8 +1,8 @@
--- Script Wireshark per decodifica del protocollo di comunicazione tra App e dispositivo
--- Aggiungere dentro il file init.lua (file principale di scripting Wireshark) la riga:
+-- Script Wireshark for SeismoCloud local command interface decoding (app<->device)
+-- Add into init.lua this line (without "--"):
 -- dofile("seismocloud.lua")
--- Posizionando questo file nella stessa directory (o alternativamente inserendo il path
--- completo dove si trova il file.
+-- You should place this file into the same directory of "init.lua"
+
 
 seismoproto = Proto("seismoproto", "SeismoCloud Protocol")
 
