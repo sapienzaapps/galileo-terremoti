@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# ******************
+# * This script embed the executable into the basic image of galileo
+# ******************
+
 SKETCHPATH=$1
 if [ "$1" == "" ]; then
 	echo "Usage: $0 <sketch-file>"
