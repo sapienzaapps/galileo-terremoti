@@ -30,24 +30,50 @@ typedef enum {
 
 typedef struct _PACKET {
 	PacketType type;
+    // My IP Address
 	IPaddr source;
 
+    // SYSLOG server (debug only)
 	IPaddr syslogServer;
 
+    // Configured Position
 	float latitude;
 	float longitude;
+
+    // MAC Address / device ID
 	byte mac[6];
 
+    // Current threshold value (in m/s^2)
 	float threshold;
+
+    // Unix time in milliseconds
 	uint32_t uptime;
+
+    // Unix time in milliseconds
 	uint32_t unixts;
+
+    // String with length of 4 (padded with space)
 	uint8_t softwareVersion[4 + 1];
+
+    // Free RAM (if available)
 	uint32_t freeRam;
+
+    // Network latency if available
 	float latency;
+
+    // NTP server
 	IPaddr ntpServer;
+
+    // HTTP base (deprecated)
 	std::string httpBaseAddress;
+
+    // Platform name (raspi, galileo, etc)
 	std::string platformName;
+
+    // Accelerometer model/version
 	std::string accelerometerName;
+
+    // Sensor probe speed (for debug only)
 	uint32_t statProbeSpeed;
 } PACKET;
 
@@ -104,8 +130,15 @@ public:
 	static bool commandInterfaceInit();
 
 private:
+    /**
+     * Read packet and populate the structure
+     * Returns: true if the packet is valid, false otherwise
+     */
 	static bool readPacket(PACKET *);
 
+    /**
+     * Send the packet to the network
+     */
 	static void sendPacket(PACKET);
 
 	static Udp cmdc;

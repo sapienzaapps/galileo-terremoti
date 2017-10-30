@@ -1,0 +1,23 @@
+language: cpp
+script: make ci
+env:
+  global:
+  - PLATFORM=linux-x86
+  - DEBUG=y
+  - NOWATCHDOG=y
+branches:
+  only: master
+os: linux
+compiler: gcc
+sudo: false
+install:
+  - if [ "$CXX" == "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
+    - g++-4.8
+    - clang
+

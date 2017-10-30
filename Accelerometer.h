@@ -38,6 +38,9 @@ public:
 	 */
 	virtual std::string getAccelerometerName() = 0;
 
+    /**
+     * Get the total vector (the component of the sum vector)
+     */
 	double getTotalVector() {
 		return sqrt(pow(getXAccel(), 2) + pow(getYAccel(), 2) + pow(getZAccel(), 2));
 	}
