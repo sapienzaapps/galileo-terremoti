@@ -32,53 +32,18 @@ class HTTPClient {
 public:
 
 	/**
-	 * Get config from server
-	 * @return The config as string (as returned to server)
-	 */
-	static std::string getConfig();
-
-	/**
-	 * Send alert to server
-	 * @param db Accelerometer values
-	 * @param threshold Threshold value
-	 */
-	static void httpSendAlert(RECORD *db);
-
-	/**
-	 * Set server base URL
-	 * @param baseUrl New base URL
-	 */
-	static void setBaseURL(std::string baseUrl);
-
-#ifdef DEBUG
-
-	/**
 	 * Send crash reports to server
 	 */
 	static void sendCrashReports();
 
-#endif
-
-	/**
-	 * Returns the base URL used
-	 * @return Base URL configured
-	 */
-	static std::string getBaseURL();
-
-#ifdef DEBUG
-
 	static void *sendCrashReportDoWork(void *mem);
-
-#endif
 
 	static HTTPResponse *httpPostFile(std::string URL, std::string file);
 
 private:
 	static unsigned long nextContact;
 	static std::string baseUrl;
-#ifdef DEBUG
 	static pthread_t sendCrashReportThread;
-#endif
 
 	static void freeHTTPResponse(HTTPResponse *resp);
 

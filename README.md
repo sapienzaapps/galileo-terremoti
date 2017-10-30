@@ -18,7 +18,7 @@ See LICENSE file
 
 If you have any firewall in your network, please allow these ports:
 
-* TCP: 80, 443
+* TCP: 80, 443, 1883
 * UDP: 123
 
 # Hardware

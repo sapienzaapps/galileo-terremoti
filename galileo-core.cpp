@@ -12,15 +12,14 @@
 #include "Log.h"
 #include "LED.h"
 #include "Utils.h"
-#include "net/NTP.h"
 #include "net/NetworkManager.h"
 #include "CommandInterface.h"
 #include "generic.h"
-#include "net/HTTPClient.h"
 
 #ifndef NOWATCHDOG
 
 #include "Watchdog.h"
+#include "net/SCSAPI.h"
 
 #endif
 
@@ -71,10 +70,8 @@ int main(int argc, char **argv) {
 #ifdef DEBUG
 	if (argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
 		valgrindMs = Utils::millis();
-		HTTPClient::setBaseURL("http://192.0.2.20/seismocloud/");
+//		HTTPClient::setBaseURL("http://192.0.2.20/seismocloud/");
 		Config::setMacAddress("000000000000");
-		Config::setLatitude(0.1);
-		Config::setLongitude(0.1);
 	} else if (argc > 1 && strcmp("--raw", argv[1]) == 0) {
 		Accelerometer *accel = getAccelerometer();
 
@@ -105,7 +102,7 @@ int main(int argc, char **argv) {
 	setup();
 
 #ifdef DEBUG
-	HTTPClient::sendCrashReports();
+//	HTTPClient::sendCrashReports();
 #endif
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -169,46 +166,32 @@ void setup() {
 	seismometer = Seismometer::getInstance();
 	seismometer->init();
 
-	Log::i("Check new config");
+	Log::i("API connect");
 	// Download new config from server
-	while (!Config::checkServerConfig()) {
-		Log::e("Error checking server config");
+	if (!SCSAPI::init()) {
+		Log::e("Error connecting to server");
 		Utils::delay(5 * 1000);
+		platformReboot();
 	}
 
-	Log::i("Update logging settings from config");
-	// Re-init logging from config
-	Log::updateFromConfig();
-
-	Log::i("NTP sync");
+	Log::i("Time sync");
 	// NTP SYNC with NTP server
-	NTP::init();
-	NTP::sync();
+	SCSAPI::requestTimeUpdate();
+	while (SCSAPI::getUNIXTime() == 0) {
+		SCSAPI::tick();
+		Utils::delay(50);
+		// TODO: timeout
+	}
+	Log::i("Time sync'ed");
 
 	Log::i("Starting UDP local command interface");
 	CommandInterface::commandInterfaceInit();
 
-	if (!Config::hasPosition()) {
-		Log::i("Getting position information");
-		// Wait for location from App if not avail
-		Log::i("Position not available, waiting for position from App");
-		LED::setLedAnimation(false);
-		LED::setLedBlinking(LED_YELLOW_PIN);
-		do {
-#ifndef NOWATCHDOG
-			Watchdog::heartBeat();
-#endif
-			CommandInterface::checkCommandPacket();
-			Utils::delay(200);
-		} while (!Config::hasPosition());
-		Config::printConfig();
-		LED::clearLedBlinking(LED_YELLOW_PIN);
-		LED::setLedAnimation(true);
-	} else {
-		Log::i("GPS coords: %f %f", Config::getLatitude(), Config::getLongitude());
-	}
-
 	Log::d("Free RAM: %lu", Utils::getFreeRam());
+
+	Log::d("Sending Alive");
+	SCSAPI::alive();
+
 	Log::d("INIZIALIZATION COMPLETE!");
 
 	LED::setLedAnimation(false);
@@ -218,6 +201,7 @@ void setup() {
 
 void loop() {
 	LED::tick();
+	SCSAPI::tick();
 #ifndef NOWATCHDOG
 	Watchdog::heartBeat();
 #endif
@@ -236,13 +220,13 @@ void loop() {
 		netLastMs = Utils::millis();
 	}
 
-	if (Utils::millis() - cfgLastMs >= CHECK_CONFIG_INTERVAL) {
-		Config::checkServerConfig();
+	if (Utils::millis() - cfgLastMs >= ALIVE_INTERVAL) {
+		SCSAPI::alive();
 		cfgLastMs = Utils::millis();
 	}
 
 	if (Utils::millis() - ntpLastMs >= NTP_SYNC_INTERVAL) {
-		while (!NTP::sync());
+		SCSAPI::requestTimeUpdate();
 		ntpLastMs = Utils::millis();
 	}
 

@@ -20,12 +20,10 @@ set(SOURCE_FILES
 		galileo-core.cpp
 		Config.h
 		Log.h
-		net/NTP.h
-		net/HTTPClient.h
+        net/HTTPClient.h
 		Log.cpp
 		Config.cpp
-		net/NTP.cpp
-		net/HTTPClient.cpp
+        net/HTTPClient.cpp
 		net/NetworkManager.cpp
 		net/NetworkManager.h
 		LED.h
@@ -70,7 +68,9 @@ set(SOURCE_FILES
         generic.h
 		Watchdog.cpp
         Watchdog.h
-		net/TraceAccumulator.cpp net/TraceAccumulator.h)
+		net/TraceAccumulator.cpp net/TraceAccumulator.h
+		net/mqtt.cpp net/mqtt.h net/mqttclient.cpp net/mqttclient.h
+		net/SCSAPI.cpp net/SCSAPI.h)
 
 add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
 #target_compile_options(galileo_gen1 PUBLIC "-DGALILEO_GEN=1")

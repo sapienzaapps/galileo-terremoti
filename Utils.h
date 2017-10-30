@@ -161,6 +161,8 @@ public:
 	 * @param String value
 	 */
 	static std::string toString(int d);
+
+	static char* ltoa(long N, char *str, int base);
 };
 
 #endif //GALILEO_TERREMOTI_UTILS_H

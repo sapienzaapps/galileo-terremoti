@@ -36,30 +36,6 @@ public:
 	static void getMacAddressAsByte(byte mac[6]);
 
 	/**
-	 * Get configured latitude
-	 * @return Configured latitude
-	 */
-	static double getLatitude();
-
-	/**
-	 * Get configured longitude
-	 * @return Configured longitude
-	 */
-	static double getLongitude();
-
-	/**
-	 * Device is configured with a GPS position?
-	 * @return True if position is set, false otherwise
-	 */
-	static bool hasPosition();
-
-	/**
-	 * Check server config, then refresh locally
-	 * @return True if config is OK, false if an error occurred
-	 */
-	static bool checkServerConfig();
-
-	/**
 	 * Print config to log
 	 */
 	static void printConfig();
@@ -69,18 +45,6 @@ public:
 	 * @param macAddress MAC Address to use
 	 */
 	static void setMacAddress(std::string macAddress);
-
-	/**
-	 * Set latitude
-	 * @return Latitude to set
-	 */
-	static void setLatitude(double lat);
-
-	/**
-	 * Set longitude
-	 * @return Longitude to set
-	 */
-	static void setLongitude(double lon);
 
 	/**
 	 * Returns the syslog server
@@ -106,4 +70,4 @@ private:
 	static uint32_t syslogServer;
 };
 
-#endif 
+#endif
