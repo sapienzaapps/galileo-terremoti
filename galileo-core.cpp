@@ -24,7 +24,15 @@
 
 #endif
 
+// Seismometer instance
 Seismometer *seismometer;
+
+/**
+ * In some platforms there is no support to multiprocess/multithread, so the
+ * "trick" is to execute a loop() function in-loop and measure the time passed
+ * from last execution.
+ * These variables are the last timestamp of execution
+ */
 unsigned long netLastMs = 0;
 unsigned long ntpLastMs = 0;
 unsigned long cfgLastMs = 0;
@@ -35,11 +43,13 @@ unsigned long valgrindMs = 0;
 #endif
 
 void setup();
-
 void loop();
 
 #ifdef DEBUG
 
+/**
+ * Crash handler (debug-only) - for post-mortem debug
+ */
 void crashHandler(int sig) {
 	void *array[10];
 
@@ -65,17 +75,23 @@ void crashHandler(int sig) {
 
 #endif
 
+/**
+ * Entry point
+ */
 int main(int argc, char **argv) {
+    // Vendor init (for example, Galileo platform needs to execute some syscalls before the sketch)
 	vendor_init(argc, argv);
 
 #ifdef DEBUG
 	if (argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
+        // Valgrind dummy configuration
 		valgrindMs = Utils::millis();
 		HTTPClient::setBaseURL("http://192.0.2.20/seismocloud/");
 		Config::setMacAddress("000000000000");
 		Config::setLatitude(0.1);
 		Config::setLongitude(0.1);
 	} else if (argc > 1 && strcmp("--raw", argv[1]) == 0) {
+        // Raw dumper
 		Accelerometer *accel = getAccelerometer();
 
 #pragma clang diagnostic push
