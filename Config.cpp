@@ -20,11 +20,11 @@ bool Config::isProxyAuthenticated() {
 	return !Config::proxyUser.empty();
 }
 
-bool std::string Config::getProxyUser() {
+std::string Config::getProxyUser() {
 	return Config::proxyUser;
 }
 
-bool std::string Config::getProxyPass() {
+std::string Config::getProxyPass() {
 	return Config::proxyPass;
 }
 
