@@ -13,6 +13,20 @@ double Config::lon = 0.0;
 uint32_t Config::syslogServer = 0;
 std::string Config::proxyServer = "";
 uint16_t Config::proxyPort = 3128;
+std::string Config::proxyUser = "";
+std::string Config::proxyPass = "";
+
+bool Config::isProxyAuthenticated() {
+	return !Config::proxyUser.empty();
+}
+
+bool std::string Config::getProxyUser() {
+	return Config::proxyUser;
+}
+
+bool std::string Config::getProxyPass() {
+	return Config::proxyPass;
+}
 
 bool Config::hasProxyServer() {
 	return !Config::proxyServer.empty();

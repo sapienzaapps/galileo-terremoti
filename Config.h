@@ -68,6 +68,22 @@ public:
 	static uint16_t getProxyPort();
 
 	/**
+	 * Returns true if the proxy server needs auth
+	 * Note: only Basic auth is supported
+	 */
+	static bool isProxyAuthenticated();
+
+	/**
+	 * Returns the proxy user name for auth
+	 */
+	static std::string getProxyUser();
+
+	/**
+	 * Returns the proxy user password for auth
+	 */
+	static std::string getProxyPass();
+
+	/**
 	 * Save config to file
 	 */
 	static void save();
@@ -85,6 +101,8 @@ private:
 	static uint32_t syslogServer;
 	static std::string proxyServer;
 	static uint16_t proxyPort;
+	static std::string proxyUser;
+	static std::string proxyPass;
 };
 
 #endif
