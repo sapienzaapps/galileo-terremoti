@@ -90,6 +90,12 @@ bool Config::readConfigFile(const char *filepath) {
 		} else if (strcmp("proxyport", buf) == 0) {
 			Config::proxyPort = atoi(argument.c_str());
 			Log::d("Proxy port: %d", Config::proxyPort);
+		} else if (strcmp("proxyuser", buf) == 0) {
+			Config::proxyUser = argument;
+			Log::d("Proxy User: %s", argument.c_str());
+		} else if (strcmp("proxypass", buf) == 0) {
+			Config::proxyPass = argument;
+			Log::d("Proxy Pass: %s", argument.c_str());
 		}
 	}
 	fclose(fp);
