@@ -11,6 +11,20 @@ std::string Config::macAddress = "";
 double Config::lat = 0.0;
 double Config::lon = 0.0;
 uint32_t Config::syslogServer = 0;
+std::string Config::proxyServer = "";
+uint16_t Config::proxyPort = 3128;
+
+bool Config::hasProxyServer() {
+	return !Config::proxyServer.empty();
+}
+
+std::string Config::getProxyServer() {
+	return Config::proxyServer;
+}
+
+uint16_t Config::getProxyPort() {
+	return Config::proxyPort;
+}
 
 bool Config::hasMACAddress() {
 	return !Config::macAddress.empty();
@@ -56,6 +70,12 @@ bool Config::readConfigFile(const char *filepath) {
 			if (argument.size() < 12) continue;
 			Config::macAddress = argument;
 			Log::d("Device ID: %s", Config::getMacAddress().c_str());
+		} else if (strcmp("proxyserver", buf) == 0) {
+			Config::proxyServer = argument;
+			Log::d("Proxy Server: %s", argument.c_str());
+		} else if (strcmp("proxyport", buf) == 0) {
+			Config::proxyPort = atoi(argument.c_str());
+			Log::d("Proxy port: %d", Config::proxyPort);
 		}
 	}
 	fclose(fp);

@@ -53,6 +53,21 @@ public:
 	static uint32_t getSyslogServer();
 
 	/**
+	 * Returns if there is a proxy server configured
+	 */
+	static bool hasProxyServer();
+
+	/**
+	 * Returns the proxy server address
+	 */
+	static std::string getProxyServer();
+
+	/**
+	 * Returns the proxy server port
+	 */
+	static uint16_t getProxyPort();
+
+	/**
 	 * Save config to file
 	 */
 	static void save();
@@ -68,6 +83,8 @@ private:
 	static double lon;
 	static std::string macAddress;
 	static uint32_t syslogServer;
+	static std::string proxyServer;
+	static uint16_t proxyPort;
 };
 
 #endif
