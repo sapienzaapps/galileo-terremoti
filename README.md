@@ -177,3 +177,10 @@ To debug core dumps from Galileo you need "gdb-multiarch" (usually shipped in yo
     (gdb) set sysroot /opt/arduino-1.6.0+Intel/hardware/tools/i586/sysroots/i586-poky-linux-uclibc/
     (gdb) bt
 
+## Galileo: disable connmand (static IP)
+
+To disable `connmand` and revert plain old `networking` script, use these commands:
+
+    # rm /etc/rc5.d/S05connman
+    # ln -s ../init.d/networking /etc/rc5.d/S05networking
+
