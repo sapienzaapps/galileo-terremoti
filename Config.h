@@ -88,6 +88,8 @@ public:
 	 */
 	static void save();
 
+	static bool parseServerConfig(std::string cfg);
+
 private:
 	static void loadDefault();
 	static bool readConfigFile(const char *filepath);

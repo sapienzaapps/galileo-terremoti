@@ -130,8 +130,7 @@ void Config::loadDefault() {
 	macAddress = Utils::getInterfaceMAC();
 }
 
-/*bool Config::checkServerConfig() {
-	std::string cfg = HTTPClient::getConfig();
+bool Config::parseServerConfig(std::string cfg) {
 	if (!cfg.empty()) {
 		std::map<std::string, std::string> params = configSplit(cfg, '|');
 		if (params.empty()) {
@@ -146,14 +145,8 @@ void Config::loadDefault() {
 			platformUpgrade(path);
 		}
 
-		// Workaround for old configuration
-		if (strcmp(params["server"].c_str(), "http://") == 0) {
-			HTTPClient::setBaseURL(params["server"]);
-		}
-
-		NTP::setNTPServer(params["ntpserver"]);
-
 		if (params.count("sigma") == 1) {
+			Log::d("Setting sigma to %s", params["sigma"].c_str());
 			seismometer->setSigmaIter(atof(params["sigma"].c_str()));
 		} else {
 			seismometer->setSigmaIter(seismometer->getSigmaIter());
@@ -168,7 +161,7 @@ void Config::loadDefault() {
 	} else {
 		return false;
 	}
-}*/
+}
 
 std::map<std::string, std::string> &Config::configSplit(const std::string &s, char delim,
 														std::map<std::string, std::string> &elems) {

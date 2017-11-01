@@ -41,7 +41,7 @@ bool SCSAPI_HTTP::alive() {
 	HTTPClient::freeHTTPResponse(resp);
 
 	if (!cfg.empty()) {
-		// TODO: Config
+		Config::parseServerConfig(cfg);
 	}
 	return ret;
 }

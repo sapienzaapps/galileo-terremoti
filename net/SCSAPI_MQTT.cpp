@@ -62,10 +62,10 @@ bool SCSAPI_MQTT::alive() {
 	j += 12;
 
 	// Model
-	buffer[j] = strlen(BUILD_VERSION);
+	buffer[j] = strlen(PLATFORM_TAG);
 	j++;
-	memcpy(buffer + j, BUILD_VERSION, strlen(BUILD_VERSION));
-	j += strlen(BUILD_VERSION);
+	memcpy(buffer + j, PLATFORM_TAG, strlen(PLATFORM_TAG));
+	j += strlen(PLATFORM_TAG);
 
 	// Version
 	buffer[j] = strlen(SOFTWARE_VERSION);
