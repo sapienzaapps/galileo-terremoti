@@ -377,7 +377,7 @@ bool MQTT::subscribe(MQTT_Subscribe *sub) {
 	if (i == MAXSUBSCRIPTIONS) { // add to subscriptionlist
 		for (i = 0; i < MAXSUBSCRIPTIONS; i++) {
 			if (subscriptions[i] == 0) {
-				Log::d("Added sub %d", i);
+				Log::d("Added sub %s", sub->topic);
 				subscriptions[i] = sub;
 				return true;
 			}
@@ -476,29 +476,41 @@ MQTT_Subscribe *MQTT::readSubscription(int16_t timeout) {
 	uint16_t len = readFullPacket(buffer, MAXBUFFERSIZE, timeout); // return one full packet
 	if (!len)
 		return NULL;  // No data available, just quit.
-//	Log::d("Packet len: %d", len);
+	Log::d("Packet len: %d", len);
 //	DEBUG_PRINTBUFFER(buffer, len);
 
 	// Parse out length of packet.
 	topiclen = buffer[3];
-//	Log::d("Looking for subscription len %d", topiclen);
+	Log::d("Looking for my subscriptions (msg sub len %d)", topiclen);
+	{
+		char tmpdump[512] = {0};
+		memcpy(tmpdump, (char *) buffer + 4, topiclen);
+		Log::d("Message topic: %s", tmpdump);
+	}
 
 	// Find subscription associated with this packet.
 	for (i = 0; i < MAXSUBSCRIPTIONS; i++) {
 		if (subscriptions[i]) {
 			// Skip this subscription if its name length isn't the same as the
 			// received topic name.
-			if (strlen(subscriptions[i]->topic) != topiclen)
+			if (strlen(subscriptions[i]->topic) != topiclen) {
+				Log::d("Skipping %s: invalid topic length", subscriptions[i]->topic);
 				continue;
+			}
 			// Stop if the subscription topic matches the received topic. Be careful
 			// to make comparison case insensitive.
 			if (strncasecmp((char *) buffer + 4, subscriptions[i]->topic, topiclen) == 0) {
-//				Log::d("Found sub #%d", i);
+				Log::d("Found sub #%d", i);
 				break;
+			} else {
+				Log::d("Skipping different topic: %s", subscriptions[i]->topic);
 			}
 		}
 	}
-	if (i == MAXSUBSCRIPTIONS) return NULL; // matching sub not found ???
+	if (i == MAXSUBSCRIPTIONS) {
+		Log::d("No subscription found");
+		return NULL;
+	} // matching sub not found ???
 
 	uint8_t packet_id_len = 0;
 	uint16_t packetid;

@@ -17,7 +17,7 @@ endif
 
 include vendor/${PLATFORM}/toolchain.mk
 
-MODULES := CommandInterface Config Log Seismometer Utils galileo-core
+MODULES := CommandInterface Config Log Seismometer Utils galileo-core base64
 
 ifeq (${PLATFORM}, raspi)
 NOWATCHDOG=y

@@ -7,12 +7,7 @@
 
 #include "Accelerometer.h"
 #include "Config.h"
-
-typedef struct {
-	unsigned long ts;
-	double accel;
-	bool overThreshold;
-} RECORD;
+#include "net/SCSAPI.h"
 
 /**
  * Seismometer class
@@ -27,7 +22,7 @@ public:
 	/**
 	 * Tick (if no threaded)
 	 */
-	void tick();
+	void tick(SCSAPI *scsapi);
 
 	/**
 	 * Get accelerometer name

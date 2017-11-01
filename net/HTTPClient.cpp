@@ -7,12 +7,17 @@
 #include "../Utils.h"
 #include "../LED.h"
 #include "../Watchdog.h"
+#include "../base64.h"
 
 pthread_t HTTPClient::sendCrashReportThread;
 
-std::string HTTPClient::baseUrl = "http://www.sapienzaapps.it/seismocloud/";
-
-
+/**
+ * TODO: rewrite
+ * @param url
+ * @param hostname
+ * @param port
+ * @return
+ */
 size_t HTTPClient::hostFromURL(const char *url, char *hostname, unsigned short *port) {
 	size_t offset = 0;
 	if (strncmp(url, "http://", 7) == 0) {
@@ -63,14 +68,24 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
 	Tcp client;
 	char serverName[100];
 	unsigned short serverPort = 80;
-	size_t pathOffset = hostFromURL(URL.c_str(), serverName, &serverPort);
+	size_t pathOffset = 0;
+	if (Config::hasProxyServer()) {
+		strncpy(serverName, Config::getProxyServer().c_str(), 100);
+		serverPort = Config::getProxyPort();
+	} else {
+		pathOffset = hostFromURL(URL.c_str(), serverName, &serverPort);
+	}
 
 	if (client.connectTo(std::string(serverName), serverPort)) {
 		Log::d("Connect to server OK");
 		char linebuf[1024];
 
 		snprintf(linebuf, 1024, "%s %s HTTP/1.1", (method == HTTP_GET ? "GET" : "POST"), URL.c_str() + pathOffset);
-		client.println(linebuf);
+		if (client.println(linebuf) < 0) {
+			Log::e("HTTP connection error");
+			resp->error = HTTP_CONNECTION_TIMEOUT;
+			return resp;
+		}
 
 		if (serverPort != 80) {
 			snprintf(linebuf, 1024, "Host: %s:%i", serverName, serverPort);
@@ -78,6 +93,11 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
 			snprintf(linebuf, 1024, "Host: %s", serverName);
 		}
 		client.println(linebuf);
+		if (Config::isProxyAuthenticated()) {
+			std::string auth = base64Encode(Config::getProxyUser() + ":" + Config::getProxyPass());
+			snprintf(linebuf, 1024, "Proxy-Authorization: Basic %s", auth.c_str());
+			client.println(linebuf);
+		}
 
 		client.println("Connection: close");
 
@@ -103,6 +123,8 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
 			client.print(reqBody.c_str());
 
 			Log::d("HTTP Post: %s", reqBody.c_str());
+		} else {
+			client.println("");
 		}
 
 		Log::d("HTTP Request to %s sent", URL.c_str());
@@ -190,7 +212,12 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 		char linebuf[1024];
 
 		snprintf(linebuf, 1024, "POST %s HTTP/1.1", URL.c_str() + pathOffset);
-		client.println(linebuf);
+		if (client.println(linebuf) < 0) {
+			Log::e("HTTP connection error");
+			resp->error = HTTP_CONNECTION_TIMEOUT;
+			free(buf);
+			return resp;
+		}
 
 		if (serverPort != 80) {
 			snprintf(linebuf, 1024, "Host: %s:%i", serverName, serverPort);
@@ -342,7 +369,7 @@ void *HTTPClient::sendCrashReportDoWork(void *mem) {
 
 		Log::d("Doing %s", filename.c_str());
 
-		HTTPResponse *resp = HTTPClient::httpPostFile(baseUrl + "crashreport.php?deviceid=" + Utils::getInterfaceMAC(),
+		HTTPResponse *resp = HTTPClient::httpPostFile(HTTP_BASE + "crashreport.php?deviceid=" + Utils::getInterfaceMAC(),
 													  filename);
 		if (resp != NULL) {
 			if (resp->error == HTTP_OK && resp->responseCode == 200) {
@@ -356,4 +383,9 @@ void *HTTPClient::sendCrashReportDoWork(void *mem) {
 	LED::clearLedBlinking(LED_RED_PIN);
 
 	pthread_exit(NULL);
+}
+
+HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL) {
+	std::map<std::string, std::string> v;
+	return httpRequest(method, URL, v);
 }

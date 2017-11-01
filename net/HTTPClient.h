@@ -36,18 +36,41 @@ public:
 	 */
 	static void sendCrashReports();
 
+	/**
+	 * Crash report thread function
+	 * @param mem
+	 * @return
+	 */
 	static void *sendCrashReportDoWork(void *mem);
 
+	/**
+	 * Send a file to server
+	 * @param URL
+	 * @param file
+	 * @return
+	 */
 	static HTTPResponse *httpPostFile(std::string URL, std::string file);
 
-private:
-	static unsigned long nextContact;
-	static std::string baseUrl;
-	static pthread_t sendCrashReportThread;
+	/**
+	 * Make an HTTP Request
+	 * @param method
+	 * @param URL
+	 * @param postValues
+	 * @return
+	 */
+	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL,
+									 std::map<std::string, std::string> postValues);
 
+	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL);
+
+	/**
+	 * Free HTTPResponse
+	 * @param resp
+	 */
 	static void freeHTTPResponse(HTTPResponse *resp);
 
-	static HTTPResponse *httpRequest(HTTPMethod method, std::string URL, std::map<std::string, std::string> postValues);
+private:
+	static pthread_t sendCrashReportThread;
 
 	static size_t hostFromURL(const char *url, char *hostname, unsigned short *port);
 

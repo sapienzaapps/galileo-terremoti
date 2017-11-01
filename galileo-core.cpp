@@ -15,15 +15,18 @@
 #include "net/NetworkManager.h"
 #include "CommandInterface.h"
 #include "generic.h"
+#include "net/SCSAPI_MQTT.h"
+#include "net/SCSAPI_HTTP.h"
 
 #ifndef NOWATCHDOG
 
 #include "Watchdog.h"
-#include "net/SCSAPI.h"
 
 #endif
 
 Seismometer *seismometer;
+SCSAPI *scsapi;
+bool networkConnected = false;
 unsigned long netLastMs = 0;
 unsigned long ntpLastMs = 0;
 unsigned long cfgLastMs = 0;
@@ -70,7 +73,6 @@ int main(int argc, char **argv) {
 #ifdef DEBUG
 	if (argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
 		valgrindMs = Utils::millis();
-//		HTTPClient::setBaseURL("http://192.0.2.20/seismocloud/");
 		Config::setMacAddress("000000000000");
 	} else if (argc > 1 && strcmp("--raw", argv[1]) == 0) {
 		Accelerometer *accel = getAccelerometer();
@@ -151,10 +153,6 @@ void setup() {
 
 	Config::printConfig();
 
-	Log::i("Network init");
-	// Network init
-	NetworkManager::init();
-
 	if (!Config::hasMACAddress()) {
 		Log::i("Using default MAC Address: %s", macAddress.c_str());
 		Config::setMacAddress(macAddress);
@@ -167,18 +165,41 @@ void setup() {
 	seismometer->init();
 
 	Log::i("API connect");
-	// Download new config from server
-	if (!SCSAPI::init()) {
-		Log::e("Error connecting to server");
-		Utils::delay(5 * 1000);
-		platformReboot();
+	unsigned long connstartms = Utils::millis();
+	while(!networkConnected) {
+		scsapi = new SCSAPI_MQTT();
+		if (!scsapi->init()) {
+			Log::e("Error connecting to MQTT server, retrying with HTTP");
+			scsapi = new SCSAPI_HTTP();
+			if (!scsapi->init()) {
+				Log::e("Error connecting to HTTP server");
+			} else {
+				networkConnected = true;
+			}
+		} else {
+			networkConnected = true;
+		}
+		if (!networkConnected && Utils::millis() - connstartms > 60*60*1000) {
+			Log::d("Unable to connect to server in 1h, rebooting");
+			platformReboot();
+		}
+		if (!networkConnected) {
+			LED::setLedAnimation(false);
+			LED::green(false);
+			LED::yellow(true);
+			Log::e("Retrying in 5 seconds");
+			Utils::delay(5*1000);
+		}
 	}
+	LED::green(false);
+	LED::yellow(false);
+	LED::setLedAnimation(true);
 
 	Log::i("Time sync");
 	// NTP SYNC with NTP server
-	SCSAPI::requestTimeUpdate();
-	while (SCSAPI::getUNIXTime() == 0) {
-		SCSAPI::tick();
+	scsapi->requestTimeUpdate();
+	while (scsapi->getUNIXTime() == 0) {
+		scsapi->tick();
 		Utils::delay(50);
 		// TODO: timeout
 	}
@@ -190,7 +211,7 @@ void setup() {
 	Log::d("Free RAM: %lu", Utils::getFreeRam());
 
 	Log::d("Sending Alive");
-	SCSAPI::alive();
+	scsapi->alive();
 
 	Log::d("INIZIALIZATION COMPLETE!");
 
@@ -201,7 +222,8 @@ void setup() {
 
 void loop() {
 	LED::tick();
-	SCSAPI::tick();
+	scsapi->tick();
+
 #ifndef NOWATCHDOG
 	Watchdog::heartBeat();
 #endif
@@ -209,29 +231,31 @@ void loop() {
 	CommandInterface::checkCommandPacket();
 
 	if (Utils::millis() - netLastMs >= CHECK_NETWORK_INTERVAL) {
-
 		// If no MAC Address detect we presume that ethernet interface is down, so we'll reboot
 		std::string macAddress = Utils::getInterfaceMAC();
 		if (macAddress.empty()) {
+			Log::d("Unable to get MAC Address, rebooting");
 			platformReboot();
 		}
 
-		LED::yellow(!NetworkManager::isConnectedToInternet(true));
+		// TODO handle disconnection
+		networkConnected = scsapi->ping();
+		LED::yellow(!networkConnected);
 		netLastMs = Utils::millis();
 	}
 
 	if (Utils::millis() - cfgLastMs >= ALIVE_INTERVAL) {
-		SCSAPI::alive();
+		scsapi->alive();
 		cfgLastMs = Utils::millis();
 	}
 
 	if (Utils::millis() - ntpLastMs >= NTP_SYNC_INTERVAL) {
-		SCSAPI::requestTimeUpdate();
+		scsapi->requestTimeUpdate();
 		ntpLastMs = Utils::millis();
 	}
 
 	if (Utils::millis() - seismoLastMs >= SEISMOMETER_TICK_INTERVAL) {
-		seismometer->tick();
+		seismometer->tick(scsapi);
 		seismoLastMs = Utils::millis();
 	}
 

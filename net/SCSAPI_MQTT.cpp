@@ -2,26 +2,35 @@
 // Created by enrico on 12/03/17.
 //
 
-#include "SCSAPI.h"
+#include "SCSAPI_MQTT.h"
 #include "../generic.h"
 
+SCSAPI_MQTT::SCSAPI_MQTT() {
+	this->mqtt = NULL;
+	this->mydev = NULL;
+	this->lastNTPMillis = 0;
+	this->lastNTPTime = 0;
+	this->personalTopic = NULL;
+	this->clientid = NULL;
+}
 
-MQTT_Client *SCSAPI::mqtt = NULL;
-MQTT_Subscribe *SCSAPI::mydev = NULL;
-byte SCSAPI::buffer[MAXBUFFERSIZE];
-unsigned long SCSAPI::lastNTPTime = 0;
-unsigned long SCSAPI::lastNTPMillis = 0;
-
-bool SCSAPI::init() {
+bool SCSAPI_MQTT::init() {
 	if (mqtt != NULL && mqtt->connected()) {
 		return true;
 	}
 	if (mqtt == NULL) {
-		mqtt = new MQTT_Client("mqtt.seismocloud.com", 1883, Config::getMacAddress().c_str(), "embedded",
-							   "embedded");
+		size_t clientidlen = Config::getMacAddress().length() * sizeof(char) + 1;
+		clientid = (char *)malloc(clientidlen);
+		memset(clientid, 0, clientidlen);
+
+		strncpy(clientid, Config::getMacAddress().c_str(), Config::getMacAddress().length());
+		mqtt = new MQTT_Client(MQTT_SERVER, MQTT_PORT, clientid, "embedded", "embedded");
 	}
 	std::string subtopic("device-");
 	subtopic.append(Config::getMacAddress());
+	personalTopic = (char*)malloc(subtopic.length() * sizeof(char) + 1);
+	memset(personalTopic, 0, subtopic.length() * sizeof(char) + 1);
+	strncpy(personalTopic, subtopic.c_str(), subtopic.length());
 
 
 	memset(buffer, 0, MAXBUFFERSIZE);
@@ -34,14 +43,15 @@ bool SCSAPI::init() {
 	j++;
 	memcpy(buffer + j, Config::getMacAddress().c_str(), 12);
 	j += 12;
-	mqtt->will("server", buffer, j, 1);
+	mqtt->will("server", buffer, j, 1, 0);
 
-	mydev = new MQTT_Subscribe(mqtt, subtopic.c_str(), 1);
+	mydev = new MQTT_Subscribe(mqtt, personalTopic, 1);
 	mqtt->subscribe(mydev);
+	Log::d("Subscribing to %s", personalTopic);
 	return mqtt->connect() == 0;
 }
 
-void SCSAPI::alive() {
+void SCSAPI_MQTT::alive() {
 	memset(buffer, 0, MAXBUFFERSIZE);
 	byte j = 0;
 	buffer[j] = API_KEEPALIVE;
@@ -68,18 +78,21 @@ void SCSAPI::alive() {
 	mqtt->publish("server", buffer, j);
 }
 
-void SCSAPI::tick() {
+void SCSAPI_MQTT::tick() {
 	if (mqtt->readSubscription(10) == mydev) {
 		byte j = 0;
 		switch (mydev->lastread[j]) {
 			case API_REBOOT:
 				// TODO: disconnected
+				this->mqtt->disconnect();
+				Log::d("Reboot by server request");
 				platformReboot();
 				break;
 			case API_CFG:
 				if (mydev->datalen < 7) {
 					break;
 				}
+				Log::d("Config update from server");
 				/**
 				   Payload (after type):
 				   Offset       Byte      Desc
@@ -102,6 +115,7 @@ void SCSAPI::tick() {
 						path += (char *) (mydev->lastread + 6);
 						path += "/";
 						path += (char *) buffer;
+						Log::d("Update from %s", path.c_str());
 						platformUpgrade(path);
 						platformReboot();
 					}
@@ -120,12 +134,13 @@ void SCSAPI::tick() {
 				lastNTPMillis = Utils::millis();
 				break;
 			default:
+				Log::d("Invalid packet from server: %d", mydev->lastread[j]);
 				break;
 		}
 	}
 }
 
-void SCSAPI::requestTimeUpdate() {
+void SCSAPI_MQTT::requestTimeUpdate() {
 	memset(buffer, 0, MAXBUFFERSIZE);
 	byte j = 0;
 	buffer[j] = API_TIMEREQ;
@@ -140,12 +155,12 @@ void SCSAPI::requestTimeUpdate() {
 	mqtt->publish("server", buffer, j);
 }
 
-unsigned long SCSAPI::getUNIXTime() {
-	unsigned long diff = Utils::millis() - SCSAPI::lastNTPMillis;
-	return (SCSAPI::lastNTPTime + (diff / 1000));
+unsigned long SCSAPI_MQTT::getUNIXTime() {
+	unsigned long diff = Utils::millis() - SCSAPI_MQTT::lastNTPMillis;
+	return (SCSAPI_MQTT::lastNTPTime + (diff / 1000));
 }
 
-void SCSAPI::terremoto(RECORD *db) {
+void SCSAPI_MQTT::terremoto(RECORD *db) {
 	memset(buffer, 0, MAXBUFFERSIZE);
 	byte j = 0;
 	buffer[j] = API_QUAKE;
@@ -158,4 +173,24 @@ void SCSAPI::terremoto(RECORD *db) {
 	j += 12;
 
 	mqtt->publish("server", buffer, j);
+}
+
+bool SCSAPI_MQTT::ping() {
+	memset(buffer, 0, MAXBUFFERSIZE);
+	byte j = 0;
+	buffer[j] = API_PING;
+	j++;
+
+	// Device ID
+	buffer[j] = 12;
+	j++;
+	memcpy(buffer + j, Config::getMacAddress().c_str(), 12);
+	j += 12;
+
+	return mqtt->publish("server", buffer, j);
+}
+
+SCSAPI_MQTT::~SCSAPI_MQTT() {
+	delete this->mqtt;
+	delete this->mydev;
 }

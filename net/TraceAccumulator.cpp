@@ -10,10 +10,11 @@
 FILE *TraceAccumulator::traceFile = NULL;
 unsigned long TraceAccumulator::traceStartedAt = 0;
 
-void TraceAccumulator::traceValue(unsigned long ts, float val, float threshold, float avg, float stddev, float sigma) {
+void TraceAccumulator::traceValue(unsigned long ts, float val, float threshold, float avg,
+								  float stddev, float sigma, SCSAPI *scsapi) {
 #ifdef TRACEACCUMULATOR_FILE
-	if (traceStartedAt != 0 && traceStartedAt < (SCSAPI::getUNIXTime() - (60 * 15))) {
-		setTrace(false);
+	if (traceStartedAt != 0 && traceStartedAt < (scsapi->getUNIXTime() - (60 * 15))) {
+		setTrace(false, scsapi);
 		traceStartedAt = 0;
 	} else if (traceFile != NULL) {
 		fwrite(&ts, sizeof(unsigned long), 1, traceFile);
@@ -26,7 +27,7 @@ void TraceAccumulator::traceValue(unsigned long ts, float val, float threshold, 
 #endif
 }
 
-void TraceAccumulator::setTrace(bool v) {
+void TraceAccumulator::setTrace(bool v, SCSAPI *scsapi) {
 #ifdef TRACEACCUMULATOR_FILE
 	if (!v && traceFile != NULL) {
 
@@ -46,7 +47,7 @@ void TraceAccumulator::setTrace(bool v) {
 		unlink(TRACEACCUMULATOR_FILE);
 	} else if (v && traceFile == NULL) {
 		unlink(TRACEACCUMULATOR_FILE);
-		traceStartedAt = SCSAPI::getUNIXTime();
+		traceStartedAt = scsapi->getUNIXTime();
 		traceFile = fopen(TRACEACCUMULATOR_FILE, "w");
 		char head[3];
 		head[0] = 1; // Version

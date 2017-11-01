@@ -41,12 +41,11 @@ void Log::setLogFile(const char *filepath) {
 		rename(filepath, oldlog.c_str());
 	}
 
-	Log::logFile = fopen(filepath, "w");
+	Log::logFilePath = std::string(filepath);
+	Log::logFile = fopen(Log::logFilePath.c_str(), "w");
 	if (Log::logFile == NULL) {
 		fprintf(stderr, "Cannot open %s", Log::logFilePath.c_str());
 		Log::logFilePath = "";
- 	} else {
-		Log::logFilePath = std::string(filepath);
 	}
 }
 

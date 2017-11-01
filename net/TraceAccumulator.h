@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include "SCSAPI.h"
 
 /**
  * Trace file format:
@@ -18,8 +19,9 @@
 class TraceAccumulator {
 
 public:
-	static void traceValue(unsigned long ts, float val, float threshold, float avg, float stddev, float sigma);
-	static void setTrace(bool v);
+	static void traceValue(unsigned long ts, float val, float threshold,
+						   float avg, float stddev, float sigma, SCSAPI *scsapi);
+	static void setTrace(bool v, SCSAPI *scsapi);
 
 private:
 	static FILE* traceFile;

@@ -12,26 +12,28 @@
 #include <errno.h>
 
 Tcp::Tcp() {
+	signal(SIGPIPE, SIG_IGN);
 	fd = 0;
 }
 
 Tcp::Tcp(IPaddr ipaddr, unsigned short port) {
+	signal(SIGPIPE, SIG_IGN);
 	fd = 0;
 	connectTo(ipaddr, port);
 }
 
 ssize_t Tcp::send(void *buf, size_t size) {
-	if(fd <= 0) return 0;
+	if(fd <= 0) return -1;
 	return write(fd, buf, size);
 }
 
 ssize_t Tcp::print(const char* buf) {
-	if(fd <= 0) return 0;
+	if(fd <= 0) return -1;
 	return send((void*)buf, strlen(buf));
 }
 
 ssize_t Tcp::println(const char* buf) {
-	if(fd <= 0) return 0;
+	if(fd <= 0) return -1;
 	size_t len = strlen(buf);
 
 	std::string line = std::string(buf);
@@ -41,7 +43,7 @@ ssize_t Tcp::println(const char* buf) {
 }
 
 ssize_t Tcp::receive(void *buf, size_t maxsize) {
-	if(fd <= 0) return 0;
+	if(fd <= 0) return -1;
 	return read(fd, buf, maxsize);
 }
 
@@ -86,7 +88,7 @@ bool Tcp::connectTo(IPaddr ipaddr, unsigned short port) {
 	}
 
 	struct timeval  timeout;
-	timeout.tv_sec = 10;
+	timeout.tv_sec = 5;
 	timeout.tv_usec = 0;
 
 	int status = select(fd+1, NULL, &set, NULL, &timeout);
@@ -110,7 +112,7 @@ bool Tcp::connectTo(IPaddr ipaddr, unsigned short port) {
 }
 
 ssize_t Tcp::readall(uint8_t *buf, size_t len) {
-	if(fd <= 0) return 0;
+	if(fd <= 0) return -1;
 	return read(fd, buf, len);
 }
 
@@ -141,7 +143,7 @@ bool Tcp::connected() const {
 }
 
 int Tcp::readchar() {
-	if(fd <= 0) return 0;
+	if(fd <= 0) return -1;
 	char buf;
 	ssize_t r = read(fd, &buf, 1);
 	if(r > 0) {

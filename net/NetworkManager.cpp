@@ -27,27 +27,6 @@ struct ICMP_PACKET {
 #endif
 };
 
-bool NetworkManager::connectionAvailable = false;
-bool NetworkManager::connectionChecked = false;
-
-bool NetworkManager::isConnectedToInternet(bool force) {
-	if (!NetworkManager::connectionChecked || force) {
-		NetworkManager::connectionAvailable = ping(IPaddr(8, 8, 8, 8), 1000, 1);
-
-		// Try again - packet loss occurred?
-		if(!NetworkManager::connectionAvailable) {
-			NetworkManager::connectionAvailable = ping(IPaddr(8, 8, 8, 8), 1000, 2);
-		}
-
-		NetworkManager::connectionChecked = true;
-	}
-	return NetworkManager::connectionAvailable;
-}
-
-void NetworkManager::init() {
-	signal(SIGPIPE, SIG_IGN);
-}
-
 float NetworkManager::latency() {
 	unsigned long startms = Utils::millis();
 	bool c = ping(IPaddr(8, 8, 8, 8), 1000, 1);
@@ -61,6 +40,7 @@ float NetworkManager::latency() {
 }
 
 bool NetworkManager::ping(IPaddr address, unsigned int waitms, uint16_t sequenceNumber) {
+	signal(SIGPIPE, SIG_IGN);
 	const int val = 255;
 	struct ICMP_PACKET pckt;
 	struct sockaddr_in r_addr;

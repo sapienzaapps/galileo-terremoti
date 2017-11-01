@@ -12,18 +12,6 @@
 class NetworkManager {
 public:
 	/**
-	 * Init networking
-	 */
-	static void init();
-
-	/**
-	 * Returns if device is connected to internet (by sending an ICMP PING to 8.8.8.8)
-	 * @param force If true, a test is enforced; if false, last test status is returned if valid
-	 * @return True if device is connected to internet, false otherwise
-	 */
-	static bool isConnectedToInternet(bool force);
-
-	/**
 	 * Do a latency calculation to 8.8.8.8
 	 * @return Network latency
 	 */
@@ -39,8 +27,6 @@ public:
 	static bool ping(IPaddr address, unsigned int waitms, uint16_t sequenceNumber);
 
 private:
-	static bool connectionAvailable;
-	static bool connectionChecked;
 	static unsigned short checksum(void *b, int len);
 };
 

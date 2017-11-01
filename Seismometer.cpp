@@ -25,7 +25,7 @@ void Seismometer::init() {
 	}
 }
 
-void Seismometer::tick() {
+void Seismometer::tick(SCSAPI *scsapi) {
 	if (accelero == NULL) {
 		return;
 	}
@@ -35,11 +35,12 @@ void Seismometer::tick() {
 
 	RECORD db = {0, 0, false};
 
-	db.ts = SCSAPI::getUNIXTime();
+	db.ts = scsapi->getUNIXTime();
 	db.accel = accelero->getTotalVector();
 	db.overThreshold = db.accel > quakeThreshold;
 
-	TraceAccumulator::traceValue(db.ts, db.accel, quakeThreshold, getCurrentAVG(), getCurrentSTDDEV(), getSigmaIter());
+	TraceAccumulator::traceValue(db.ts, db.accel, quakeThreshold,  getCurrentAVG(),
+								 getCurrentSTDDEV(), getSigmaIter(), scsapi);
 	addValueToAvgVar(db.accel);
 
 	statLastCounter++;
@@ -69,7 +70,7 @@ void Seismometer::tick() {
 		inEvent = true;
 		lastEventWas = Utils::millis();
 
-		SCSAPI::terremoto(&db);
+		scsapi->terremoto(&db);
 	}
 }
 
