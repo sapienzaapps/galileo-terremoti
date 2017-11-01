@@ -180,8 +180,11 @@ void setup() {
 	while (getUNIXTime() == 0) {
 		scsapi->tick();
 		Utils::delay(50);
+#ifndef NOWATCHDOG
+		Watchdog::heartBeat();
+#endif
 
-		if (Utils::millis() - ntpstartms > 30 * 1000) {
+		if (getUNIXTime() == 0 && (Utils::millis() - ntpstartms) > (30 * 1000)) {
 			Log::e("Unable to receive NTP from server, rebooting");
 			platformReboot();
 		}
@@ -230,6 +233,9 @@ void apiInit() {
 			Log::e("Retrying in 5 seconds");
 			Utils::delay(5 * 1000);
 		}
+#ifndef NOWATCHDOG
+		Watchdog::heartBeat();
+#endif
 	}
 }
 
