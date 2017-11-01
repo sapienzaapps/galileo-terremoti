@@ -13,8 +13,9 @@ SCSAPI_HTTP::SCSAPI_HTTP() = default;
 bool SCSAPI_HTTP::init() {
 	HTTPResponse *resp = HTTPClient::httpRequest(HTTP_GET, HTTP_BASE);
 	HTTPError error = resp->error;
+	bool ret = error == HTTPError::HTTP_OK && resp->responseCode == 200;
 	HTTPClient::freeHTTPResponse(resp);
-	return error == HTTPError::HTTP_OK;
+	return ret;
 }
 
 bool SCSAPI_HTTP::alive() {
@@ -51,7 +52,7 @@ bool SCSAPI_HTTP::terremoto(RECORD *db) {
 	postValues["tsstart"] = Utils::toString(db->ts);
 	postValues["deviceid"] = Config::getMacAddress();
 	HTTPResponse *resp = HTTPClient::httpRequest(HTTP_POST, HTTP_BASE + "terremoto.php", postValues);
-	if (resp->error == HTTP_OK && resp->body != NULL) {
+	if (resp->error == HTTP_OK && resp->responseCode == 200 && resp->body != NULL) {
 		//nextContact = atol((const char *) resp->body) * 1000UL;
 		ret = true;
 	} else {
@@ -67,7 +68,7 @@ void SCSAPI_HTTP::tick() {
 bool SCSAPI_HTTP::requestTimeUpdate() {
 	bool ret = false;
 	HTTPResponse *resp = HTTPClient::httpRequest(HTTP_GET, HTTP_BASE + "ntp.php");
-	if (resp->error == HTTP_OK) {
+	if (resp->error == HTTP_OK && resp->responseCode == 200) {
 		unsigned long lastNTPTime;
 		std::string ntptime = std::string((char *) resp->body);
 		lastNTPTime = strtoul(ntptime.c_str(), NULL, 10);
@@ -82,8 +83,15 @@ bool SCSAPI_HTTP::requestTimeUpdate() {
 }
 
 bool SCSAPI_HTTP::ping() {
-	// TODO
-	return true;
+	bool ret = false;
+	HTTPResponse *resp = HTTPClient::httpRequest(HTTP_GET, HTTP_BASE + "ntp.php");
+	if (resp->error == HTTP_OK && resp->responseCode == 200) {
+		ret = true;
+	} else {
+		Log::e("Error connecting to HTTP server");
+	}
+	HTTPClient::freeHTTPResponse(resp);
+	return ret;
 }
 
 SCSAPI_HTTP::~SCSAPI_HTTP() = default;

@@ -41,6 +41,8 @@ void loop();
 
 void apiInit();
 
+void handleNetworkError(bool cstatus);
+
 #ifdef DEBUG
 
 void crashHandler(int sig) {
@@ -192,7 +194,8 @@ void setup() {
 	Log::d("Free RAM: %lu", Utils::getFreeRam());
 
 	Log::d("Sending Alive");
-	scsapi->alive();
+	handleNetworkError(scsapi->alive());
+	cfgLastMs = Utils::millis();
 
 	Log::d("INIZIALIZATION COMPLETE!");
 

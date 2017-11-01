@@ -8,8 +8,6 @@
 #include <string.h>
 
 std::string Config::macAddress = "";
-double Config::lat = 0.0;
-double Config::lon = 0.0;
 uint32_t Config::syslogServer = 0;
 std::string Config::proxyServer = "";
 uint16_t Config::proxyPort = 3128;
@@ -84,18 +82,20 @@ bool Config::readConfigFile(const char *filepath) {
 			if (argument.size() < 12) continue;
 			Config::macAddress = argument;
 			Log::d("Device ID: %s", Config::getMacAddress().c_str());
-		} else if (strcmp("proxyserver", buf) == 0) {
+		} else if (strncmp("proxyserver", buf, 11) == 0) {
 			Config::proxyServer = argument;
 			Log::d("Proxy Server: %s", argument.c_str());
-		} else if (strcmp("proxyport", buf) == 0) {
+		} else if (strncmp("proxyport", buf, 9) == 0) {
 			Config::proxyPort = atoi(argument.c_str());
 			Log::d("Proxy port: %d", Config::proxyPort);
-		} else if (strcmp("proxyuser", buf) == 0) {
+		} else if (strncmp("proxyuser", buf, 9) == 0) {
 			Config::proxyUser = argument;
 			Log::d("Proxy User: %s", argument.c_str());
-		} else if (strcmp("proxypass", buf) == 0) {
+		} else if (strncmp("proxypass", buf, 9) == 0) {
 			Config::proxyPass = argument;
 			Log::d("Proxy Pass: %s", argument.c_str());
+		} else {
+			Log::d("Unknown config line: %s", buf);
 		}
 	}
 	fclose(fp);
@@ -116,12 +116,6 @@ void Config::save() {
 	snprintf(buf, 200, "deviceid:%s\n", Config::macAddress.c_str());
 	fwrite(buf, 1, strlen(buf), fp);
 
-	snprintf(buf, 200, "lat:%f\n", Config::lat);
-	fwrite(buf, 1, strlen(buf), fp);
-
-	snprintf(buf, 200, "lon:%f\n", Config::lon);
-	fwrite(buf, 1, strlen(buf), fp);
-
 	fclose(fp);
 }
 
@@ -133,8 +127,6 @@ void Config::init() {
 }
 
 void Config::loadDefault() {
-	lat = 0.0;
-	lon = 0.0;
 	macAddress = Utils::getInterfaceMAC();
 }
 

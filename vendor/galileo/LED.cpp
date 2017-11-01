@@ -80,10 +80,24 @@ void LED::init(uint8_t greenLedPin, uint8_t yellowLedPin, uint8_t redLedPin) {
 	if(rc) {
 		Log::e("Error during LED thread creation");
 	}
+	FILE* fp = fopen("/sys/class/gpio/gpio3/direction", "w");
+	fwrite("out", 3, 1, fp);
+	fclose(fp);
+
+	LED::green(false);
+	LED::red(false);
+	LED::yellow(false);
 }
 
 void LED::green(bool isOn) {
 	LED::set(greenLedPin, isOn);
+	FILE* fp = fopen("/sys/class/gpio/gpio3/value", "w");
+	if (isOn) {
+		fwrite("1", 1, 1, fp);
+	} else {
+		fwrite("0", 1, 1, fp);
+	}
+	fclose(fp);
 }
 
 void LED::red(bool isOn) {

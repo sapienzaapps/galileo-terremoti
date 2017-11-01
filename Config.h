@@ -95,8 +95,6 @@ private:
 	static std::map<std::string, std::string> configSplit(const std::string &s, char delim);
 	static void file_put_contents(const char* path, std::string content);
 
-	static double lat;
-	static double lon;
 	static std::string macAddress;
 	static uint32_t syslogServer;
 	static std::string proxyServer;
