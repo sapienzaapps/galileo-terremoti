@@ -15,16 +15,15 @@ public:
 
 	/**
 	 * Alive
-	 * @return The config as string (as returned to server)
 	 */
-	virtual void alive() = 0;
+	virtual bool alive() = 0;
 
 	/**
 	 * Send alert to server
 	 * @param db Accelerometer values
 	 * @param threshold Threshold value
 	 */
-	virtual void terremoto(RECORD *db) = 0;
+	virtual bool terremoto(RECORD *db) = 0;
 
 	/**
 	 * Packet processor
@@ -32,15 +31,9 @@ public:
 	virtual void tick() = 0;
 
 	/**
-	 * Get time as UNIX timestamp (eg. seconds since Jan 1 1970 UTC)
-	 * @return UNIX time
-	 */
-	virtual unsigned long getUNIXTime() = 0;
-
-	/**
 	 * Request time sync
 	 */
-	virtual void requestTimeUpdate() = 0;
+	virtual bool requestTimeUpdate() = 0;
 
 	/**
 	 * Ping

@@ -19,14 +19,14 @@ public:
 	 * Alive
 	 * @return The config as string (as returned to server)
 	 */
-	void alive() override;
+	bool alive() override;
 
 	/**
 	 * Send alert to server
 	 * @param db Accelerometer values
 	 * @param threshold Threshold value
 	 */
-	void terremoto(RECORD *db) override;
+	bool terremoto(RECORD *db) override;
 
 	/**
 	 * Packet processor
@@ -34,22 +34,11 @@ public:
 	void tick() override;
 
 	/**
-	 * Get time as UNIX timestamp (eg. seconds since Jan 1 1970 UTC)
-	 * @return UNIX time
-	 */
-	unsigned long getUNIXTime() override;
-
-	/**
 	 * Request time sync
 	 */
-	void requestTimeUpdate() override;
+	bool requestTimeUpdate() override;
 
 	bool ping() override;
-
-private:
-	unsigned long lastNTPTime;
-	unsigned long lastNTPMillis;
-
 };
 
 

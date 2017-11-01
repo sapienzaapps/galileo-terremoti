@@ -20,8 +20,8 @@ class TraceAccumulator {
 
 public:
 	static void traceValue(unsigned long ts, float val, float threshold,
-						   float avg, float stddev, float sigma, SCSAPI *scsapi);
-	static void setTrace(bool v, SCSAPI *scsapi);
+						   float avg, float stddev, float sigma);
+	static void setTrace(bool v);
 
 private:
 	static FILE* traceFile;

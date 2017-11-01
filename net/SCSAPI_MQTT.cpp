@@ -8,8 +8,6 @@
 SCSAPI_MQTT::SCSAPI_MQTT() {
 	this->mqtt = NULL;
 	this->mydev = NULL;
-	this->lastNTPMillis = 0;
-	this->lastNTPTime = 0;
 	this->personalTopic = NULL;
 	this->clientid = NULL;
 }
@@ -51,7 +49,7 @@ bool SCSAPI_MQTT::init() {
 	return mqtt->connect() == 0;
 }
 
-void SCSAPI_MQTT::alive() {
+bool SCSAPI_MQTT::alive() {
 	memset(buffer, 0, MAXBUFFERSIZE);
 	byte j = 0;
 	buffer[j] = API_KEEPALIVE;
@@ -75,7 +73,13 @@ void SCSAPI_MQTT::alive() {
 	memcpy(buffer + j, SOFTWARE_VERSION, strlen(SOFTWARE_VERSION));
 	j += strlen(SOFTWARE_VERSION);
 
-	mqtt->publish("server", buffer, j);
+	if (!mqtt->publish("server", buffer, j)) {
+		if (mqtt->connect() != 0) {
+			return false;
+		}
+		mqtt->publish("server", buffer, j);
+	}
+	return true;
 }
 
 void SCSAPI_MQTT::tick() {
@@ -85,14 +89,14 @@ void SCSAPI_MQTT::tick() {
 			case API_REBOOT:
 				// TODO: disconnected
 				this->mqtt->disconnect();
-				Log::d("Reboot by server request");
+				Log::i("Reboot by server request");
 				platformReboot();
 				break;
 			case API_CFG:
 				if (mydev->datalen < 7) {
 					break;
 				}
-				Log::d("Config update from server");
+				Log::i("Config update from server");
 				/**
 				   Payload (after type):
 				   Offset       Byte      Desc
@@ -125,22 +129,23 @@ void SCSAPI_MQTT::tick() {
 				float sigma;
 				memcpy(&sigma, mydev->lastread + 1, 4);
 				Seismometer::getInstance()->setSigmaIter(sigma);
-				Log::d("Setting sigma to %f", sigma);
+				Log::i("Setting sigma to %f", sigma);
 				Seismometer::getInstance()->resetLastPeriod();
 				break;
 			case API_TIMERESP:
+				uint32_t lastNTPTime;
 				memcpy(&lastNTPTime, mydev->lastread + 1, 4);
-				Log::d("Time: %d", lastNTPTime);
-				lastNTPMillis = Utils::millis();
+				execSystemTimeUpdate(lastNTPTime);
+				Log::i("MQTT Time: %d", lastNTPTime);
 				break;
 			default:
-				Log::d("Invalid packet from server: %d", mydev->lastread[j]);
+				Log::e("Invalid packet from server: %d", mydev->lastread[j]);
 				break;
 		}
 	}
 }
 
-void SCSAPI_MQTT::requestTimeUpdate() {
+bool SCSAPI_MQTT::requestTimeUpdate() {
 	memset(buffer, 0, MAXBUFFERSIZE);
 	byte j = 0;
 	buffer[j] = API_TIMEREQ;
@@ -152,15 +157,16 @@ void SCSAPI_MQTT::requestTimeUpdate() {
 	memcpy(buffer + j, Config::getMacAddress().c_str(), 12);
 	j += 12;
 
-	mqtt->publish("server", buffer, j);
+	if (!mqtt->publish("server", buffer, j)) {
+		if (mqtt->connect() != 0) {
+			return false;
+		}
+		mqtt->publish("server", buffer, j);
+	}
+	return true;
 }
 
-unsigned long SCSAPI_MQTT::getUNIXTime() {
-	unsigned long diff = Utils::millis() - SCSAPI_MQTT::lastNTPMillis;
-	return (SCSAPI_MQTT::lastNTPTime + (diff / 1000));
-}
-
-void SCSAPI_MQTT::terremoto(RECORD *db) {
+bool SCSAPI_MQTT::terremoto(RECORD *db) {
 	memset(buffer, 0, MAXBUFFERSIZE);
 	byte j = 0;
 	buffer[j] = API_QUAKE;
@@ -172,10 +178,17 @@ void SCSAPI_MQTT::terremoto(RECORD *db) {
 	memcpy(buffer + j, Config::getMacAddress().c_str(), 12);
 	j += 12;
 
-	mqtt->publish("server", buffer, j);
+	if (!mqtt->publish("server", buffer, j)) {
+		if (mqtt->connect() != 0) {
+			return false;
+		}
+		mqtt->publish("server", buffer, j);
+	}
+	return true;
 }
 
 bool SCSAPI_MQTT::ping() {
+	Log::d("PING to server");
 	memset(buffer, 0, MAXBUFFERSIZE);
 	byte j = 0;
 	buffer[j] = API_PING;
@@ -187,7 +200,13 @@ bool SCSAPI_MQTT::ping() {
 	memcpy(buffer + j, Config::getMacAddress().c_str(), 12);
 	j += 12;
 
-	return mqtt->publish("server", buffer, j);
+	if (!mqtt->publish("server", buffer, j)) {
+		if (mqtt->connect() != 0) {
+			return false;
+		}
+		mqtt->publish("server", buffer, j);
+	}
+	return true;
 }
 
 SCSAPI_MQTT::~SCSAPI_MQTT() {

@@ -17,7 +17,8 @@ bool SCSAPI_HTTP::init() {
 	return error == HTTPError::HTTP_OK;
 }
 
-void SCSAPI_HTTP::alive() {
+bool SCSAPI_HTTP::alive() {
+	bool ret = false;
 	std::string cfg;
 	std::map<std::string, std::string> postValues;
 	postValues["deviceid"] = Config::getMacAddress();
@@ -31,6 +32,7 @@ void SCSAPI_HTTP::alive() {
 	Log::d("Response received, code: %i", resp->responseCode);
 	if (resp->error == HTTP_OK && resp->responseCode == 200 && resp->body != NULL) {
 		cfg = std::string((char *) resp->body);
+		ret = true;
 	} else {
 		Log::e("Error connecting to HTTP server");
 		cfg = "";
@@ -40,44 +42,43 @@ void SCSAPI_HTTP::alive() {
 	if (!cfg.empty()) {
 		// TODO: Config
 	}
+	return ret;
 }
 
-void SCSAPI_HTTP::terremoto(RECORD *db) {
+bool SCSAPI_HTTP::terremoto(RECORD *db) {
+	bool ret = false;
 	std::map<std::string, std::string> postValues;
 	postValues["tsstart"] = Utils::toString(db->ts);
 	postValues["deviceid"] = Config::getMacAddress();
 	HTTPResponse *resp = HTTPClient::httpRequest(HTTP_POST, HTTP_BASE + "terremoto.php", postValues);
 	if (resp->error == HTTP_OK && resp->body != NULL) {
 		//nextContact = atol((const char *) resp->body) * 1000UL;
+		ret = true;
 	} else {
 		Log::e("Error connecting to HTTP server");
-		Utils::delay(5 * 1000);
-		platformReboot();
 	}
 	HTTPClient::freeHTTPResponse(resp);
+	return ret;
 }
 
 void SCSAPI_HTTP::tick() {
 }
 
-unsigned long SCSAPI_HTTP::getUNIXTime() {
-	unsigned long diff = Utils::millis() - SCSAPI_HTTP::lastNTPMillis;
-	return (SCSAPI_HTTP::lastNTPTime + (diff / 1000));
-}
-
-void SCSAPI_HTTP::requestTimeUpdate() {
+bool SCSAPI_HTTP::requestTimeUpdate() {
+	bool ret = false;
 	HTTPResponse *resp = HTTPClient::httpRequest(HTTP_GET, HTTP_BASE + "ntp.php");
 	if (resp->error == HTTP_OK) {
+		unsigned long lastNTPTime;
 		std::string ntptime = std::string((char *) resp->body);
 		lastNTPTime = strtoul(ntptime.c_str(), NULL, 10);
 		Log::d("Time: %d", lastNTPTime);
-		lastNTPMillis = Utils::millis();
+		execSystemTimeUpdate(lastNTPTime);
+		ret = true;
 	} else {
 		Log::e("Error connecting to HTTP server");
-		Utils::delay(5 * 1000);
-		platformReboot();
 	}
 	HTTPClient::freeHTTPResponse(resp);
+	return ret;
 }
 
 bool SCSAPI_HTTP::ping() {

@@ -35,12 +35,12 @@ void Seismometer::tick(SCSAPI *scsapi) {
 
 	RECORD db = {0, 0, false};
 
-	db.ts = scsapi->getUNIXTime();
+	db.ts = getUNIXTime();
 	db.accel = accelero->getTotalVector();
 	db.overThreshold = db.accel > quakeThreshold;
 
 	TraceAccumulator::traceValue(db.ts, db.accel, quakeThreshold,  getCurrentAVG(),
-								 getCurrentSTDDEV(), getSigmaIter(), scsapi);
+								 getCurrentSTDDEV(), getSigmaIter());
 	addValueToAvgVar(db.accel);
 
 	statLastCounter++;

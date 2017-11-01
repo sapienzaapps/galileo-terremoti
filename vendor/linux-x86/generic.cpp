@@ -5,6 +5,7 @@
 #include "../../generic.h"
 #include "../../Log.h"
 #include "DummyAccelerometer.h"
+#include "../../Utils.h"
 
 
 void vendor_init(int argc, char** argv) {
@@ -29,5 +30,20 @@ void platformUpgrade(std::string path) {
 	Log::d("Received upgrade hint for %s", path.c_str());
 }
 
+unsigned long lastNTPTime = 0;
+unsigned long lastNTPMillis = 0;
+
+// Set date and time to NTP's retrieved one
 void execSystemTimeUpdate(time_t epoch) {
+	lastNTPMillis = Utils::millis();
+	lastNTPTime = epoch;
 }
+
+unsigned long getUNIXTime() {
+	if (lastNTPMillis == 0) {
+		return 0;
+	}
+	unsigned long diff = Utils::millis() - lastNTPMillis;
+	return (lastNTPTime + (diff / 1000));
+}
+

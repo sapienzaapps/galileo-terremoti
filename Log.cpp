@@ -6,6 +6,7 @@
 #include "Log.h"
 #include "Config.h"
 #include "Utils.h"
+#include "generic.h"
 
 IPaddr Log::syslogServer(0, 0, 0, 0);
 bool Log::syslogEnabled = false;
@@ -135,7 +136,7 @@ void Log::enableStdoutDebug(bool enable) {
 std::string Log::getDateTime() {
 
 	char buf[512];
-	time_t now = time(NULL);
+	time_t now = getUNIXTime();
 	strftime(buf, 512, "%F %T", gmtime(&now));
 
 	return std::string(buf);

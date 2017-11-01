@@ -153,6 +153,9 @@ void platformUpgrade(std::string path) {
 	platformReboot();
 }
 
+unsigned long lastNTPTime = 0;
+unsigned long lastNTPMillis = 0;
+
 // Set date and time to NTP's retrieved one
 void execSystemTimeUpdate(time_t epoch) {
 	char command[100];
@@ -161,7 +164,7 @@ void execSystemTimeUpdate(time_t epoch) {
 	char buf[64];
 	FILE *ptr;
 
-	Log::d("COMANDO: %s", command);
+	Log::d("Local system time update: %s", command);
 	if ((ptr = popen(command, "r")) != NULL) {
 		while (fgets(buf, 64, ptr) != NULL) {
 			std::string sbuf = std::string(buf);
@@ -173,4 +176,14 @@ void execSystemTimeUpdate(time_t epoch) {
 	} else {
 		Log::d("error popen");
 	}
+	lastNTPMillis = Utils::millis();
+	lastNTPTime = epoch;
+}
+
+unsigned long getUNIXTime() {
+	if (lastNTPMillis == 0) {
+		return 0;
+	}
+	unsigned long diff = Utils::millis() - lastNTPMillis;
+	return (lastNTPTime + (diff / 1000));
 }

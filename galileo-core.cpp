@@ -12,7 +12,6 @@
 #include "Log.h"
 #include "LED.h"
 #include "Utils.h"
-#include "net/NetworkManager.h"
 #include "CommandInterface.h"
 #include "generic.h"
 #include "net/SCSAPI_MQTT.h"
@@ -39,6 +38,8 @@ unsigned long valgrindMs = 0;
 void setup();
 
 void loop();
+
+void apiInit();
 
 #ifdef DEBUG
 
@@ -165,32 +166,7 @@ void setup() {
 	seismometer->init();
 
 	Log::i("API connect");
-	unsigned long connstartms = Utils::millis();
-	while(!networkConnected) {
-		scsapi = new SCSAPI_MQTT();
-		if (!scsapi->init()) {
-			Log::e("Error connecting to MQTT server, retrying with HTTP");
-			scsapi = new SCSAPI_HTTP();
-			if (!scsapi->init()) {
-				Log::e("Error connecting to HTTP server");
-			} else {
-				networkConnected = true;
-			}
-		} else {
-			networkConnected = true;
-		}
-		if (!networkConnected && Utils::millis() - connstartms > 60*60*1000) {
-			Log::d("Unable to connect to server in 1h, rebooting");
-			platformReboot();
-		}
-		if (!networkConnected) {
-			LED::setLedAnimation(false);
-			LED::green(false);
-			LED::yellow(true);
-			Log::e("Retrying in 5 seconds");
-			Utils::delay(5*1000);
-		}
-	}
+	apiInit();
 	LED::green(false);
 	LED::yellow(false);
 	LED::setLedAnimation(true);
@@ -198,10 +174,15 @@ void setup() {
 	Log::i("Time sync");
 	// NTP SYNC with NTP server
 	scsapi->requestTimeUpdate();
-	while (scsapi->getUNIXTime() == 0) {
+	unsigned long ntpstartms = Utils::millis();
+	while (getUNIXTime() == 0) {
 		scsapi->tick();
 		Utils::delay(50);
-		// TODO: timeout
+
+		if (Utils::millis() - ntpstartms > 30 * 1000) {
+			Log::e("Unable to receive NTP from server, rebooting");
+			platformReboot();
+		}
 	}
 	Log::i("Time sync'ed");
 
@@ -220,6 +201,43 @@ void setup() {
 	LED::green(true);
 }
 
+void apiInit() {
+	unsigned long connstartms = Utils::millis();
+	while (!networkConnected) {
+		scsapi = new SCSAPI_MQTT();
+		if (!scsapi->init()) {
+			Log::e("Error connecting to MQTT server, retrying with HTTP");
+			scsapi = new SCSAPI_HTTP();
+			if (!scsapi->init()) {
+				Log::e("Error connecting to HTTP server");
+			} else {
+				networkConnected = true;
+			}
+		} else {
+			networkConnected = true;
+		}
+		if (!networkConnected && Utils::millis() - connstartms > 60 * 60 * 1000) {
+			Log::e("Unable to connect to server in 1h, rebooting");
+			platformReboot();
+		}
+		if (!networkConnected) {
+			LED::setLedAnimation(false);
+			LED::green(false);
+			LED::yellow(true);
+			Log::e("Retrying in 5 seconds");
+			Utils::delay(5 * 1000);
+		}
+	}
+}
+
+void handleNetworkError(bool cstatus) {
+	networkConnected = cstatus;
+	LED::yellow(!networkConnected);
+	if (!cstatus) {
+		apiInit();
+	}
+}
+
 void loop() {
 	LED::tick();
 	scsapi->tick();
@@ -234,23 +252,23 @@ void loop() {
 		// If no MAC Address detect we presume that ethernet interface is down, so we'll reboot
 		std::string macAddress = Utils::getInterfaceMAC();
 		if (macAddress.empty()) {
-			Log::d("Unable to get MAC Address, rebooting");
+			Log::e("Unable to get MAC Address, rebooting");
 			platformReboot();
 		}
 
 		// TODO handle disconnection
-		networkConnected = scsapi->ping();
-		LED::yellow(!networkConnected);
+		handleNetworkError(scsapi->ping());
+
 		netLastMs = Utils::millis();
 	}
 
 	if (Utils::millis() - cfgLastMs >= ALIVE_INTERVAL) {
-		scsapi->alive();
+		handleNetworkError(scsapi->alive());
 		cfgLastMs = Utils::millis();
 	}
 
 	if (Utils::millis() - ntpLastMs >= NTP_SYNC_INTERVAL) {
-		scsapi->requestTimeUpdate();
+		handleNetworkError(scsapi->requestTimeUpdate());
 		ntpLastMs = Utils::millis();
 	}
 

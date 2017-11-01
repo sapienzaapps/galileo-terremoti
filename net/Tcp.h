@@ -47,7 +47,7 @@ public:
 	 * Returns if it's connected or not
 	 * @return True if it's connected, false otherwise
 	 */
-	bool connected() const;
+	bool connected();
 
 	/**
 	 * Send TCP data
@@ -103,6 +103,16 @@ public:
 	 * Close TCP connection
 	 */
 	void stop();
+
+	/**
+	 *
+	 * @param fd
+	 * @param set
+	 * @param oldflags
+	 * @return
+	 */
+	int setBlocking(int fd, bool set, int oldflags);
+
 private:
 	int fd;
 };

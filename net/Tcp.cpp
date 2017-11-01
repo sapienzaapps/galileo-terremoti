@@ -50,7 +50,9 @@ ssize_t Tcp::receive(void *buf, size_t maxsize) {
 bool Tcp::available() {
 	if(fd <= 0) return false;
 	char buf;
+	int oldflags = setBlocking(fd, true, 0);
 	ssize_t peekdata = recv(fd, &buf, 1, MSG_PEEK);
+	setBlocking(fd, false, oldflags);
 	return peekdata > 0;
 }
 
@@ -123,23 +125,31 @@ void Tcp::stop() {
 	fd = 0;
 }
 
-bool Tcp::connected() const {
+bool Tcp::connected() {
 	bool ret = false;
 	if(fd > 0) {
 		ret = true;
-		// Nonblocking
-		int flags = fcntl(fd, F_GETFL, 0);
-		fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-
+		int oldflags = setBlocking(fd, true, 0);
 		char buf;
 		ssize_t err = recv(fd, &buf, 1, MSG_PEEK);
 		if(err == 0) {
 			ret = false;
 		}
-		// Restore blocking mode
-		fcntl(fd, F_SETFL, flags);
+		setBlocking(fd, false, oldflags);
 	}
 	return ret;
+}
+
+int Tcp::setBlocking(int fd, bool set, int oldflags) {
+	if (set) {
+		// Nonblocking
+		int flags = fcntl(fd, F_GETFL, 0);
+		fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+		return flags;
+	} else {
+		// Restore blocking mode
+		return fcntl(fd, F_SETFL, oldflags);
+	}
 }
 
 int Tcp::readchar() {

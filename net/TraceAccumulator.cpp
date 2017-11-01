@@ -6,15 +6,16 @@
 #include "HTTPClient.h"
 #include "../Log.h"
 #include "SCSAPI.h"
+#include "../generic.h"
 
 FILE *TraceAccumulator::traceFile = NULL;
 unsigned long TraceAccumulator::traceStartedAt = 0;
 
 void TraceAccumulator::traceValue(unsigned long ts, float val, float threshold, float avg,
-								  float stddev, float sigma, SCSAPI *scsapi) {
+								  float stddev, float sigma) {
 #ifdef TRACEACCUMULATOR_FILE
-	if (traceStartedAt != 0 && traceStartedAt < (scsapi->getUNIXTime() - (60 * 15))) {
-		setTrace(false, scsapi);
+	if (traceStartedAt != 0 && traceStartedAt < (getUNIXTime() - (60 * 15))) {
+		setTrace(false);
 		traceStartedAt = 0;
 	} else if (traceFile != NULL) {
 		fwrite(&ts, sizeof(unsigned long), 1, traceFile);
@@ -27,7 +28,7 @@ void TraceAccumulator::traceValue(unsigned long ts, float val, float threshold, 
 #endif
 }
 
-void TraceAccumulator::setTrace(bool v, SCSAPI *scsapi) {
+void TraceAccumulator::setTrace(bool v) {
 #ifdef TRACEACCUMULATOR_FILE
 	if (!v && traceFile != NULL) {
 
@@ -47,7 +48,7 @@ void TraceAccumulator::setTrace(bool v, SCSAPI *scsapi) {
 		unlink(TRACEACCUMULATOR_FILE);
 	} else if (v && traceFile == NULL) {
 		unlink(TRACEACCUMULATOR_FILE);
-		traceStartedAt = scsapi->getUNIXTime();
+		traceStartedAt = getUNIXTime();
 		traceFile = fopen(TRACEACCUMULATOR_FILE, "w");
 		char head[3];
 		head[0] = 1; // Version
