@@ -8,6 +8,7 @@
 #include "../../LED.h"
 #include "../../common.h"
 #include "../../Utils.h"
+#include "../../Config.h"
 #include <Arduino.h>
 #include <trace.h>
 #include <interrupt.h>

@@ -67,7 +67,7 @@ void SCSAPI_HTTP::tick() {
 
 bool SCSAPI_HTTP::requestTimeUpdate() {
 	bool ret = false;
-	HTTPResponse *resp = HTTPClient::httpRequest(HTTP_GET, HTTP_BASE + "ntp.php");
+	HTTPResponse *resp = HTTPClient::httpRequest(HTTP_GET, HTTP_BASE + "ntp.php?ts=");
 	if (resp->error == HTTP_OK && resp->responseCode == 200) {
 		unsigned long lastNTPTime;
 		std::string ntptime = std::string((char *) resp->body);
@@ -84,7 +84,7 @@ bool SCSAPI_HTTP::requestTimeUpdate() {
 
 bool SCSAPI_HTTP::ping() {
 	bool ret = false;
-	HTTPResponse *resp = HTTPClient::httpRequest(HTTP_GET, HTTP_BASE + "ntp.php");
+	HTTPResponse *resp = HTTPClient::httpRequest(HTTP_GET, HTTP_BASE + "ntp.php?ts=");
 	if (resp->error == HTTP_OK && resp->responseCode == 200) {
 		ret = true;
 	} else {

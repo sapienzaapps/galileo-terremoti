@@ -200,6 +200,8 @@ void setup() {
 	handleNetworkError(scsapi->alive());
 	cfgLastMs = Utils::millis();
 
+	logRotationMs = Utils::millis();
+
 	Log::d("INIZIALIZATION COMPLETE!");
 
 	LED::setLedAnimation(false);
@@ -288,6 +290,7 @@ void loop() {
 
 	if (Utils::millis() - logRotationMs >= 1000 * 60 * 60 * 24) {
 		Log::rotate();
+		logRotationMs = Utils::millis();
 	}
 
 #ifdef DEBUG
