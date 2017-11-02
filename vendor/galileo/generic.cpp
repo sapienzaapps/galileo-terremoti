@@ -142,12 +142,30 @@ void platformUpgrade(std::string path) {
 	FILE *fp = fopen("/sketch/update.sh", "w");
 	if(fp != NULL) {
 		memset(cmd, 0, 1024);
-		snprintf(cmd, 1023,
-				 "#!/bin/bash\nkillall sketch.elf; mv /media/realroot/sketch.new /sketch/sketch.elf; sleep 1; reboot");
+		snprintf(cmd, 1023, "#!/bin/bash\n\n");
+		fwrite(cmd, strlen(cmd), 1, fp);
+
+		if (Config::hasProxyServer()) {
+			if (Config::isProxyAuthenticated()) {
+				memset(cmd, 0, 1024);
+				snprintf(cmd, 1023, "export http_proxy=\"http://%s:%s@%s:%d/\";\n", Config::getProxyServer().c_str(),
+					Config::getProxyPort(), Config::getProxyUser().c_str(), Config::getProxyPass().c_str());
+				fwrite(cmd, strlen(cmd), 1, fp);
+			} else {
+				memset(cmd, 0, 1024);
+				snprintf(cmd, 1023, "export http_proxy=\"http://%s:%d/\";\n", Config::getProxyServer().c_str(), Config::getProxyPort());
+				fwrite(cmd, strlen(cmd), 1, fp);
+			}
+		}
+
+		memset(cmd, 0, 1024);
+		snprintf(cmd, 1023, "killall sketch.elf; mv /media/realroot/sketch.new /sketch/sketch.elf; sleep 1; reboot");
 		fwrite(cmd, strlen(cmd), 1, fp);
 		fclose(fp);
 
+#ifndef DEBUG
 		system("/bin/bash /sketch/update.sh");
+#endif
 		while(1) {};
 	}
 	platformReboot();
