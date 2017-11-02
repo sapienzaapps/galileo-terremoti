@@ -246,6 +246,8 @@ void handleNetworkError(bool cstatus) {
 	LED::yellow(!networkConnected);
 	if (!cstatus) {
 		apiInit();
+		LED::green(true);
+		LED::yellow(false);
 	}
 }
 
