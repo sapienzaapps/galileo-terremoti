@@ -21,12 +21,14 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+
 #include "mqttclient.h"
 
 bool MQTT_Client::connectServer() {
 	client = new Tcp();
-	// Grab server name from flash and copy to buffer for name resolution.
+
 	Log::d("Connecting to: %s", servername);
+
 	// Connect and check for success (0 result).
 	int r = client->connectTo(servername, portnum);
 	Log::d("Connect result: %d", r);
@@ -58,15 +60,17 @@ uint16_t MQTT_Client::readPacket(uint8_t *buffer, uint16_t maxlen,
 		//DEBUG_PRINT('.');
 		while (client->available()) {
 			//DEBUG_PRINT('!');
-			char c = client->readchar();
-			timeout = t;  // reset the timeout
-			buffer[len] = c;
-			//Log::d((uint8_t)c, HEX);
-			len++;
-			if (len == maxlen) {  // we read all we want, bail
-//				Log::d("Read data:\t");
-//				DEBUG_PRINTBUFFER(buffer, len);
-				return len;
+			int c = client->readchar();
+			if (c >= 0) {
+				timeout = t;  // reset the timeout
+				buffer[len] = (uint8_t) c;
+				//Log::d((uint8_t)c, HEX);
+				len++;
+				if (len == maxlen) {  // we read all we want, bail
+					// Log::d("Read data:\t");
+					// DEBUG_PRINTBUFFER(buffer, len);
+					return len;
+				}
 			}
 		}
 		timeout -= MQTT_CLIENT_READINTERVAL_MS;
@@ -82,7 +86,7 @@ bool MQTT_Client::sendPacket(uint8_t *buffer, uint16_t len) {
 		if (client->connected()) {
 			// send 250 bytes at most at a time, can adjust this later based on Client
 
-			uint16_t sendlen = min(len, 250);
+			uint16_t sendlen = (uint16_t)min(len, 250);
 			//Serial.print("Sending: "); Serial.println(sendlen);
 			ret = client->send(buffer, sendlen);
 			Log::d("Client sendPacket returned: %d", ret);

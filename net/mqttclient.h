@@ -27,14 +27,9 @@
 #include "mqtt.h"
 #include "Tcp.h"
 
-
 // How long to delay waiting for new data to be available in readPacket.
 #define MQTT_CLIENT_READINTERVAL_MS 10
 
-
-// MQTT client implementation for a generic Arduino Client interface.  Can work
-// with almost all Arduino network hardware like ethernet shield, wifi shield,
-// and even other platforms like ESP8266.
 class MQTT_Client : public MQTT {
 public:
 	MQTT_Client(const char *server, uint16_t port,
@@ -45,15 +40,15 @@ public:
 				const char *user = "", const char *pass = "") :
 			MQTT(server, port, user, pass) {}
 
-	bool connectServer();
+	bool connectServer() override;
 
-	bool disconnectServer();
+	bool disconnectServer() override;
 
-	bool connected();
+	bool connected() override;
 
-	uint16_t readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout);
+	uint16_t readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout) override;
 
-	bool sendPacket(uint8_t *buffer, uint16_t len);
+	bool sendPacket(uint8_t *buffer, uint16_t len) override;
 
 private:
 	Tcp *client = NULL;
