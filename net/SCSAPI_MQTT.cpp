@@ -43,7 +43,7 @@ bool SCSAPI_MQTT::init() {
 	j += 12;
 	mqtt->will("server", buffer, j, 1, 0);
 
-	mydev = new MQTT_Subscribe(mqtt, personalTopic, 1);
+	mydev = new MQTT_Subscribe(personalTopic, 1);
 	mqtt->subscribe(mydev);
 	Log::d("Subscribing to %s", personalTopic);
 	return mqtt->connect() == 0;

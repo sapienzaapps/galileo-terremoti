@@ -126,12 +126,6 @@ int8_t MQTT::connect() {
 	return 0;
 }
 
-int8_t MQTT::connect(const char *user, const char *pass) {
-	username = user;
-	password = pass;
-	return connect();
-}
-
 uint16_t MQTT::processPacketsUntil(uint8_t *buffer, uint8_t waitforpackettype, uint16_t timeout) {
 	uint16_t len;
 	while ((len = readFullPacket(buffer, MAXBUFFERSIZE, timeout))) {
@@ -189,31 +183,6 @@ uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeou
 	return (uint16_t)((pbuff - buffer) + rlen);
 }
 
-const char *MQTT::connectErrorString(int8_t code) {
-	switch (code) {
-		case 1:
-			return "The Server does not support the level of the MQTT protocol requested";
-		case 2:
-			return "The Client identifier is correct UTF-8 but not allowed by the Server";
-		case 3:
-			return "The MQTT service is unavailable";
-		case 4:
-			return "The data in the user name or password is malformed";
-		case 5:
-			return "Not authorized to connect";
-		case 6:
-			return "Exceeded reconnect rate limit. Please try again later.";
-		case 7:
-			return "You have been banned from connecting. Please contact the MQTT server administrator for more details.";
-		case -1:
-			return "Connection failed";
-		case -2:
-			return "Failed to subscribe";
-		default:
-			return "Unknown error";
-	}
-}
-
 bool MQTT::disconnect() {
 
 	// Construct and send disconnect packet.
@@ -223,11 +192,6 @@ bool MQTT::disconnect() {
 
 	return disconnectServer();
 
-}
-
-
-bool MQTT::publish(const char *topic, const char *data, uint8_t qos) {
-	return publish(topic, (uint8_t *) (data), (uint16_t)strlen(data), qos);
 }
 
 bool MQTT::publish(const char *topic, uint8_t *data, uint16_t bLen, uint8_t qos) {
@@ -329,41 +293,6 @@ bool MQTT::unsubscribe(MQTT_Subscribe *sub) {
 	return true;
 }
 
-void MQTT::processPackets(int16_t timeout) {
-	uint32_t elapsed = 0, endtime, starttime = Utils::millis();
-
-	while (elapsed < (uint32_t) timeout) {
-		MQTT_Subscribe *sub = readSubscription((uint16_t)(timeout - elapsed));
-		if (sub) {
-			//Serial.println("**** sub packet received");
-			if (sub->callback_uint32t != NULL) {
-				// huh lets do the callback in integer mode
-				uint32_t data = 0;
-				data = (uint32_t)atoi((char *) sub->lastread);
-				sub->callback_uint32t(data);
-			} else if (sub->callback_double != NULL) {
-				// huh lets do the callback in doublefloat mode
-				double data = 0;
-				data = atof((char *) sub->lastread);
-				sub->callback_double(data);
-			} else if (sub->callback_buffer != NULL) {
-				// huh lets do the callback in buffer mode
-				sub->callback_buffer((char *) sub->lastread, sub->datalen);
-//			} else if (sub->callback_io != NULL) {
-//				// huh lets do the callback in io mode
-//				((sub->io_mqtt)->*(sub->callback_io))((char *) sub->lastread, sub->datalen);
-			}
-		}
-
-		// keep track over elapsed time
-		endtime = Utils::millis();
-		if (endtime < starttime) {
-			starttime = endtime; // looped around!")
-		}
-		elapsed += (endtime - starttime);
-	}
-}
-
 MQTT_Subscribe *MQTT::readSubscription(uint16_t timeout) {
 	uint16_t i, topiclen, datalen;
 
@@ -443,15 +372,7 @@ MQTT_Subscribe *MQTT::readSubscription(uint16_t timeout) {
 	return subscriptions[i];
 }
 
-void MQTT::flushIncoming(uint16_t timeout) {
-	// flush input!
-	Log::d("Flushing input buffer");
-	while (readPacket(buffer, MAXBUFFERSIZE, timeout));
-}
-
 bool MQTT::ping(uint8_t num) {
-	//flushIncoming(100);
-
 	while (num--) {
 		// Construct and send ping packet.
 		uint16_t len = pingPacket(buffer);

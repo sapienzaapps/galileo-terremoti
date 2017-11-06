@@ -28,17 +28,13 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "MQTT_Subscribe.h"
 #include "../Log.h"
 #include "../Utils.h"
 #include "Tcp.h"
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
-
-#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_STM32_FEATHER)
-#define strncpy_P(dest, src, len) strncpy((dest), (src), (len))
-#define strncasecmp_P(f1, f2, len) strncasecmp((f1), (f2), (len))
-#endif
 
 // Use 3 (MQTT 3.0) or 4 (MQTT 3.1.1)
 #define MQTT_PROTOCOL_LEVEL 4
@@ -85,23 +81,8 @@
 // how many subscriptions we want to be able to track
 #define MAXSUBSCRIPTIONS 5
 
-// how much data we save in a subscription object
-// eg max-subscription-payload-size
-#define SUBSCRIPTIONDATALEN 100
-
 // How long to delay waiting for new data to be available in readPacket.
 #define MQTT_CLIENT_READINTERVAL_MS 10
-
-//Function pointer that returns an int
-typedef void (*SubscribeCallbackUInt32Type)(uint32_t);
-
-// returns a double
-typedef void (*SubscribeCallbackDoubleType)(double);
-
-// returns a chunk of raw data
-typedef void (*SubscribeCallbackBufferType)(char *str, uint16_t len);
-
-class MQTT_Subscribe;  // forward decl
 
 class MQTT {
 public:
@@ -129,14 +110,6 @@ public:
 	// error.
 	int8_t connect();
 
-	int8_t connect(const char *user, const char *pass);
-
-	// Return a printable string version of the error code returned by
-	// connect(). This returns a __FlashStringHelper*, which points to a
-	// string stored in flash, but can be directly passed to e.g.
-	// Serial.println without any further processing.
-	const char *connectErrorString(int8_t code);
-
 	// Sends MQTT disconnect packet and calls disconnectServer()
 	bool disconnect();
 
@@ -150,8 +123,6 @@ public:
 
 	// Publish a message to a topic using the specified QoS level.  Returns true
 	// if the message was published, false otherwise.
-	bool publish(const char *topic, const char *payload, uint8_t qos = 0);
-
 	bool publish(const char *topic, uint8_t *payload, uint16_t bLen, uint8_t qos = 0);
 
 	// Add a subscription to receive messages for a topic.  Returns true if the
@@ -168,8 +139,6 @@ public:
 	// in the sketch's loop function to ensure new messages are recevied.  Note
 	// that subscribe should be called first for each topic that receives messages!
 	MQTT_Subscribe *readSubscription(uint16_t timeout = 0);
-
-	void processPackets(int16_t timeout);
 
 	// Ping the server to ensure the connection is still alive.
 	bool ping(uint8_t n = 1);
@@ -207,8 +176,6 @@ private:
 
 	MQTT_Subscribe *subscriptions[MAXSUBSCRIPTIONS];
 
-	void flushIncoming(uint16_t timeout);
-
 	// Functions to generate MQTT packets.
 	uint16_t connectPacket(uint8_t *packet);
 
@@ -224,9 +191,6 @@ private:
 
 	uint16_t pubackPacket(uint8_t *packet, uint16_t packetid);
 };
-
-#include "MQTT_Subscribe.h"
-#include "MQTT_Publish.h"
 
 
 #endif
