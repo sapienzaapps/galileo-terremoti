@@ -32,8 +32,6 @@
 #include "../Utils.h"
 #include "Tcp.h"
 
-#define DEBUG_PRINTBUFFER printBuffer
-
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -41,10 +39,6 @@
 #define strncpy_P(dest, src, len) strncpy((dest), (src), (len))
 #define strncasecmp_P(f1, f2, len) strncasecmp((f1), (f2), (len))
 #endif
-
-#define ADAFRUIT_MQTT_VERSION_MAJOR 0
-#define ADAFRUIT_MQTT_VERSION_MINOR 17
-#define ADAFRUIT_MQTT_VERSION_PATCH 0
 
 // Use 3 (MQTT 3.0) or 4 (MQTT 3.1.1)
 #define MQTT_PROTOCOL_LEVEL 4
@@ -98,8 +92,6 @@
 // How long to delay waiting for new data to be available in readPacket.
 #define MQTT_CLIENT_READINTERVAL_MS 10
 
-class IO_MQTT;   // forward decl
-
 //Function pointer that returns an int
 typedef void (*SubscribeCallbackUInt32Type)(uint32_t);
 
@@ -108,11 +100,6 @@ typedef void (*SubscribeCallbackDoubleType)(double);
 
 // returns a chunk of raw data
 typedef void (*SubscribeCallbackBufferType)(char *str, uint16_t len);
-
-// returns an io data wrapper instance
-typedef void (IO_MQTT::*SubscribeCallbackIOType)(char *str, uint16_t len);
-
-extern void printBuffer(uint8_t *buffer, uint16_t len);
 
 class MQTT_Subscribe;  // forward decl
 
@@ -180,7 +167,7 @@ public:
 	// an MQTT_Subscribe object which has a new message.  Should be called
 	// in the sketch's loop function to ensure new messages are recevied.  Note
 	// that subscribe should be called first for each topic that receives messages!
-	MQTT_Subscribe *readSubscription(int16_t timeout = 0);
+	MQTT_Subscribe *readSubscription(uint16_t timeout = 0);
 
 	void processPackets(int16_t timeout);
 
@@ -223,75 +210,23 @@ private:
 	void flushIncoming(uint16_t timeout);
 
 	// Functions to generate MQTT packets.
-	uint8_t connectPacket(uint8_t *packet);
+	uint16_t connectPacket(uint8_t *packet);
 
-	uint8_t disconnectPacket(uint8_t *packet);
+	uint16_t disconnectPacket(uint8_t *packet);
 
 	uint16_t publishPacket(uint8_t *packet, const char *topic, uint8_t *payload, uint16_t bLen, uint8_t qos);
 
-	uint8_t subscribePacket(uint8_t *packet, const char *topic, uint8_t qos);
+	uint16_t subscribePacket(uint8_t *packet, const char *topic, uint8_t qos);
 
-	uint8_t unsubscribePacket(uint8_t *packet, const char *topic);
+	uint16_t unsubscribePacket(uint8_t *packet, const char *topic);
 
-	uint8_t pingPacket(uint8_t *packet);
+	uint16_t pingPacket(uint8_t *packet);
 
-	uint8_t pubackPacket(uint8_t *packet, uint16_t packetid);
+	uint16_t pubackPacket(uint8_t *packet, uint16_t packetid);
 };
 
-
-class MQTT_Publish {
-public:
-	MQTT_Publish(MQTT *mqttserver, const char *feed, uint8_t qos = 0);
-
-	bool publish(const char *s);
-
-	bool publish(double f, uint8_t precision = 2);  // Precision controls the minimum number of digits after decimal.
-	// This might be ignored and a higher precision value sent.
-	bool publish(int32_t i);
-
-	bool publish(uint32_t i);
-
-	bool publish(uint8_t *b, uint16_t bLen);
-
-
-private:
-	MQTT *mqtt;
-	const char *topic;
-	uint8_t qos;
-};
-
-class MQTT_Subscribe {
-public:
-	MQTT_Subscribe(MQTT *mqttserver, const char *feedname, uint8_t q = 0);
-
-	void setCallback(SubscribeCallbackUInt32Type callb);
-
-	void setCallback(SubscribeCallbackDoubleType callb);
-
-	void setCallback(SubscribeCallbackBufferType callb);
-
-	void setCallback(IO_MQTT *io, SubscribeCallbackIOType callb);
-
-	void removeCallback(void);
-
-	const char *topic;
-	uint8_t qos;
-
-	uint8_t lastread[SUBSCRIPTIONDATALEN];
-	// Number valid bytes in lastread. Limited to SUBSCRIPTIONDATALEN-1 to
-	// ensure nul terminating lastread.
-	uint16_t datalen;
-
-	SubscribeCallbackUInt32Type callback_uint32t;
-	SubscribeCallbackDoubleType callback_double;
-	SubscribeCallbackBufferType callback_buffer;
-	SubscribeCallbackIOType callback_io;
-
-	IO_MQTT *io_mqtt;
-
-private:
-	MQTT *mqtt;
-};
+#include "MQTT_Subscribe.h"
+#include "MQTT_Publish.h"
 
 
 #endif

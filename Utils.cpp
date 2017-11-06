@@ -358,3 +358,34 @@ char* Utils::ltoa(long N, char *str, int base) {
 	memcpy(head, ++tail, i);
 	return str;
 }
+
+
+uint8_t* Utils::binprint(uint8_t *p, byte *s, uint16_t len) {
+	p[0] = len >> 8;
+	p++;
+	p[0] = len & 0xFF;
+	p++;
+	memcpy(p, s, len);
+	return p + len;
+}
+
+uint8_t* Utils::stringprint(uint8_t *p, const char *s, uint16_t maxlen) {
+	// If maxlen is specified (has a non-zero value) then use it as the maximum
+	// length of the source string to write to the buffer.  Otherwise write
+	// the entire source string.
+	uint16_t len = strlen(s);
+	if (maxlen > 0 && len > maxlen) {
+		len = maxlen;
+	}
+	/*
+	for (uint8_t i=0; i<len; i++) {
+	  Serial.write(pgm_read_byte(s+i));
+	}
+	*/
+	p[0] = len >> 8;
+	p++;
+	p[0] = len & 0xFF;
+	p++;
+	strncpy((char *) p, s, len);
+	return p + len;
+}

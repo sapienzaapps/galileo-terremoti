@@ -163,6 +163,10 @@ public:
 	static std::string toString(int d);
 
 	static char* ltoa(long N, char *str, int base);
+
+	static uint8_t *binprint(uint8_t *p, byte *s, uint16_t len = 0);
+
+	static uint8_t *stringprint(uint8_t *p, const char *s, uint16_t maxlen = 0);
 };
 
 #endif //GALILEO_TERREMOTI_UTILS_H

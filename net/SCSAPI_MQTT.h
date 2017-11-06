@@ -9,7 +9,7 @@
 #include <map>
 #include "Tcp.h"
 #include "../Seismometer.h"
-#include "mqtt.h"
+#include "MQTT.h"
 #include "SCSAPI.h"
 
 #define API_KEEPALIVE   1

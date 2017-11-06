@@ -69,16 +69,16 @@ public:
 	 */
 	static void freeHTTPResponse(HTTPResponse *resp);
 
+	static int getLine(Tcp c, uint8_t *buffer, size_t maxsize, int toRead);
+
+	static int getLine(Tcp c, uint8_t *buffer, size_t maxsize);
+
 private:
 	static pthread_t sendCrashReportThread;
 
 	static size_t hostFromURL(const char *url, char *hostname, unsigned short *port);
 
 	static unsigned short getResponseCode(char *line);
-
-	static int getLine(Tcp c, uint8_t *buffer, size_t maxsize, int toRead);
-
-	static int getLine(Tcp c, uint8_t *buffer, size_t maxsize);
 };
 
 #endif

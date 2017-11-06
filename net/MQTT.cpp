@@ -22,93 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "mqtt.h"
-
-#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAMD_MKR1000)
-static char *dtostrf (double val, signed char width, unsigned char prec, char *sout) {
-  char fmt[20];
-  sprintf(fmt, "%%%d.%df", width, prec);
-  sprintf(sout, fmt, val);
-  return sout;
-}
-#endif
-
-#if defined(ESP8266)
-int strncasecmp(const char * str1, const char * str2, int len) {
-	int d = 0;
-	while(len--) {
-		int c1 = tolower(*str1++);
-		int c2 = tolower(*str2++);
-		if(((d = c1 - c2) != 0) || (c2 == '\0')) {
-	  return d;
-		}
-	}
-	return 0;
-}
-#endif
-
-
-void printBuffer(uint8_t *buffer, uint16_t len) {
-	std::string buf;
-	buf.append("\t");
-	for (uint16_t i = 0; i < len; i++) {
-		if (isprint(buffer[i])) {
-			buf += buffer[i];
-		} else {
-			buf.append(" ");
-		}
-		buf.append(" [0x");
-		if (buffer[i] < 0x10) {
-			buf.append("0");
-		}
-		buf.append("%x", buffer[i]);
-		buf.append("], ");
-		if (i % 8 == 7) {
-			buf.append("\n\t");
-		}
-	}
-	Log::d("");
-}
-
-/* Not used now, but might be useful in the future
-static uint8_t *stringprint(uint8_t *p, char *s) {
-  uint16_t len = strlen(s);
-  p[0] = len >> 8; p++;
-  p[0] = len & 0xFF; p++;
-  memmove(p, s, len);
-  return p+len;
-}
-*/
-
-static uint8_t *binprint(uint8_t *p, byte *s, uint16_t len = 0) {
-	p[0] = len >> 8;
-	p++;
-	p[0] = len & 0xFF;
-	p++;
-	memcpy(p, s, len);
-	return p + len;
-}
-
-static uint8_t *stringprint(uint8_t *p, const char *s, uint16_t maxlen = 0) {
-	// If maxlen is specified (has a non-zero value) then use it as the maximum
-	// length of the source string to write to the buffer.  Otherwise write
-	// the entire source string.
-	uint16_t len = strlen(s);
-	if (maxlen > 0 && len > maxlen) {
-		len = maxlen;
-	}
-	/*
-	for (uint8_t i=0; i<len; i++) {
-	  Serial.write(pgm_read_byte(s+i));
-	}
-	*/
-	p[0] = len >> 8;
-	p++;
-	p[0] = len & 0xFF;
-	p++;
-	strncpy((char *) p, s, len);
-	return p + len;
-}
+#include "MQTT.h"
 
 
 // MQTT Definition ////////////////////////////////////////////////////
@@ -167,7 +81,7 @@ int8_t MQTT::connect() {
 		return -1;
 
 	// Construct and send connect packet.
-	uint8_t len = connectPacket(buffer);
+	uint16_t len = connectPacket(buffer);
 	if (!sendPacket(buffer, len))
 		return -1;
 
@@ -186,9 +100,9 @@ int8_t MQTT::connect() {
 		if (subscriptions[i] == 0) continue;
 
 		bool success = false;
-		for (uint8_t retry = 0; (retry < 3) && !success; retry++) { // retry until we get a suback
+		for (uint8_t retry = 0; retry < 3; retry++) { // retry until we get a suback
 			// Construct and send subscription packet.
-			uint8_t len = subscribePacket(buffer, subscriptions[i]->topic, subscriptions[i]->qos);
+			len = subscribePacket(buffer, subscriptions[i]->topic, subscriptions[i]->qos);
 			if (!sendPacket(buffer, len))
 				return -1;
 
@@ -222,11 +136,9 @@ uint16_t MQTT::processPacketsUntil(uint8_t *buffer, uint8_t waitforpackettype, u
 	uint16_t len;
 	while ((len = readFullPacket(buffer, MAXBUFFERSIZE, timeout))) {
 
-		//Log::d("Packet read size: "); Log::d(len);
 		// TODO: add subscription reading & call back processing here
 
 		if ((buffer[0] >> 4) == waitforpackettype) {
-			//Log::d("Found right packet");
 			return len;
 		} else {
 			Log::e("Dropped a packet");
@@ -238,15 +150,12 @@ uint16_t MQTT::processPacketsUntil(uint8_t *buffer, uint8_t waitforpackettype, u
 uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeout) {
 	// will read a packet and Do The Right Thing with length
 	uint8_t *pbuff = buffer;
-
-	uint8_t rlen;
+	uint16_t rlen;
 
 	// read the packet type:
 	rlen = readPacket(pbuff, 1, timeout);
 	if (rlen != 1) return 0;
 
-//	Log::d("Packet Type:\t");
-//	DEBUG_PRINTBUFFER(pbuff, rlen);
 	pbuff++;
 
 	uint32_t value = 0;
@@ -258,7 +167,7 @@ uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeou
 		if (rlen != 1) return 0;
 		encodedByte = pbuff[0]; // save the last read val
 		pbuff++; // get ready for reading the next byte
-		uint32_t intermediate = encodedByte & 0x7F;
+		uint32_t intermediate = (uint32_t)(encodedByte & 0x7F);
 		intermediate *= multiplier;
 		value += intermediate;
 		multiplier *= 128;
@@ -272,13 +181,12 @@ uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeou
 
 	if (value > (maxsize - (pbuff - buffer) - 1)) {
 		Log::e("Packet too big for buffer");
-		rlen = readPacket(pbuff, (maxsize - (pbuff - buffer) - 1), timeout);
+		rlen = readPacket(pbuff, (uint16_t)(maxsize - (pbuff - buffer) - 1), timeout);
 	} else {
-		rlen = readPacket(pbuff, value, timeout);
+		rlen = readPacket(pbuff, (uint16_t)value, timeout);
 	}
-	//Log::d("Remaining packet:\t"); DEBUG_PRINTBUFFER(pbuff, rlen);
 
-	return ((pbuff - buffer) + rlen);
+	return (uint16_t)((pbuff - buffer) + rlen);
 }
 
 const char *MQTT::connectErrorString(int8_t code) {
@@ -309,7 +217,7 @@ const char *MQTT::connectErrorString(int8_t code) {
 bool MQTT::disconnect() {
 
 	// Construct and send disconnect packet.
-	uint8_t len = disconnectPacket(buffer);
+	uint16_t len = disconnectPacket(buffer);
 	if (!sendPacket(buffer, len))
 		Log::e("Unable to send disconnect packet");
 
@@ -319,7 +227,7 @@ bool MQTT::disconnect() {
 
 
 bool MQTT::publish(const char *topic, const char *data, uint8_t qos) {
-	return publish(topic, (uint8_t *) (data), strlen(data), qos);
+	return publish(topic, (uint8_t *) (data), (uint16_t)strlen(data), qos);
 }
 
 bool MQTT::publish(const char *topic, uint8_t *data, uint16_t bLen, uint8_t qos) {
@@ -331,8 +239,6 @@ bool MQTT::publish(const char *topic, uint8_t *data, uint16_t bLen, uint8_t qos)
 	// If QOS level is high enough verify the response packet.
 	if (qos > 0) {
 		len = readFullPacket(buffer, MAXBUFFERSIZE, PUBLISH_TIMEOUT_MS);
-//		Log::d("Publish QOS1+ reply:\t");
-//		DEBUG_PRINTBUFFER(buffer, len);
 		if (len != 4)
 			return false;
 		if ((buffer[0] >> 4) != MQTT_CTRL_PUBACK)
@@ -393,13 +299,10 @@ bool MQTT::unsubscribe(MQTT_Subscribe *sub) {
 
 	// see if we are already subscribed
 	for (i = 0; i < MAXSUBSCRIPTIONS; i++) {
-
 		if (subscriptions[i] == sub) {
-
 			Log::d("Found matching subscription and attempting to unsubscribe.");
-
 			// Construct and send unsubscribe packet.
-			uint8_t len = unsubscribePacket(buffer, subscriptions[i]->topic);
+			uint16_t len = unsubscribePacket(buffer, subscriptions[i]->topic);
 
 			// sending unsubscribe failed
 			if (!sendPacket(buffer, len))
@@ -411,8 +314,6 @@ bool MQTT::unsubscribe(MQTT_Subscribe *sub) {
 
 				// wait for UNSUBACK
 				len = readFullPacket(buffer, MAXBUFFERSIZE, CONNECT_TIMEOUT_MS);
-//				Log::d("UNSUBACK:\t");
-//				DEBUG_PRINTBUFFER(buffer, len);
 
 				if ((len != 5) || (buffer[0] != (MQTT_CTRL_UNSUBACK << 4))) {
 					return false;  // failure to unsubscribe
@@ -422,41 +323,35 @@ bool MQTT::unsubscribe(MQTT_Subscribe *sub) {
 			subscriptions[i] = 0;
 			return true;
 		}
-
 	}
 
 	// subscription not found, so we are unsubscribed
 	return true;
-
 }
 
 void MQTT::processPackets(int16_t timeout) {
 	uint32_t elapsed = 0, endtime, starttime = Utils::millis();
 
 	while (elapsed < (uint32_t) timeout) {
-		MQTT_Subscribe *sub = readSubscription(timeout - elapsed);
+		MQTT_Subscribe *sub = readSubscription((uint16_t)(timeout - elapsed));
 		if (sub) {
 			//Serial.println("**** sub packet received");
 			if (sub->callback_uint32t != NULL) {
 				// huh lets do the callback in integer mode
 				uint32_t data = 0;
-				data = atoi((char *) sub->lastread);
-				//Serial.print("*** calling int callback with : "); Serial.println(data);
+				data = (uint32_t)atoi((char *) sub->lastread);
 				sub->callback_uint32t(data);
 			} else if (sub->callback_double != NULL) {
 				// huh lets do the callback in doublefloat mode
 				double data = 0;
 				data = atof((char *) sub->lastread);
-				//Serial.print("*** calling double callback with : "); Serial.println(data);
 				sub->callback_double(data);
 			} else if (sub->callback_buffer != NULL) {
 				// huh lets do the callback in buffer mode
-				//Serial.print("*** calling buffer callback with : "); Serial.println((char *)sub->lastread);
 				sub->callback_buffer((char *) sub->lastread, sub->datalen);
-			} else if (sub->callback_io != NULL) {
-				// huh lets do the callback in io mode
-				//Serial.print("*** calling io instance callback with : "); Serial.println((char *)sub->lastread);
-				((sub->io_mqtt)->*(sub->callback_io))((char *) sub->lastread, sub->datalen);
+//			} else if (sub->callback_io != NULL) {
+//				// huh lets do the callback in io mode
+//				((sub->io_mqtt)->*(sub->callback_io))((char *) sub->lastread, sub->datalen);
 			}
 		}
 
@@ -469,7 +364,7 @@ void MQTT::processPackets(int16_t timeout) {
 	}
 }
 
-MQTT_Subscribe *MQTT::readSubscription(int16_t timeout) {
+MQTT_Subscribe *MQTT::readSubscription(uint16_t timeout) {
 	uint16_t i, topiclen, datalen;
 
 	// Check if data is available to read.
@@ -477,7 +372,6 @@ MQTT_Subscribe *MQTT::readSubscription(int16_t timeout) {
 	if (!len)
 		return NULL;  // No data available, just quit.
 	Log::d("Packet len: %d", len);
-//	DEBUG_PRINTBUFFER(buffer, len);
 
 	// Parse out length of packet.
 	topiclen = buffer[3];
@@ -520,29 +414,29 @@ MQTT_Subscribe *MQTT::readSubscription(int16_t timeout) {
 		packetid = buffer[topiclen + 4];
 		packetid <<= 8;
 		packetid |= buffer[topiclen + 5];
+	} else {
+		return NULL;
 	}
 
 	// zero out the old data
 	memset(subscriptions[i]->lastread, 0, SUBSCRIPTIONDATALEN);
 
-	datalen = len - topiclen - packet_id_len - 4;
+	datalen = (uint16_t)(len - topiclen - packet_id_len - 4);
 	if (datalen > SUBSCRIPTIONDATALEN) {
 		datalen = SUBSCRIPTIONDATALEN - 1; // cut it off
 	}
 	// extract out just the data, into the subscription object itself
 	memmove(subscriptions[i]->lastread, buffer + 4 + topiclen + packet_id_len, datalen);
 	subscriptions[i]->datalen = datalen;
-//	Log::d("Data len: %d", datalen);
-//	Log::d("Data: ");
-//	Log::d((char *) subscriptions[i]->lastread);
 
 	if ((MQTT_PROTOCOL_LEVEL > 3) && (buffer[0] & 0x6) == 0x2) {
 		uint8_t ackpacket[4];
 
 		// Construct and send puback packet.
-		uint8_t len = pubackPacket(ackpacket, packetid);
-		if (!sendPacket(ackpacket, len))
+		len = pubackPacket(ackpacket, packetid);
+		if (!sendPacket(ackpacket, len)) {
 			Log::e("Read Failed");
+		}
 	}
 
 	// return the valid matching subscription
@@ -560,16 +454,16 @@ bool MQTT::ping(uint8_t num) {
 
 	while (num--) {
 		// Construct and send ping packet.
-		uint8_t len = pingPacket(buffer);
+		uint16_t len = pingPacket(buffer);
 		if (!sendPacket(buffer, len))
 			continue;
 
 		// Process ping reply.
-		len = processPacketsUntil(buffer, MQTT_CTRL_PINGRESP, PING_TIMEOUT_MS);
-		if (buffer[0] == (MQTT_CTRL_PINGRESP << 4))
+		processPacketsUntil(buffer, MQTT_CTRL_PINGRESP, PING_TIMEOUT_MS);
+		if (buffer[0] == (MQTT_CTRL_PINGRESP << 4)) {
 			return true;
+		}
 	}
-
 	return false;
 }
 
@@ -580,7 +474,7 @@ bool MQTT::ping(uint8_t num) {
 // However this connect packet and code follows the MQTT 3.1 spec here (some
 // small differences in the protocol):
 //   http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html#connect
-uint8_t MQTT::connectPacket(uint8_t *packet) {
+uint16_t MQTT::connectPacket(uint8_t *packet) {
 	uint8_t *p = packet;
 	uint16_t len;
 
@@ -592,7 +486,7 @@ uint8_t MQTT::connectPacket(uint8_t *packet) {
 #if MQTT_PROTOCOL_LEVEL == 3
 	p = stringprint(p, "MQIsdp");
 #elif MQTT_PROTOCOL_LEVEL == 4
-	p = stringprint(p, "MQTT");
+	p = Utils::stringprint(p, "MQTT");
 #else
 #error "MQTT level not supported"
 #endif
@@ -630,10 +524,10 @@ uint8_t MQTT::connectPacket(uint8_t *packet) {
 	p++;
 
 	if (MQTT_PROTOCOL_LEVEL == 3) {
-		p = stringprint(p, clientid, 23);  // Limit client ID to first 23 characters.
+		p = Utils::stringprint(p, clientid, 23);  // Limit client ID to first 23 characters.
 	} else {
 		if (clientid[0] != 0) {
-			p = stringprint(p, clientid);
+			p = Utils::stringprint(p, clientid);
 		} else {
 			p[0] = 0x0;
 			p++;
@@ -644,22 +538,20 @@ uint8_t MQTT::connectPacket(uint8_t *packet) {
 	}
 
 	if (will_topic && will_topic[0] != 0) {
-		p = stringprint(p, will_topic);
-		p = binprint(p, will_payload);
+		p = Utils::stringprint(p, will_topic);
+		p = Utils::binprint(p, will_payload);
 	}
 
 	if (username[0] != 0) {
-		p = stringprint(p, username);
+		p = Utils::stringprint(p, username);
 	}
 	if (password[0] != 0) {
-		p = stringprint(p, password);
+		p = Utils::stringprint(p, password);
 	}
 
-	len = p - packet;
+	len = (uint16_t)(p - packet);
 
-	packet[1] = len - 2;  // don't include the 2 bytes of fixed header data
-//	Log::d("MQTT connect packet:");
-//	DEBUG_PRINTBUFFER(buffer, len);
+	packet[1] = (uint8_t)(len - 2);  // don't include the 2 bytes of fixed header data
 	return len;
 }
 
@@ -679,12 +571,12 @@ uint16_t MQTT::publishPacket(uint8_t *packet, const char *topic,
 	len += bLen; // payload length
 
 	// Now you can start generating the packet!
-	p[0] = MQTT_CTRL_PUBLISH << 4 | qos << 1;
+	p[0] = (uint8_t)(MQTT_CTRL_PUBLISH << 4 | qos << 1);
 	p++;
 
 	// fill in packet[1] last
 	do {
-		uint8_t encodedByte = len % 128;
+		uint8_t encodedByte = (uint8_t)(len % 128);
 		len /= 128;
 		// if there are more data to encode, set the top bit of this byte
 		if (len > 0) {
@@ -695,12 +587,12 @@ uint16_t MQTT::publishPacket(uint8_t *packet, const char *topic,
 	} while (len > 0);
 
 	// topic comes before packet identifier
-	p = stringprint(p, topic);
+	p = Utils::stringprint(p, topic);
 
 	// add packet identifier. used for checking PUBACK in QOS > 0
 	if (qos > 0) {
-		p[0] = (packet_id_counter >> 8) & 0xFF;
-		p[1] = packet_id_counter & 0xFF;
+		p[0] = (uint8_t)((packet_id_counter >> 8) & 0xFF);
+		p[1] = (uint8_t)(packet_id_counter & 0xFF);
 		p += 2;
 
 		// increment the packet id
@@ -709,13 +601,11 @@ uint16_t MQTT::publishPacket(uint8_t *packet, const char *topic,
 
 	memmove(p, data, bLen);
 	p += bLen;
-	len = p - packet;
-//	Log::d("MQTT publish packet:");
-//	DEBUG_PRINTBUFFER(buffer, len);
+	len = (uint16_t)(p - packet);
 	return len;
 }
 
-uint8_t MQTT::subscribePacket(uint8_t *packet, const char *topic,
+uint16_t MQTT::subscribePacket(uint8_t *packet, const char *topic,
 							  uint8_t qos) {
 	uint8_t *p = packet;
 	uint16_t len;
@@ -725,27 +615,25 @@ uint8_t MQTT::subscribePacket(uint8_t *packet, const char *topic,
 	p += 2;
 
 	// packet identifier. used for checking SUBACK
-	p[0] = (packet_id_counter >> 8) & 0xFF;
-	p[1] = packet_id_counter & 0xFF;
+	p[0] = (uint8_t)((packet_id_counter >> 8) & 0xFF);
+	p[1] = (uint8_t)(packet_id_counter & 0xFF);
 	p += 2;
 
 	// increment the packet id
 	packet_id_counter++;
 
-	p = stringprint(p, topic);
+	p = Utils::stringprint(p, topic);
 
 	p[0] = qos;
 	p++;
 
-	len = p - packet;
-	packet[1] = len - 2; // don't include the 2 bytes of fixed header data
-//	Log::d("MQTT subscription packet:");
-//	DEBUG_PRINTBUFFER(buffer, len);
+	len = (uint16_t)(p - packet);
+	packet[1] = (uint8_t)(len - 2); // don't include the 2 bytes of fixed header data
 	return len;
 }
 
 
-uint8_t MQTT::unsubscribePacket(uint8_t *packet, const char *topic) {
+uint16_t MQTT::unsubscribePacket(uint8_t *packet, const char *topic) {
 
 	uint8_t *p = packet;
 	uint16_t len;
@@ -755,128 +643,40 @@ uint8_t MQTT::unsubscribePacket(uint8_t *packet, const char *topic) {
 	p += 2;
 
 	// packet identifier. used for checking UNSUBACK
-	p[0] = (packet_id_counter >> 8) & 0xFF;
-	p[1] = packet_id_counter & 0xFF;
+	p[0] = (uint8_t)((packet_id_counter >> 8) & 0xFF);
+	p[1] = (uint8_t)(packet_id_counter & 0xFF);
 	p += 2;
 
 	// increment the packet id
 	packet_id_counter++;
 
-	p = stringprint(p, topic);
+	p = Utils::stringprint(p, topic);
 
-	len = p - packet;
-	packet[1] = len - 2; // don't include the 2 bytes of fixed header data
-//	Log::d("MQTT unsubscription packet:");
-//	DEBUG_PRINTBUFFER(buffer, len);
+	len = (uint16_t)(p - packet);
+	packet[1] = (uint8_t)(len - 2); // don't include the 2 bytes of fixed header data
 	return len;
 
 }
 
-uint8_t MQTT::pingPacket(uint8_t *packet) {
+uint16_t MQTT::pingPacket(uint8_t *packet) {
 	packet[0] = MQTT_CTRL_PINGREQ << 4;
 	packet[1] = 0;
-//	Log::d("MQTT ping packet:");
-//	DEBUG_PRINTBUFFER(buffer, 2);
 	return 2;
 }
 
-uint8_t MQTT::pubackPacket(uint8_t *packet, uint16_t packetid) {
+uint16_t MQTT::pubackPacket(uint8_t *packet, uint16_t packetid) {
 	packet[0] = MQTT_CTRL_PUBACK << 4;
 	packet[1] = 2;
-	packet[2] = packetid >> 8;
-	packet[3] = packetid;
-//	Log::d("MQTT puback packet:");
-//	DEBUG_PRINTBUFFER(buffer, 4);
+	packet[2] = (uint8_t)(packetid >> 8);
+	packet[3] = (uint8_t)packetid;
 	return 4;
 }
 
-uint8_t MQTT::disconnectPacket(uint8_t *packet) {
+uint16_t MQTT::disconnectPacket(uint8_t *packet) {
 	packet[0] = MQTT_CTRL_DISCONNECT << 4;
 	packet[1] = 0;
-//	Log::d("MQTT disconnect packet:");
-//	DEBUG_PRINTBUFFER(buffer, 2);
 	return 2;
 }
-
-// MQTT_Publish Definition ////////////////////////////////////////////
-
-MQTT_Publish::MQTT_Publish(MQTT *mqttserver,
-						   const char *feed, uint8_t q) {
-	mqtt = mqttserver;
-	topic = feed;
-	qos = q;
-}
-
-bool MQTT_Publish::publish(int32_t i) {
-	char payload[12];
-	Utils::ltoa(i, payload, 10);
-	return mqtt->publish(topic, payload, qos);
-}
-
-/*
-bool MQTT_Publish::publish(uint32_t i) {
-    char payload[11];
-    ultoa(i, payload, 10);
-    return mqtt->publish(topic, payload, qos);
-}
-
-bool MQTT_Publish::publish(double f, uint8_t precision) {
-    char payload[41];  // Need to technically hold float max, 39 digits and minus sign.
-    dtostrf(f, 0, precision, payload);
-    return mqtt->publish(topic, payload, qos);
-}*/
-
-bool MQTT_Publish::publish(const char *payload) {
-	return mqtt->publish(topic, payload, qos);
-}
-
-//publish buffer of arbitrary length
-bool MQTT_Publish::publish(uint8_t *payload, uint16_t bLen) {
-
-	return mqtt->publish(topic, payload, bLen, qos);
-}
-
-
-// MQTT_Subscribe Definition //////////////////////////////////////////
-
-MQTT_Subscribe::MQTT_Subscribe(MQTT *mqttserver,
-							   const char *feed, uint8_t q) {
-	mqtt = mqttserver;
-	topic = feed;
-	qos = q;
-	datalen = 0;
-	callback_uint32t = 0;
-	callback_buffer = 0;
-	callback_double = 0;
-	callback_io = 0;
-	io_mqtt = 0;
-}
-
-void MQTT_Subscribe::setCallback(SubscribeCallbackUInt32Type cb) {
-	callback_uint32t = cb;
-}
-
-void MQTT_Subscribe::setCallback(SubscribeCallbackDoubleType cb) {
-	callback_double = cb;
-}
-
-void MQTT_Subscribe::setCallback(SubscribeCallbackBufferType cb) {
-	callback_buffer = cb;
-}
-
-void MQTT_Subscribe::setCallback(IO_MQTT *io, SubscribeCallbackIOType cb) {
-	callback_io = cb;
-	io_mqtt = io;
-}
-
-void MQTT_Subscribe::removeCallback(void) {
-	callback_uint32t = 0;
-	callback_buffer = 0;
-	callback_double = 0;
-	callback_io = 0;
-	io_mqtt = 0;
-}
-
 
 bool MQTT::connectServer() {
 	client = new Tcp();
@@ -911,9 +711,7 @@ uint16_t MQTT::readPacket(uint8_t *buffer, uint16_t maxlen,
 	int16_t t = timeout;
 
 	while (client->connected() && (timeout >= 0)) {
-		//DEBUG_PRINT('.');
 		while (client->available()) {
-			//DEBUG_PRINT('!');
 			int c = client->readchar();
 			if (c >= 0) {
 				timeout = t;  // reset the timeout
