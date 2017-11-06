@@ -876,3 +876,84 @@ void MQTT_Subscribe::removeCallback(void) {
 	callback_io = 0;
 	io_mqtt = 0;
 }
+
+
+bool MQTT::connectServer() {
+	client = new Tcp();
+
+	Log::d("Connecting to: %s", servername);
+
+	// Connect and check for success (0 result).
+	int r = client->connectTo(servername, portnum);
+	Log::d("Connect result: %d", r);
+	return r != 0;
+}
+
+bool MQTT::disconnectServer() {
+	// Stop connection if connected and return success (stop has no indication of
+	// failure).
+	if (client->connected()) {
+		client->stop();
+	}
+	client = NULL;
+	return true;
+}
+
+bool MQTT::connected() {
+	// Return true if connected, false if not connected.
+	return client != NULL && client->connected();
+}
+
+uint16_t MQTT::readPacket(uint8_t *buffer, uint16_t maxlen,
+								 int16_t timeout) {
+	/* Read data until either the connection is closed, or the idle timeout is reached. */
+	uint16_t len = 0;
+	int16_t t = timeout;
+
+	while (client->connected() && (timeout >= 0)) {
+		//DEBUG_PRINT('.');
+		while (client->available()) {
+			//DEBUG_PRINT('!');
+			int c = client->readchar();
+			if (c >= 0) {
+				timeout = t;  // reset the timeout
+				buffer[len] = (uint8_t) c;
+				//Log::d((uint8_t)c, HEX);
+				len++;
+				if (len == maxlen) {  // we read all we want, bail
+					// Log::d("Read data:\t");
+					// DEBUG_PRINTBUFFER(buffer, len);
+					return len;
+				}
+			}
+		}
+		timeout -= MQTT_CLIENT_READINTERVAL_MS;
+		Utils::delay(MQTT_CLIENT_READINTERVAL_MS);
+	}
+	return len;
+}
+
+bool MQTT::sendPacket(uint8_t *buffer, uint16_t len) {
+	ssize_t ret = 0;
+
+	while (len > 0) {
+		if (client->connected()) {
+			// send 250 bytes at most at a time, can adjust this later based on Client
+
+			uint16_t sendlen = (uint16_t)min(len, 250);
+			//Serial.print("Sending: "); Serial.println(sendlen);
+			ret = client->send(buffer, sendlen);
+			Log::d("Client sendPacket returned: %d", ret);
+			len -= ret;
+
+			if (ret != sendlen) {
+				Log::e("Failed to send packet.");
+				return false;
+			}
+		} else {
+			Log::e("Connection failed!");
+			return false;
+		}
+	}
+	return true;
+}

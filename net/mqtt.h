@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include "../Log.h"
 #include "../Utils.h"
+#include "Tcp.h"
 
 #define DEBUG_PRINTBUFFER printBuffer
 
@@ -94,6 +95,9 @@
 // eg max-subscription-payload-size
 #define SUBSCRIPTIONDATALEN 100
 
+// How long to delay waiting for new data to be available in readPacket.
+#define MQTT_CLIENT_READINTERVAL_MS 10
+
 class IO_MQTT;   // forward decl
 
 //Function pointer that returns an int
@@ -125,8 +129,6 @@ public:
 		 const char *user = "",
 		 const char *pass = "");
 
-	virtual ~MQTT() {}
-
 	// Connect to the MQTT server.  Returns 0 on success, otherwise an error code
 	// that indicates something went wrong:
 	//   -1 = Error connecting to server
@@ -152,7 +154,7 @@ public:
 	bool disconnect();
 
 	// Return true if connected to the MQTT server, otherwise false.
-	virtual bool connected() = 0;  // Subclasses need to fill this in!
+	bool connected();  // Subclasses need to fill this in!
 
 	// Set MQTT last will topic, payload, QOS, and retain. This needs
 	// to be called before connect() because it is sent as part of the
@@ -185,22 +187,17 @@ public:
 	// Ping the server to ensure the connection is still alive.
 	bool ping(uint8_t n = 1);
 
-protected:
+	bool connectServer();
+
+	bool disconnectServer();
+
+	uint16_t readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout);
+
+	bool sendPacket(uint8_t *buffer, uint16_t len);
+
+private:
+	Tcp *client = NULL;
 	// Interface that subclasses need to implement:
-
-	// Connect to the server and return true if successful, false otherwise.
-	virtual bool connectServer() = 0;
-
-	// Disconnect from the MQTT server.  Returns true if disconnected, false otherwise.
-	virtual bool disconnectServer() = 0;  // Subclasses need to fill this in!
-
-	// Send data to the server specified by the buffer and length of data.
-	virtual bool sendPacket(uint8_t *buffer, uint16_t len) = 0;
-
-	// Read MQTT packet from the server.  Will read up to maxlen bytes and store
-	// the data in the provided buffer.  Waits up to the specified timeout (in
-	// milliseconds) for data to be available.
-	virtual uint16_t readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout) = 0;
 
 	// Read a full packet, keeping note of the correct length
 	uint16_t readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeout);
@@ -221,7 +218,6 @@ protected:
 	uint8_t buffer[MAXBUFFERSIZE];  // one buffer, used for all incoming/outgoing
 	uint16_t packet_id_counter;
 
-private:
 	MQTT_Subscribe *subscriptions[MAXSUBSCRIPTIONS];
 
 	void flushIncoming(uint16_t timeout);

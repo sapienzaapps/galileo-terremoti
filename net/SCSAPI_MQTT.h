@@ -9,7 +9,7 @@
 #include <map>
 #include "Tcp.h"
 #include "../Seismometer.h"
-#include "mqttclient.h"
+#include "mqtt.h"
 #include "SCSAPI.h"
 
 #define API_KEEPALIVE   1
@@ -57,7 +57,7 @@ public:
 
 private:
 
-	MQTT_Client *mqtt;
+	MQTT *mqtt;
 	MQTT_Subscribe *mydev;
 	byte buffer[MAXBUFFERSIZE];
 	char *clientid;

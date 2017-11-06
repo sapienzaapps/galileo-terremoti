@@ -22,7 +22,7 @@ bool SCSAPI_MQTT::init() {
 		memset(clientid, 0, clientidlen);
 
 		strncpy(clientid, Config::getMacAddress().c_str(), Config::getMacAddress().length());
-		mqtt = new MQTT_Client(MQTT_SERVER, MQTT_PORT, clientid, "embedded", "embedded");
+		mqtt = new MQTT(MQTT_SERVER, MQTT_PORT, clientid, "embedded", "embedded");
 	}
 	std::string subtopic("device-");
 	subtopic.append(Config::getMacAddress());
