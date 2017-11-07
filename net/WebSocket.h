@@ -8,21 +8,21 @@
 #include "Tcp.h"
 #include "../common.h"
 
-class WebSocket {
+class WebSocket : public DataStream {
 public:
 	WebSocket(std::string hostname, uint16_t port, std::string path);
 
-	bool connect();
+	bool doConnect();
 
-	bool connected();
+	bool isConnected();
 
-	bool available();
+	bool available() override;
 
 	ssize_t send(void* buf, size_t size);
 
-	int readMessage(byte** msg);
+	ssize_t receive(void* buf, size_t maxsize);
 
-	void disconnect();
+	void stop();
 
 private:
 	std::string hostname;

@@ -9,6 +9,7 @@
 #include "../Log.h"
 #include "../Utils.h"
 #include "HTTPClient.h"
+#include "MQTT.h"
 
 WebSocket::WebSocket(std::string hostname, uint16_t port, std::string path) {
 	this->hostname = hostname;
@@ -17,7 +18,7 @@ WebSocket::WebSocket(std::string hostname, uint16_t port, std::string path) {
 	this->tcp = NULL;
 }
 
-void WebSocket::disconnect() {
+void WebSocket::stop() {
 	if (this->tcp != NULL) {
 		this->tcp->stop();
 		delete this->tcp;
@@ -25,11 +26,11 @@ void WebSocket::disconnect() {
 	}
 }
 
-bool WebSocket::connect() {
-	this->disconnect();
+bool WebSocket::doConnect() {
+	this->stop();
 
-	this->tcp = new Tcp();
-	if (!this->tcp->connectTo(this->hostname, this->port)) {
+	this->tcp = new Tcp(this->hostname, this->port);
+	if (!this->tcp->doConnect()) {
 		return false;
 	}
 
@@ -54,7 +55,7 @@ bool WebSocket::connect() {
 	this->tcp->print("Host: ");
 	this->tcp->print(this->hostname.c_str());
 	this->tcp->print(":");
-	this->tcp->println(std::to_string(this->port).c_str());
+	this->tcp->println(Utils::toString(this->port).c_str());
 	this->tcp->print("Sec-WebSocket-Key: ");
 	this->tcp->println(base64Encode(keyStart).c_str());
 	this->tcp->println("Sec-WebSocket-Protocol: http");
@@ -89,17 +90,18 @@ bool WebSocket::connect() {
 			return true;
 		} else {
 			Log::e("MQTT-HTTP malformed reply");
-			this->disconnect();
+			this->stop();
 			return false;
 		}
 	} else {
 		Log::e("MQTT-HTTP request timeout");
-		this->disconnect();
+		this->stop();
 		return false;
 	}
 }
 
-int WebSocket::readMessage(byte** msg) {
+ssize_t WebSocket::receive(void* buf1, size_t maxsize) {
+	byte* buf = (byte*)buf1;
 	if (tcp->available()) {
 		uint16_t control;
 		if (tcp->readall((uint8_t*)&control, 2) < 0) {
@@ -127,10 +129,15 @@ int WebSocket::readMessage(byte** msg) {
 		if (hasmask) {
 			tcp->readall(mask, 4);
 		}
-		*msg = (byte*)malloc(length);
-		tcp->readall(*msg, length);
+		int maxlen = min(maxsize, length);
+		tcp->readall(buf, length);
 		for(i = 0; i < length; i++) {
-			(*msg)[i] = (*msg)[i] ^ mask[i % 4];
+			buf[i] = buf[i] ^ mask[i % 4];
+		}
+		// Trash remaining bytes
+		byte trashcan = 0;
+		for (i = maxlen; i < length; i++) {
+			tcp->readall(&trashcan, 1);
 		}
 		switch (opcode) {
 			case 0:
@@ -146,7 +153,6 @@ int WebSocket::readMessage(byte** msg) {
 				break;
 			case 8: // Connection close
 			default:
-				free(*msg);
 				return -1;
 		}
 		return length;
@@ -154,8 +160,8 @@ int WebSocket::readMessage(byte** msg) {
 	return -1;
 }
 
-bool WebSocket::connected() {
-	return tcp->connected();
+bool WebSocket::isConnected() {
+	return tcp->isConnected();
 }
 
 bool WebSocket::available() {
@@ -171,7 +177,7 @@ ssize_t WebSocket::send(void *buf, size_t size) {
 	byte *pkt = (byte*) malloc(size + 4 + 4);
 	uint32_t mask = (uint32_t)rand();
 	uint16_t len = htons(size);
-	int i;
+	unsigned int i;
 
 	pkt[0] = 0x82;
 	pkt[1] = 0x80 | len;

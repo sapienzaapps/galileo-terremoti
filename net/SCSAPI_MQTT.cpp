@@ -22,14 +22,13 @@ bool SCSAPI_MQTT::init() {
 		memset(clientid, 0, clientidlen);
 
 		strncpy(clientid, Config::getMacAddress().c_str(), Config::getMacAddress().length());
-		mqtt = new MQTT(MQTT_SERVER, MQTT_PORT, clientid, "embedded", "embedded");
+		mqtt = new MQTT(MQTT_SERVER, MQTT_PORT, clientid, "embedded", "embedded", MQTT_WEBSOCKET_PATH);
 	}
 	std::string subtopic("device-");
 	subtopic.append(Config::getMacAddress());
 	personalTopic = (char*)malloc(subtopic.length() * sizeof(char) + 1);
 	memset(personalTopic, 0, subtopic.length() * sizeof(char) + 1);
 	strncpy(personalTopic, subtopic.c_str(), subtopic.length());
-
 
 	memset(buffer, 0, MAXBUFFERSIZE);
 	byte j = 0;

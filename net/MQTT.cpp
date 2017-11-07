@@ -23,6 +23,7 @@
 // SOFTWARE.
 
 #include "MQTT.h"
+#include "WebSocket.h"
 
 
 // MQTT Definition ////////////////////////////////////////////////////
@@ -31,12 +32,14 @@ MQTT::MQTT(const char *server,
 		   uint16_t port,
 		   const char *cid,
 		   const char *user,
-		   const char *pass) {
+		   const char *pass,
+		   const char *wspath) {
 	servername = server;
 	portnum = port;
 	clientid = cid;
 	username = user;
 	password = pass;
+	this->wspath = wspath;
 
 	// reset subscriptions
 	for (uint8_t i = 0; i < MAXSUBSCRIPTIONS; i++) {
@@ -48,37 +51,21 @@ MQTT::MQTT(const char *server,
 	will_retain = 0;
 
 	packet_id_counter = 0;
-
-}
-
-
-MQTT::MQTT(const char *server,
-		   uint16_t port,
-		   const char *user,
-		   const char *pass) {
-	servername = server;
-	portnum = port;
-	clientid = "";
-	username = user;
-	password = pass;
-
-	// reset subscriptions
-	for (uint8_t i = 0; i < MAXSUBSCRIPTIONS; i++) {
-		subscriptions[i] = 0;
-	}
-
-	will_topic = 0;
-	will_qos = 0;
-	will_retain = 0;
-
-	packet_id_counter = 0;
-
 }
 
 int8_t MQTT::connect() {
 	// Connect to the server.
-	if (!connectServer())
-		return -1;
+	if (!connectServer()) {
+		// Retry with HTTP
+		if (this->wspath != NULL && strlen(this->wspath) > 0) {
+			Log::i("MQTT connection failed, retrying with MQTT-over-WebSocket");
+			if (!connectServerViaHTTP()) {
+				return -1;
+			}
+		} else {
+			return -1;
+		}
+	}
 
 	// Construct and send connect packet.
 	uint16_t len = connectPacket(buffer);
@@ -129,13 +116,12 @@ int8_t MQTT::connect() {
 uint16_t MQTT::processPacketsUntil(uint8_t *buffer, uint8_t waitforpackettype, uint16_t timeout) {
 	uint16_t len;
 	while ((len = readFullPacket(buffer, MAXBUFFERSIZE, timeout))) {
-
 		// TODO: add subscription reading & call back processing here
 
 		if ((buffer[0] >> 4) == waitforpackettype) {
 			return len;
 		} else {
-			Log::e("Dropped a packet");
+			Log::e("Packet dropped (wrong type %d expected %d)", (buffer[0] >> 4), waitforpackettype);
 		}
 	}
 	return 0;
@@ -172,6 +158,9 @@ uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeou
 	} while (encodedByte & 0x80);
 
 	Log::d("Packet Length: %d", value);
+	if (value == 0) {
+		return 0;
+	}
 
 	if (value > (maxsize - (pbuff - buffer) - 1)) {
 		Log::e("Packet too big for buffer");
@@ -184,6 +173,7 @@ uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeou
 }
 
 bool MQTT::disconnect() {
+	if (this->client == NULL) return true;
 
 	// Construct and send disconnect packet.
 	uint16_t len = disconnectPacket(buffer);
@@ -600,20 +590,37 @@ uint16_t MQTT::disconnectPacket(uint8_t *packet) {
 }
 
 bool MQTT::connectServer() {
-	client = new Tcp();
+	this->disconnect();
+	client = new Tcp(servername, portnum);
 
 	Log::d("Connecting to: %s", servername);
 
 	// Connect and check for success (0 result).
-	int r = client->connectTo(servername, portnum);
+	int r = client->doConnect();
+	Log::d("Connect result: %d", r);
+	return r != 0;
+}
+
+bool MQTT::connectServerViaHTTP() {
+	if (wspath == NULL || strlen(wspath) == 0) return false;
+	this->disconnect();
+	client = new WebSocket(servername, portnum, wspath);
+
+	Log::d("Connecting to: %s", servername);
+
+	// Connect and check for success (0 result).
+	int r = client->doConnect();
 	Log::d("Connect result: %d", r);
 	return r != 0;
 }
 
 bool MQTT::disconnectServer() {
+	if (client == NULL) {
+		return true;
+	}
 	// Stop connection if connected and return success (stop has no indication of
 	// failure).
-	if (client->connected()) {
+	if (client->isConnected()) {
 		client->stop();
 	}
 	client = NULL;
@@ -622,7 +629,7 @@ bool MQTT::disconnectServer() {
 
 bool MQTT::connected() {
 	// Return true if connected, false if not connected.
-	return client != NULL && client->connected();
+	return client != NULL && client->isConnected();
 }
 
 uint16_t MQTT::readPacket(uint8_t *buffer, uint16_t maxlen,
@@ -631,7 +638,7 @@ uint16_t MQTT::readPacket(uint8_t *buffer, uint16_t maxlen,
 	uint16_t len = 0;
 	int16_t t = timeout;
 
-	while (client->connected() && (timeout >= 0)) {
+	while (client->isConnected() && (timeout >= 0)) {
 		while (client->available()) {
 			int c = client->readchar();
 			if (c >= 0) {
@@ -653,10 +660,11 @@ uint16_t MQTT::readPacket(uint8_t *buffer, uint16_t maxlen,
 }
 
 bool MQTT::sendPacket(uint8_t *buffer, uint16_t len) {
+	if (client == NULL) return false;
 	ssize_t ret = 0;
 
 	while (len > 0) {
-		if (client->connected()) {
+		if (client->isConnected()) {
 			// send 250 bytes at most at a time, can adjust this later based on Client
 
 			uint16_t sendlen = (uint16_t)min(len, 250);

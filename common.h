@@ -36,10 +36,11 @@ typedef struct {
 } RECORD;
 
 #ifndef DEBUG_SERVER
-#define MQTT_SERVER  "mqtt.seismocloud.com"
-#define MQTT_PORT    1883
-#define HTTP_HOST    "mqtt.seismocloud.com"
-#define HTTP_PATH    "/"
+#define MQTT_SERVER           "mqtt.seismocloud.com"
+#define MQTT_PORT             1883
+#define MQTT_WEBSOCKET_PATH   "/ws"
+#define HTTP_HOST             "mqtt.seismocloud.com"
+#define HTTP_PATH             "/"
 #else
 #define MQTT_SERVER  "10.10.10.1"
 #define MQTT_PORT    1883

@@ -65,7 +65,6 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
 									  std::map<std::string, std::string> postValues) {
 	HTTPResponse *resp = new HTTPResponse();
 
-	Tcp client;
 	char serverName[100];
 	unsigned short serverPort = 80;
 	size_t pathOffset = 0;
@@ -75,8 +74,9 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
 	} else {
 		pathOffset = hostFromURL(URL.c_str(), serverName, &serverPort);
 	}
+	Tcp client(std::string(serverName), serverPort);
 
-	if (client.connectTo(std::string(serverName), serverPort)) {
+	if (client.doConnect()) {
 		Log::d("Connect to server OK");
 		char linebuf[1024];
 
@@ -180,7 +180,7 @@ HTTPResponse *HTTPClient::httpRequest(HTTPMethod method, std::string URL,
 	Log::d("Stopping tcp client");
 	client.stop();
 	// TODO: better handling?
-	while (client.connected()) {
+	while (client.isConnected()) {
 		client.stop();
 	}
 	return resp;
@@ -202,12 +202,12 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 
 	HTTPResponse *resp = new HTTPResponse();
 
-	Tcp client;
 	char serverName[100];
 	unsigned short serverPort = 80;
 	size_t pathOffset = hostFromURL(URL.c_str(), serverName, &serverPort);
 
-	if (client.connectTo(std::string(serverName), serverPort)) {
+	Tcp client(std::string(serverName), serverPort);
+	if (client.doConnect()) {
 		Log::d("Connect to server OK");
 		char linebuf[1024];
 
@@ -293,7 +293,7 @@ HTTPResponse *HTTPClient::httpPostFile(std::string URL, std::string file) {
 	Log::d("Stopping tcp client");
 	client.stop();
 	// TODO: better handling?
-	while (client.connected()) {
+	while (client.isConnected()) {
 		client.stop();
 	}
 	return resp;

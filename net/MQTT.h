@@ -90,12 +90,8 @@ public:
 		 uint16_t port,
 		 const char *cid,
 		 const char *user,
-		 const char *pass);
-
-	MQTT(const char *server,
-		 uint16_t port,
-		 const char *user = "",
-		 const char *pass = "");
+		 const char *pass,
+		 const char *wspath = "");
 
 	// Connect to the MQTT server.  Returns 0 on success, otherwise an error code
 	// that indicates something went wrong:
@@ -143,6 +139,8 @@ public:
 	// Ping the server to ensure the connection is still alive.
 	bool ping(uint8_t n = 1);
 
+	bool connectServerViaHTTP();
+
 	bool connectServer();
 
 	bool disconnectServer();
@@ -152,7 +150,7 @@ public:
 	bool sendPacket(uint8_t *buffer, uint16_t len);
 
 private:
-	Tcp *client = NULL;
+	DataStream *client = NULL;
 	// Interface that subclasses need to implement:
 
 	// Read a full packet, keeping note of the correct length
@@ -167,6 +165,7 @@ private:
 	const char *clientid;
 	const char *username;
 	const char *password;
+	const char *wspath;
 	const char *will_topic;
 	uint8_t will_payload[MAXBUFFERSIZE];
 	uint8_t will_qos;

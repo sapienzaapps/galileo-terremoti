@@ -78,7 +78,11 @@ set(SOURCE_FILES
 		base64.cpp
 		base64.h
 		net/WebSocket.h
-		net/WebSocket.cpp net/MQTT_Subscribe.cpp net/MQTT_Subscribe.h net/MQTT_Publish.cpp net/MQTT_Publish.h)
+		net/WebSocket.cpp
+		net/MQTT_Subscribe.cpp
+		net/MQTT_Subscribe.h
+		net/DataStream.cpp
+		net/DataStream.h)
 
 add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
 #target_compile_options(galileo_gen1 PUBLIC "-DGALILEO_GEN=1")
