@@ -55,32 +55,46 @@ MQTT::MQTT(const char *server,
 
 int8_t MQTT::connect() {
 	// Connect to the server.
+	Log::i("Connecting to MQTT server: %s port %d", this->servername, this->portnum);
 	if (!connectServer()) {
 		// Retry with HTTP
 		if (this->wspath != NULL && strlen(this->wspath) > 0) {
 			Log::i("MQTT connection failed, retrying with MQTT-over-WebSocket");
 			if (!connectServerViaHTTP()) {
+				Log::e("MQTT-HTTP failed");
 				return -1;
 			}
 		} else {
+			Log::e("MQTT connection failed");
 			return -1;
 		}
 	}
 
+	Log::d("Connected, sending Connect-Command packet");
 	// Construct and send connect packet.
 	uint16_t len = connectPacket(buffer);
-	if (!sendPacket(buffer, len))
+	if (!sendPacket(buffer, len)) {
+		Log::e("Connect-Command send failed");
 		return -1;
+	}
 
+	Log::d("Waiting for Connect-Ack response");
 	// Read connect response packet and verify it
 	len = readFullPacket(buffer, MAXBUFFERSIZE, CONNECT_TIMEOUT_MS);
-	if (len != 4)
+	if (len != 4) {
+		Log::e("Invalid Connect-Ack response (invalid length)");
 		return -1;
-	if ((buffer[0] != (MQTT_CTRL_CONNECTACK << 4)) || (buffer[1] != 2))
+	}
+	if ((buffer[0] != (MQTT_CTRL_CONNECTACK << 4)) || (buffer[1] != 2)) {
+		Log::e("Invalid ACK received (probably a NAK)");
 		return -1;
-	if (buffer[3] != 0)
+	}
+	if (buffer[3] != 0) {
+		// ??
 		return buffer[3];
+	}
 
+	Log::i("Setting up subscriptions");
 	// Setup subscriptions once connected.
 	for (uint8_t i = 0; i < MAXSUBSCRIPTIONS; i++) {
 		// Ignore subscriptions that aren't defined.
@@ -89,9 +103,12 @@ int8_t MQTT::connect() {
 		bool success = false;
 		for (uint8_t retry = 0; retry < 3; retry++) { // retry until we get a suback
 			// Construct and send subscription packet.
+			Log::d("Subscribing %s (QoS %d)", subscriptions[i]->topic, subscriptions[i]->qos);
 			len = subscribePacket(buffer, subscriptions[i]->topic, subscriptions[i]->qos);
-			if (!sendPacket(buffer, len))
+			if (!sendPacket(buffer, len)) {
+				Log::d("Subscribing packet send failed");
 				return -1;
+			}
 
 			if (MQTT_PROTOCOL_LEVEL < 3) // older versions didn't suback
 				break;
@@ -100,16 +117,19 @@ int8_t MQTT::connect() {
 			// TODO: The Server is permitted to start sending PUBLISH packets matching the
 			// Subscription before the Server sends the SUBACK Packet. (will really need to use callbacks - ada)
 
-			//Serial.println("\t**looking for suback");
+			Log::d("Waiting for Subcription ACK");
 			if (processPacketsUntil(buffer, MQTT_CTRL_SUBACK, SUBACK_TIMEOUT_MS)) {
+				Log::d("Sub-ACK received");
 				success = true;
 				break;
 			}
-			//Serial.println("\t**failed, retrying!");
+			Log::e("Sub-ACK Timeout, Subscription Failed");
 		}
-		if (!success) return -2; // failed to sub for some reason
+		if (!success) {
+			return -2;
+		}
 	}
-
+	Log::i("Subscription completed");
 	return 0;
 }
 
@@ -134,7 +154,9 @@ uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeou
 
 	// read the packet type:
 	rlen = readPacket(pbuff, 1, timeout);
-	if (rlen != 1) return 0;
+	if (rlen != 1) {
+		return 0;
+	}
 
 	pbuff++;
 
@@ -144,7 +166,9 @@ uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeou
 
 	do {
 		rlen = readPacket(pbuff, 1, timeout);
-		if (rlen != 1) return 0;
+		if (rlen != 1) {
+			return 0;
+		}
 		encodedByte = pbuff[0]; // save the last read val
 		pbuff++; // get ready for reading the next byte
 		uint32_t intermediate = (uint32_t)(encodedByte & 0x7F);
@@ -152,12 +176,12 @@ uint16_t MQTT::readFullPacket(uint8_t *buffer, uint16_t maxsize, uint16_t timeou
 		value += intermediate;
 		multiplier *= 128;
 		if (multiplier > (128UL * 128UL * 128UL)) {
-			Log::i("Malformed packet len");
+			Log::i("Malformed packet length");
 			return 0;
 		}
 	} while (encodedByte & 0x80);
 
-	Log::d("Packet Length: %d", value);
+	Log::d("Received packet length: %d", value);
 	if (value == 0) {
 		return 0;
 	}
@@ -177,8 +201,9 @@ bool MQTT::disconnect() {
 
 	// Construct and send disconnect packet.
 	uint16_t len = disconnectPacket(buffer);
-	if (!sendPacket(buffer, len))
+	if (!sendPacket(buffer, len)) {
 		Log::e("Unable to send disconnect packet");
+	}
 
 	return disconnectServer();
 
@@ -187,8 +212,9 @@ bool MQTT::disconnect() {
 bool MQTT::publish(const char *topic, uint8_t *data, uint16_t bLen, uint8_t qos) {
 	// Construct and send publish packet.
 	uint16_t len = publishPacket(buffer, topic, data, bLen, qos);
-	if (!sendPacket(buffer, len))
+	if (!sendPacket(buffer, len)) {
 		return false;
+	}
 
 	// If QOS level is high enough verify the response packet.
 	if (qos > 0) {
@@ -644,11 +670,8 @@ uint16_t MQTT::readPacket(uint8_t *buffer, uint16_t maxlen,
 			if (c >= 0) {
 				timeout = t;  // reset the timeout
 				buffer[len] = (uint8_t) c;
-				//Log::d((uint8_t)c, HEX);
 				len++;
 				if (len == maxlen) {  // we read all we want, bail
-					// Log::d("Read data:\t");
-					// DEBUG_PRINTBUFFER(buffer, len);
 					return len;
 				}
 			}

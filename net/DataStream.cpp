@@ -3,6 +3,7 @@
 //
 
 #include "DataStream.h"
+#include "../common.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -13,7 +14,7 @@
 #include <string>
 
 int DataStream::readchar() {
-	char buf;
+	byte buf;
 	ssize_t r = this->receive(&buf, 1);
 	if(r > 0) {
 		return buf;
