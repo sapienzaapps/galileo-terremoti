@@ -655,6 +655,7 @@ bool MQTT::disconnectServer() {
 	if (client->isConnected()) {
 		client->stop();
 	}
+	delete client;
 	client = NULL;
 	return true;
 }
@@ -712,4 +713,8 @@ bool MQTT::sendPacket(uint8_t *buffer, uint16_t len) {
 		}
 	}
 	return true;
+}
+
+MQTT::~MQTT() {
+	this->disconnect();
 }

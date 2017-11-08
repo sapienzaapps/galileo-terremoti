@@ -93,6 +93,8 @@ public:
 		 const char *pass,
 		 const char *wspath = "");
 
+	~MQTT();
+
 	// Connect to the MQTT server.  Returns 0 on success, otherwise an error code
 	// that indicates something went wrong:
 	//   -1 = Error connecting to server
