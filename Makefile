@@ -34,6 +34,8 @@ STOREDFLAGS := $(shell cat ${BUILDOPTFILE} 2>/dev/null)
 SOURCES := $(MODULES:%=%.cpp)
 OBJECTS := $(MODULES:%=${OBJDIR}/%.o)
 
+ci: all
+
 ifeq (${STOREDFLAGS}, ${MAINFLAGS})
 all: createdir vendor net ${OUTDIR}/sketch.elf
 else

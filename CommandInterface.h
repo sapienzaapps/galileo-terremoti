@@ -18,6 +18,7 @@ typedef enum {
 
 typedef struct _PACKET {
 	PacketType type;
+    // My IP Address
 	IPaddr source;
 	uint32_t uptime;
 } PACKET;
@@ -35,8 +36,15 @@ public:
 	static bool commandInterfaceInit();
 
 private:
+    /**
+     * Read packet and populate the structure
+     * Returns: true if the packet is valid, false otherwise
+     */
 	static bool readPacket(PACKET *);
 
+    /**
+     * Send the packet to the network
+     */
 	static void sendPacket(PACKET);
 
 	static Udp cmdc;

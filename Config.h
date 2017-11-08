@@ -91,11 +91,26 @@ public:
 	static bool parseServerConfig(std::string cfg);
 
 private:
+    /**
+     * Load default values for config
+     */
 	static void loadDefault();
+
+    /**
+     * Read the config file
+     */
 	static bool readConfigFile(const char *filepath);
+
+    /**
+     * Functions used to parse the config string from server (deprecated)
+     */
 	static std::map<std::string, std::string> &configSplit(const std::string &s, char delim, std::map<std::string, std::string> &elems);
 	static std::map<std::string, std::string> configSplit(const std::string &s, char delim);
-	static void file_put_contents(const char* path, std::string content);
+
+    /**
+     * Function used to save file
+     */
+    static void file_put_contents(const char* path, std::string content);
 
 	static std::string macAddress;
 	static uint32_t syslogServer;

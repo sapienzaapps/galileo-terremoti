@@ -16,6 +16,7 @@
 #include "generic.h"
 #include "net/SCSAPI_MQTT.h"
 #include "net/SCSAPI_HTTP.h"
+#include "net/HTTPClient.h"
 
 #ifndef NOWATCHDOG
 
@@ -23,9 +24,17 @@
 
 #endif
 
+// Seismometer instance
 Seismometer *seismometer;
 SCSAPI *scsapi;
 bool networkConnected = false;
+
+/**
+ * In some platforms there is no support to multiprocess/multithread, so the
+ * "trick" is to execute a loop() function in-loop and measure the time passed
+ * from last execution.
+ * These variables are the last timestamp of execution
+ */
 unsigned long netLastMs = 0;
 unsigned long ntpLastMs = 0;
 unsigned long cfgLastMs = 0;
@@ -45,6 +54,9 @@ void handleNetworkError(bool cstatus);
 
 #ifdef DEBUG
 
+/**
+ * Crash handler (debug-only) - for post-mortem debug
+ */
 void crashHandler(int sig) {
 	void *array[10];
 
@@ -70,14 +82,20 @@ void crashHandler(int sig) {
 
 #endif
 
+/**
+ * Entry point
+ */
 int main(int argc, char **argv) {
+    // Vendor init (for example, Galileo platform needs to execute some syscalls before the sketch)
 	vendor_init(argc, argv);
 
 #ifdef DEBUG
 	if (argc > 1 && strcmp("--valgrind", argv[1]) == 0) {
+        // Valgrind dummy configuration
 		valgrindMs = Utils::millis();
 		Config::setMacAddress("000000000000");
 	} else if (argc > 1 && strcmp("--raw", argv[1]) == 0) {
+        // Raw dumper
 		Accelerometer *accel = getAccelerometer();
 
 #pragma clang diagnostic push
