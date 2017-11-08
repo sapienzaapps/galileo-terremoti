@@ -636,7 +636,7 @@ bool MQTT::connectServer() {
 bool MQTT::connectServerViaHTTP() {
 	if (wspath == NULL || strlen(wspath) == 0) return false;
 	this->disconnect();
-	client = new WebSocket(servername, portnum, wspath);
+	client = new WebSocket(servername, 80, wspath);
 
 	Log::d("Connecting to: %s", servername);
 

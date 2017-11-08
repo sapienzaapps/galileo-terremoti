@@ -174,18 +174,18 @@ ssize_t WebSocket::send(void *buf, size_t size) {
 
 	byte *cbuf = (byte*)buf;
 	// Size + headers + mask key
-	byte *pkt = (byte*) malloc(size + 4 + 4);
+	byte *pkt = (byte*) malloc(size + 2 + 4);
 	uint32_t mask = (uint32_t)rand();
-	uint16_t len = htons(size);
+	uint8_t len = (uint8_t)size;
 	unsigned int i;
 
 	pkt[0] = 0x82;
-	pkt[1] = 0x80 | len;
+	pkt[1] = (uint8_t)0x80 | len;
 	memcpy(pkt+2, &mask, 4);
 	for(i = 0; i < size; i++) {
 		pkt[6 + i] = cbuf[i] ^ pkt[2 + (i % 4)];
 	}
-	ssize_t r = tcp->send(pkt, size + 4 + 4);
+	ssize_t r = tcp->send(pkt, size + 2 + 4);
 	free(pkt);
-	return r;
+	return r > 6 ? r - 6 : -1;
 }

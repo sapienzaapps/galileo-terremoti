@@ -42,10 +42,11 @@ typedef struct {
 #define HTTP_HOST             "mqtt.seismocloud.com"
 #define HTTP_PATH             "/"
 #else
-#define MQTT_SERVER  "10.10.10.1"
-#define MQTT_PORT    1883
-#define HTTP_HOST    "10.10.10.1"
-#define HTTP_PATH    "/"
+#define MQTT_SERVER           "scsrabbitmq-mqtt-ws-seismocloud.193b.starter-ca-central-1.openshiftapps.com"
+#define MQTT_PORT             1883
+#define MQTT_WEBSOCKET_PATH   "/ws"
+#define HTTP_HOST             "10.10.10.1"
+#define HTTP_PATH             "/"
 #endif
 
 #define HTTP_BASE    std::string("http://") + HTTP_HOST + HTTP_PATH
