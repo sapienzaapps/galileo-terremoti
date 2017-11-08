@@ -189,6 +189,7 @@ void setup() {
 			platformReboot();
 		}
 	}
+	ntpLastMs = Utils::millis();
 	Log::i("Time sync'ed");
 
 	Log::i("Starting UDP local command interface");

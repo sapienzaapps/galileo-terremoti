@@ -314,8 +314,9 @@ MQTT_Subscribe *MQTT::readSubscription(uint16_t timeout) {
 
 	// Check if data is available to read.
 	uint16_t len = readFullPacket(buffer, MAXBUFFERSIZE, timeout); // return one full packet
-	if (!len)
-		return NULL;  // No data available, just quit.
+	if (!len) {
+		return NULL;
+	}  // No data available, just quit.
 	Log::d("Packet len: %d", len);
 
 	// Parse out length of packet.
@@ -352,14 +353,18 @@ MQTT_Subscribe *MQTT::readSubscription(uint16_t timeout) {
 	} // matching sub not found ???
 
 	uint8_t packet_id_len = 0;
-	uint16_t packetid;
-	// Check if it is QoS 1, TODO: we dont support QoS 2
+	uint16_t packetid = 0;
+	// Check if it is QoS 1, TODO: we dont support QoS 2 or 0
 	if ((buffer[0] & 0x6) == 0x2) {
 		packet_id_len = 2;
 		packetid = buffer[topiclen + 4];
 		packetid <<= 8;
 		packetid |= buffer[topiclen + 5];
+		Log::d("QoS 1, packet ID: 0x%x%x", buffer[topiclen + 4], buffer[topiclen + 5]);
+	} else if ((buffer[0] & 0x6) == 0x0) {
+		Log::d("QoS 0");
 	} else {
+		Log::d("Wrong QoS: %d", (buffer[0] & 0x6));
 		return NULL;
 	}
 
@@ -375,12 +380,13 @@ MQTT_Subscribe *MQTT::readSubscription(uint16_t timeout) {
 	subscriptions[i]->datalen = datalen;
 
 	if ((MQTT_PROTOCOL_LEVEL > 3) && (buffer[0] & 0x6) == 0x2) {
+		Log::d("Sending ACK for current received packet");
 		uint8_t ackpacket[4];
 
 		// Construct and send puback packet.
 		len = pubackPacket(ackpacket, packetid);
 		if (!sendPacket(ackpacket, len)) {
-			Log::e("Read Failed");
+			Log::e("ACK send failed");
 		}
 	}
 
