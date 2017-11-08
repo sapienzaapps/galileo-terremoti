@@ -128,6 +128,7 @@ void Config::init() {
 
 void Config::loadDefault() {
 	macAddress = Utils::getInterfaceMAC();
+	Config::save();
 }
 
 bool Config::parseServerConfig(std::string cfg) {
