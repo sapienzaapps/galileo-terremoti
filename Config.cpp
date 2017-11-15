@@ -111,10 +111,30 @@ void Config::save() {
 	}
 
 	char buf[200 + 1];
-	memset(buf, 0, 200 + 1);
 
+	memset(buf, 0, 200 + 1);
 	snprintf(buf, 200, "deviceid:%s\n", Config::macAddress.c_str());
 	fwrite(buf, 1, strlen(buf), fp);
+
+	if (Config::hasProxyServer()) {
+		memset(buf, 0, 200 + 1);
+		snprintf(buf, 200, "proxyserver:%s\n", Config::getProxyServer().c_str());
+		fwrite(buf, 1, strlen(buf), fp);
+
+		memset(buf, 0, 200 + 1);
+		snprintf(buf, 200, "proxyport:%d\n", Config::getProxyPort());
+		fwrite(buf, 1, strlen(buf), fp);
+
+		if (Config::isProxyAuthenticated()) {
+			memset(buf, 0, 200 + 1);
+			snprintf(buf, 200, "proxyuser:%s\n", Config::getProxyUser().c_str());
+			fwrite(buf, 1, strlen(buf), fp);
+
+			memset(buf, 0, 200 + 1);
+			snprintf(buf, 200, "proxypass:%s\n", Config::getProxyPass().c_str());
+			fwrite(buf, 1, strlen(buf), fp);
+		}
+	}
 
 	fclose(fp);
 }
