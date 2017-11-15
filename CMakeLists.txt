@@ -24,8 +24,6 @@ set(SOURCE_FILES
 		Log.cpp
 		Config.cpp
         net/HTTPClient.cpp
-		net/NetworkManager.cpp
-		net/NetworkManager.h
 		LED.h
 		Seismometer.cpp
 		Seismometer.h
