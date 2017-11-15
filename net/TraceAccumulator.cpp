@@ -47,12 +47,12 @@ void TraceAccumulator::setTrace(bool v) {
 
 		unlink(TRACEACCUMULATOR_FILE);
 	} else if (v && traceFile == NULL) {
-		if (unlink(TRACEACCUMULATOR_FILE) !== 0) {
+		if (unlink(TRACEACCUMULATOR_FILE) != 0) {
 			Log::e("Cannot open trace file");
 			return;
 		}
 		traceFile = fopen(TRACEACCUMULATOR_FILE, "w");
-		if (tracefile != NULL) {
+		if (traceFile != NULL) {
 			traceStartedAt = getUNIXTime();
 			char head[3];
 			head[0] = 1; // Version
