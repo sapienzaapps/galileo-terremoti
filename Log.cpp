@@ -38,14 +38,20 @@ void Log::setLogFile(const char *filepath) {
 	if(Utils::fileExists(filepath)) {
 		std::string oldlog = filepath;
 		oldlog.append(".old");
-		unlink(oldlog.c_str());
-		rename(filepath, oldlog.c_str());
+		if (unlink(oldlog.c_str()) != 0) {
+			fprintf(stderr, "Error rotating log files: cannot cleanup oldest log\n");
+			return;
+		}
+		if (rename(filepath, oldlog.c_str()) != 0) {
+			fprintf(stderr, "Error rotating log files: cannot rename current log\n");
+			return;
+		}
 	}
 
 	Log::logFilePath = std::string(filepath);
 	Log::logFile = fopen(Log::logFilePath.c_str(), "w");
 	if (Log::logFile == NULL) {
-		fprintf(stderr, "Cannot open %s", Log::logFilePath.c_str());
+		fprintf(stderr, "Cannot open %s\n", Log::logFilePath.c_str());
 		Log::logFilePath = "";
 	}
 }
