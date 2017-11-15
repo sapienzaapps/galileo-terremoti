@@ -5,8 +5,6 @@
 #ifndef GALILEO_TERREMOTI_SCSAPI_MQTT_H
 #define GALILEO_TERREMOTI_SCSAPI_MQTT_H
 
-#include <string>
-#include <map>
 #include "SCSAPI.h"
 
 class SCSAPI_LocalTest : public SCSAPI {

@@ -24,8 +24,6 @@ set(SOURCE_FILES
 		Log.cpp
 		Config.cpp
         net/HTTPClient.cpp
-		net/NetworkManager.cpp
-		net/NetworkManager.h
 		LED.h
 		Seismometer.cpp
 		Seismometer.h
@@ -82,7 +80,10 @@ set(SOURCE_FILES
 		net/MQTT_Subscribe.cpp
 		net/MQTT_Subscribe.h
 		net/DataStream.cpp
-		net/DataStream.h)
+		net/DataStream.h
+		net/SCSAPI_LocalTest.cpp
+		net/SCSAPI_LocalTest.h
+		)
 
 add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
 #target_compile_options(galileo_gen1 PUBLIC "-DGALILEO_GEN=1")
