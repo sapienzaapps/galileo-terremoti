@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/sapienzaapps/galileo-terremoti.svg?branch=master)](https://travis-ci.org/sapienzaapps/galileo-terremoti)
 
+**Intel Galileo support is dropped**, so please choose **Raspberry PI** or **NodeMCU**.
+
 # NodeMCU?
 
 To use NodeMCU boards you must use sketch at https://github.com/sapienzaapps/seismoclouddevice-nodemcu . The code here is for Intel Galileo / Raspberry only.
