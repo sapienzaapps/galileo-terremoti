@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.org/sapienzaapps/galileo-terremoti.svg?branch=master)](https://travis-ci.org/sapienzaapps/galileo-terremoti)
 
-# Arduino/Genuino?
+# NodeMCU?
 
-To use Arduino/Genuino boards you must use sketch at https://github.com/sapienzaapps/seismoclouddevice-arduino . This code is for Arduino Galileo / Raspberry only.
+To use NodeMCU boards you must use sketch at https://github.com/sapienzaapps/seismoclouddevice-nodemcu . The code here is for Intel Galileo / Raspberry only.
 
 # License
 
@@ -83,7 +83,7 @@ Loop back **3v3** pin to **SLP** on Accelerometer.
 * SDA : SDA
 * SCL : SCL
 
-Refer to Raspberry PI pinout, as https://jeffskinnerbox.files.wordpress.com/2012/11/raspberry-pi-rev-1-gpio-pin-out1.jpg 
+Refer to Raspberry PI pinout, as https://jeffskinnerbox.files.wordpress.com/2012/11/raspberry-pi-rev-1-gpio-pin-out1.jpg
 
 # Setup your build environment
 ## Cross compile for Galileo
@@ -185,4 +185,3 @@ To disable `connmand` and revert plain old `networking` script, use these comman
 
     # rm /etc/rc5.d/S05connman
     # ln -s ../init.d/networking /etc/rc5.d/S05networking
-
