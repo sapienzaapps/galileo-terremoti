@@ -1,9 +1,9 @@
-.idea/workspace.xml
-.idea/tasks.xml
+.idea/
 build/
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
+cmake-build-debug/
 .DS_Store
 doc/
 build.log
