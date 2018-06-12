@@ -7,17 +7,11 @@
 #include "DummyAccelerometer.h"
 #include "../../Log.h"
 #include "../../Utils.h"
-#ifdef SDL_DEMO
-#include "../../LCDMonitor.h"
-#endif
 
 void vendor_init(int argc, char** argv) {
 	if(argv != NULL) {
 		Log::d("vendor_init called with %i arguments", argc);
 	}
-#ifdef SDL_DEMO
-	LCDMonitor::getInstance();
-#endif
 }
 
 Accelerometer* getAccelerometer() {
@@ -52,4 +46,3 @@ unsigned long getUNIXTime() {
 	unsigned long diff = Utils::millis() - lastNTPMillis;
 	return (lastNTPTime + (diff / 1000));
 }
-

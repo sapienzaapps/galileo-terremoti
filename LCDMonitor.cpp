@@ -13,11 +13,13 @@ LCDMonitor::LCDMonitor() {
 	if(rc) {
 		Log::e("Error during SDL UI thread creation");
 	}
+	Log::i("LCD Monitor thread created");
 }
 
 LCDMonitor::~LCDMonitor() {
 	pthread_cancel(uiThread);
 	SDL_Quit();
+	Log::i("LCD Monitor quit");
 }
 
 void *LCDMonitor::uiWorker(void *mem) {
@@ -57,7 +59,7 @@ void *LCDMonitor::uiWorker(void *mem) {
 		}
 
 		float drawingval = sinf(xpos/1.5)*curval;
-		
+
 		int zoom = 10;
 
 		// Clear screen line

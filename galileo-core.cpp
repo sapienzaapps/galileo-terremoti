@@ -18,6 +18,10 @@
 #include "net/SCSAPI_HTTP.h"
 #include "net/HTTPClient.h"
 
+#ifdef SDL_DEMO
+#include "LCDMonitor.h"
+#endif
+
 #ifndef NOWATCHDOG
 
 #include "Watchdog.h"
@@ -180,6 +184,10 @@ void setup() {
 	} else {
 		Log::i("Configured MAC Address: %s", Config::getMacAddress().c_str());
 	}
+
+#ifdef SDL_DEMO
+	LCDMonitor::getInstance();
+#endif
 
 	Log::i("Init seismometer");
 	seismometer = Seismometer::getInstance();
