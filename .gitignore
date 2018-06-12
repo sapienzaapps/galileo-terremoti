@@ -15,3 +15,4 @@ debian/galileo-terremoti.*.debhelper
 debian/galileo-terremoti.*.debhelper.log
 debian/galileo-terremoti.debhelper.log
 debian/files
+cmake-build-debug/

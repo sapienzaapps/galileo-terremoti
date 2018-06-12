@@ -21,14 +21,10 @@ set(SOURCE_FILES
 		galileo-core.cpp
 		Config.h
 		Log.h
-		net/NTP.h
-		net/HTTPClient.h
+        net/HTTPClient.h
 		Log.cpp
 		Config.cpp
-		net/NTP.cpp
-		net/HTTPClient.cpp
-		net/NetworkManager.cpp
-		net/NetworkManager.h
+        net/HTTPClient.cpp
 		LED.h
 		Seismometer.cpp
 		Seismometer.h
@@ -73,7 +69,21 @@ set(SOURCE_FILES
         generic.h
 		Watchdog.cpp
         Watchdog.h
-		net/TraceAccumulator.cpp net/TraceAccumulator.h)
+		net/TraceAccumulator.cpp net/TraceAccumulator.h
+        net/MQTT.cpp net/MQTT.h
+		net/SCSAPI_MQTT.cpp
+		net/SCSAPI.h
+		net/SCSAPI_MQTT.h
+		net/SCSAPI_HTTP.cpp
+		net/SCSAPI_HTTP.h
+		base64.cpp
+		base64.h
+		net/WebSocket.h
+		net/WebSocket.cpp
+		net/MQTT_Subscribe.cpp
+		net/MQTT_Subscribe.h
+		net/DataStream.cpp
+		net/DataStream.h)
 
 add_executable(galileo_gen1 EXCLUDE_FROM_ALL ${SOURCE_FILES})
 #target_compile_options(galileo_gen1 PUBLIC "-DGALILEO_GEN=1")

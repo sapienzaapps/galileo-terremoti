@@ -24,10 +24,31 @@ typedef uint8_t byte;
 
 #define NTP_SYNC_INTERVAL            60*60*1000
 #define CHECK_NETWORK_INTERVAL       30*1000  // when to check for Internet connection availability
-#define CHECK_CONFIG_INTERVAL        15*60*1000  // when to check for Internet connection availability
+#define ALIVE_INTERVAL               15*60*1000  // Alive timeout
 #define SEISMOMETER_TICK_INTERVAL    50
 #define HTTP_RESPONSE_TIMEOUT_VALUE  10*1000
-#define NTP_RESPONSE_TIMEOUT_VALUE   5*1000
 #define WATCHDOG_TIMER               60*1000
+
+typedef struct {
+	unsigned long ts;
+	double accel;
+	bool overThreshold;
+} RECORD;
+
+#ifndef DEBUG_SERVER
+#define MQTT_SERVER           "mqtt.seismocloud.com"
+#define MQTT_PORT             1883
+#define MQTT_WEBSOCKET_PATH   "/ws"
+#define HTTP_HOST             "mqtt.seismocloud.com"
+#define HTTP_PATH             "/"
+#else
+#define MQTT_SERVER           "scsrabbitmq-mqtt-ws-seismocloud.193b.starter-ca-central-1.openshiftapps.com"
+#define MQTT_PORT             1883
+#define MQTT_WEBSOCKET_PATH   "/ws"
+#define HTTP_HOST             "10.10.10.1"
+#define HTTP_PATH             "/"
+#endif
+
+#define HTTP_BASE    std::string("http://") + HTTP_HOST + HTTP_PATH
 
 #endif //GALILEO_TERREMOTI_COMMON_H

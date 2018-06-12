@@ -7,6 +7,8 @@
 #include "../../Log.h"
 #include "../../LED.h"
 #include "../../common.h"
+#include "../../Utils.h"
+#include "../../Config.h"
 #include <Arduino.h>
 #include <trace.h>
 #include <interrupt.h>
@@ -141,13 +143,66 @@ void platformUpgrade(std::string path) {
 	FILE *fp = fopen("/sketch/update.sh", "w");
 	if(fp != NULL) {
 		memset(cmd, 0, 1024);
-		snprintf(cmd, 1023,
-				 "#!/bin/bash\nkillall sketch.elf; mv /media/realroot/sketch.new /sketch/sketch.elf; sleep 1; reboot");
+		snprintf(cmd, 1023, "#!/bin/bash\n\n");
+		fwrite(cmd, strlen(cmd), 1, fp);
+
+		if (Config::hasProxyServer()) {
+			if (Config::isProxyAuthenticated()) {
+				memset(cmd, 0, 1024);
+				snprintf(cmd, 1023, "export http_proxy=\"http://%s:%s@%s:%d/\";\n", Config::getProxyServer().c_str(),
+					Config::getProxyPort(), Config::getProxyUser().c_str(), Config::getProxyPass().c_str());
+				fwrite(cmd, strlen(cmd), 1, fp);
+			} else {
+				memset(cmd, 0, 1024);
+				snprintf(cmd, 1023, "export http_proxy=\"http://%s:%d/\";\n", Config::getProxyServer().c_str(), Config::getProxyPort());
+				fwrite(cmd, strlen(cmd), 1, fp);
+			}
+		}
+
+		memset(cmd, 0, 1024);
+		snprintf(cmd, 1023, "killall sketch.elf; mv /media/realroot/sketch.new /sketch/sketch.elf; sleep 1; reboot");
 		fwrite(cmd, strlen(cmd), 1, fp);
 		fclose(fp);
 
+#ifndef DEBUG
 		system("/bin/bash /sketch/update.sh");
+#endif
 		while(1) {};
 	}
 	platformReboot();
+}
+
+unsigned long lastNTPTime = 0;
+unsigned long lastNTPMillis = 0;
+
+// Set date and time to NTP's retrieved one
+void execSystemTimeUpdate(time_t epoch) {
+	char command[100];
+	snprintf(command, 100, "/bin/date -s @%lu", epoch);
+
+	char buf[64];
+	FILE *ptr;
+
+	Log::d("Local system time update: %s", command);
+	if ((ptr = popen(command, "r")) != NULL) {
+		while (fgets(buf, 64, ptr) != NULL) {
+			std::string sbuf = std::string(buf);
+			std::string nbuf = Utils::trim(sbuf, '\r');
+			std::string vbuf = Utils::trim(nbuf, '\n');
+			Log::d(Utils::trim(vbuf, ' ').c_str());
+		}
+		pclose(ptr);
+	} else {
+		Log::d("error popen");
+	}
+	lastNTPMillis = Utils::millis();
+	lastNTPTime = epoch;
+}
+
+unsigned long getUNIXTime() {
+	if (lastNTPMillis == 0) {
+		return 0;
+	}
+	unsigned long diff = Utils::millis() - lastNTPMillis;
+	return (lastNTPTime + (diff / 1000));
 }

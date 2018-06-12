@@ -6,6 +6,7 @@
 #include "Log.h"
 #include "Config.h"
 #include "Utils.h"
+#include "generic.h"
 
 IPaddr Log::syslogServer(0, 0, 0, 0);
 bool Log::syslogEnabled = false;
@@ -37,16 +38,21 @@ void Log::setLogFile(const char *filepath) {
 	if(Utils::fileExists(filepath)) {
 		std::string oldlog = filepath;
 		oldlog.append(".old");
-		unlink(oldlog.c_str());
-		rename(filepath, oldlog.c_str());
+		if (unlink(oldlog.c_str()) != 0) {
+			fprintf(stderr, "Error rotating log files: cannot cleanup oldest log\n");
+			return;
+		}
+		if (rename(filepath, oldlog.c_str()) != 0) {
+			fprintf(stderr, "Error rotating log files: cannot rename current log\n");
+			return;
+		}
 	}
 
-	Log::logFile = fopen(filepath, "w");
+	Log::logFilePath = std::string(filepath);
+	Log::logFile = fopen(Log::logFilePath.c_str(), "w");
 	if (Log::logFile == NULL) {
-		fprintf(stderr, "Cannot open %s", Log::logFilePath.c_str());
+		fprintf(stderr, "Cannot open %s\n", Log::logFilePath.c_str());
 		Log::logFilePath = "";
- 	} else {
-		Log::logFilePath = std::string(filepath);
 	}
 }
 
@@ -136,15 +142,10 @@ void Log::enableStdoutDebug(bool enable) {
 std::string Log::getDateTime() {
 
 	char buf[512];
-	time_t now = time(NULL);
+	time_t now = getUNIXTime();
 	strftime(buf, 512, "%F %T", gmtime(&now));
 
 	return std::string(buf);
-}
-
-void Log::updateFromConfig() {
-	syslogServer = Config::getSyslogServer();
-	syslogEnabled = Config::getSyslogServer() != (uint32_t)0;
 }
 
 IPaddr Log::getSyslogServer() {

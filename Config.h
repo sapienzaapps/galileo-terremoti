@@ -36,30 +36,6 @@ public:
 	static void getMacAddressAsByte(byte mac[6]);
 
 	/**
-	 * Get configured latitude
-	 * @return Configured latitude
-	 */
-	static double getLatitude();
-
-	/**
-	 * Get configured longitude
-	 * @return Configured longitude
-	 */
-	static double getLongitude();
-
-	/**
-	 * Device is configured with a GPS position?
-	 * @return True if position is set, false otherwise
-	 */
-	static bool hasPosition();
-
-	/**
-	 * Check server config, then refresh locally
-	 * @return True if config is OK, false if an error occurred
-	 */
-	static bool checkServerConfig();
-
-	/**
 	 * Print config to log
 	 */
 	static void printConfig();
@@ -71,27 +47,48 @@ public:
 	static void setMacAddress(std::string macAddress);
 
 	/**
-	 * Set latitude
-	 * @return Latitude to set
-	 */
-	static void setLatitude(double lat);
-
-	/**
-	 * Set longitude
-	 * @return Longitude to set
-	 */
-	static void setLongitude(double lon);
-
-	/**
 	 * Returns the syslog server
 	 * @return Syslog server
 	 */
 	static uint32_t getSyslogServer();
 
 	/**
+	 * Returns if there is a proxy server configured
+	 */
+	static bool hasProxyServer();
+
+	/**
+	 * Returns the proxy server address
+	 */
+	static std::string getProxyServer();
+
+	/**
+	 * Returns the proxy server port
+	 */
+	static uint16_t getProxyPort();
+
+	/**
+	 * Returns true if the proxy server needs auth
+	 * Note: only Basic auth is supported
+	 */
+	static bool isProxyAuthenticated();
+
+	/**
+	 * Returns the proxy user name for auth
+	 */
+	static std::string getProxyUser();
+
+	/**
+	 * Returns the proxy user password for auth
+	 */
+	static std::string getProxyPass();
+
+	/**
 	 * Save config to file
 	 */
 	static void save();
+
+	static bool parseServerConfig(std::string cfg);
 
 private:
     /**
@@ -115,10 +112,12 @@ private:
      */
     static void file_put_contents(const char* path, std::string content);
 
-	static double lat;
-	static double lon;
 	static std::string macAddress;
 	static uint32_t syslogServer;
+	static std::string proxyServer;
+	static uint16_t proxyPort;
+	static std::string proxyUser;
+	static std::string proxyPass;
 };
 
 #endif

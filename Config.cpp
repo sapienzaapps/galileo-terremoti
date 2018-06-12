@@ -1,7 +1,5 @@
 #include "common.h"
 #include "Config.h"
-#include "net/HTTPClient.h"
-#include "net/NTP.h"
 #include "Log.h"
 #include "Utils.h"
 #include "LED.h"
@@ -10,16 +8,38 @@
 #include <string.h>
 
 std::string Config::macAddress = "";
-double Config::lat = 0.0;
-double Config::lon = 0.0;
 uint32_t Config::syslogServer = 0;
+std::string Config::proxyServer = "";
+uint16_t Config::proxyPort = 3128;
+std::string Config::proxyUser = "";
+std::string Config::proxyPass = "";
+
+bool Config::isProxyAuthenticated() {
+	return !Config::proxyUser.empty();
+}
+
+std::string Config::getProxyUser() {
+	return Config::proxyUser;
+}
+
+std::string Config::getProxyPass() {
+	return Config::proxyPass;
+}
+
+bool Config::hasProxyServer() {
+	return !Config::proxyServer.empty();
+}
+
+std::string Config::getProxyServer() {
+	return Config::proxyServer;
+}
+
+uint16_t Config::getProxyPort() {
+	return Config::proxyPort;
+}
 
 bool Config::hasMACAddress() {
 	return !Config::macAddress.empty();
-}
-
-bool Config::hasPosition() {
-	return Config::lat != 0.0 && Config::lon != 0.0;
 }
 
 std::string Config::getMacAddress() {
@@ -38,24 +58,6 @@ void Config::getMacAddressAsByte(byte mac[6]) {
 		b[1] = Config::macAddress[(i * 2) + 1];
 		mac[i] = (byte) strtol(b, NULL, 16);
 	}
-}
-
-double Config::getLatitude() {
-	return Config::lat;
-}
-
-void Config::setLatitude(double lat) {
-	Config::lat = lat;
-	Config::save();
-}
-
-double Config::getLongitude() {
-	return Config::lon;
-}
-
-void Config::setLongitude(double lon) {
-	Config::lon = lon;
-	Config::save();
 }
 
 bool Config::readConfigFile(const char *filepath) {
@@ -80,12 +82,20 @@ bool Config::readConfigFile(const char *filepath) {
 			if (argument.size() < 12) continue;
 			Config::macAddress = argument;
 			Log::d("Device ID: %s", Config::getMacAddress().c_str());
-		} else if (strncmp("lat", buf, 3) == 0) {
-			Config::lat = Utils::atofn(argument.c_str(), 8);
-			Log::d("Latitude: %lf", Config::getLatitude());
-		} else if (strncmp("lon", buf, 3) == 0) {
-			Config::lon = Utils::atofn(argument.c_str(), 8);
-			Log::d("Longitude: %lf", Config::getLongitude());
+		} else if (strncmp("proxyserver", buf, 11) == 0) {
+			Config::proxyServer = argument;
+			Log::d("Proxy Server: %s", argument.c_str());
+		} else if (strncmp("proxyport", buf, 9) == 0) {
+			Config::proxyPort = atoi(argument.c_str());
+			Log::d("Proxy port: %d", Config::proxyPort);
+		} else if (strncmp("proxyuser", buf, 9) == 0) {
+			Config::proxyUser = argument;
+			Log::d("Proxy User: %s", argument.c_str());
+		} else if (strncmp("proxypass", buf, 9) == 0) {
+			Config::proxyPass = argument;
+			Log::d("Proxy Pass: %s", argument.c_str());
+		} else {
+			Log::d("Unknown config line: %s", buf);
 		}
 	}
 	fclose(fp);
@@ -101,16 +111,30 @@ void Config::save() {
 	}
 
 	char buf[200 + 1];
-	memset(buf, 0, 200 + 1);
 
+	memset(buf, 0, 200 + 1);
 	snprintf(buf, 200, "deviceid:%s\n", Config::macAddress.c_str());
 	fwrite(buf, 1, strlen(buf), fp);
 
-	snprintf(buf, 200, "lat:%f\n", Config::lat);
-	fwrite(buf, 1, strlen(buf), fp);
+	if (Config::hasProxyServer()) {
+		memset(buf, 0, 200 + 1);
+		snprintf(buf, 200, "proxyserver:%s\n", Config::getProxyServer().c_str());
+		fwrite(buf, 1, strlen(buf), fp);
 
-	snprintf(buf, 200, "lon:%f\n", Config::lon);
-	fwrite(buf, 1, strlen(buf), fp);
+		memset(buf, 0, 200 + 1);
+		snprintf(buf, 200, "proxyport:%d\n", Config::getProxyPort());
+		fwrite(buf, 1, strlen(buf), fp);
+
+		if (Config::isProxyAuthenticated()) {
+			memset(buf, 0, 200 + 1);
+			snprintf(buf, 200, "proxyuser:%s\n", Config::getProxyUser().c_str());
+			fwrite(buf, 1, strlen(buf), fp);
+
+			memset(buf, 0, 200 + 1);
+			snprintf(buf, 200, "proxypass:%s\n", Config::getProxyPass().c_str());
+			fwrite(buf, 1, strlen(buf), fp);
+		}
+	}
 
 	fclose(fp);
 }
@@ -123,13 +147,11 @@ void Config::init() {
 }
 
 void Config::loadDefault() {
-	lat = 0.0;
-	lon = 0.0;
 	macAddress = Utils::getInterfaceMAC();
+	Config::save();
 }
 
-bool Config::checkServerConfig() {
-	std::string cfg = HTTPClient::getConfig();
+bool Config::parseServerConfig(std::string cfg) {
 	if (!cfg.empty()) {
 		std::map<std::string, std::string> params = configSplit(cfg, '|');
 		if (params.empty()) {
@@ -144,14 +166,8 @@ bool Config::checkServerConfig() {
 			platformUpgrade(path);
 		}
 
-		// Workaround for old configuration
-		if (strcmp(params["server"].c_str(), "http://") == 0) {
-			HTTPClient::setBaseURL(params["server"]);
-		}
-
-		NTP::setNTPServer(params["ntpserver"]);
-
 		if (params.count("sigma") == 1) {
+			Log::d("Setting sigma to %s", params["sigma"].c_str());
 			seismometer->setSigmaIter(atof(params["sigma"].c_str()));
 		} else {
 			seismometer->setSigmaIter(seismometer->getSigmaIter());
@@ -211,11 +227,9 @@ void Config::printConfig() {
 
 	Log::i("DeviceID: %s", Config::getMacAddress().c_str());
 
-	Log::i("Position (lat, lon): %lf %lf", Config::getLatitude(), Config::getLongitude());
-
 	Log::i("IP: %s", IPaddr::localIP().asString().c_str());
 
-	Log::i("Base URL: %s", HTTPClient::getBaseURL().c_str());
+//	Log::i("Base URL: %s", HTTPClient::getBaseURL().c_str());
 
 #ifdef DEBUG
 	Log::d("Build version: %s", BUILD_VERSION);

@@ -80,10 +80,58 @@ void LED::init(uint8_t greenLedPin, uint8_t yellowLedPin, uint8_t redLedPin) {
 	if(rc) {
 		Log::e("Error during LED thread creation");
 	}
+#if GALILEO_GEN == 1
+	FILE* fp = fopen("/sys/class/gpio/gpio3/direction", "w");
+	if (fp != NULL) {
+		fwrite("out", 3, 1, fp);
+		fclose(fp);
+	}
+#else
+	FILE* fp = fopen("/sys/class/gpio/gpio30/direction", "w");
+	if (fp != NULL) {
+		fwrite("out", 3, 1, fp);
+		fclose(fp);
+	}
+	fp = fopen("/sys/class/gpio/gpio30/value", "w");
+	if (fp != NULL) {
+		fwrite("0", 1, 1, fp);
+		fclose(fp);
+	}
+	fp = fopen("/sys/class/gpio/gpio7/direction", "w");
+	if (fp != NULL) {
+		fwrite("out", 3, 1, fp);
+		fclose(fp);
+	}
+#endif
+
+	LED::green(false);
+	LED::red(false);
+	LED::yellow(false);
 }
 
 void LED::green(bool isOn) {
 	LED::set(greenLedPin, isOn);
+#if GALILEO_GEN == 1
+	FILE* fp = fopen("/sys/class/gpio/gpio3/value", "w");
+	if (fp != NULL) {
+		if (isOn) {
+			fwrite("1", 1, 1, fp);
+		} else {
+			fwrite("0", 1, 1, fp);
+		}
+		fclose(fp);
+	}
+#else
+	FILE* fp = fopen("/sys/class/gpio/gpio7/value", "w");
+	if (fp != NULL) {
+		if (isOn) {
+			fwrite("1", 1, 1, fp);
+		} else {
+			fwrite("0", 1, 1, fp);
+		}
+		fclose(fp);
+	}
+#endif
 }
 
 void LED::red(bool isOn) {

@@ -33,4 +33,8 @@ void platformReboot();
 
 void platformUpgrade(std::string path);
 
+void execSystemTimeUpdate(time_t epoch);
+
+unsigned long getUNIXTime();
+
 #endif //GALILEO_TERREMOTI_VENDOR_H

@@ -5,13 +5,12 @@
 #include "common.h"
 #include "Seismometer.h"
 #include "Log.h"
-#include "net/NTP.h"
-#include "net/HTTPClient.h"
 #include "LED.h"
 #include "Utils.h"
 #include "generic.h"
 #include "net/TraceAccumulator.h"
 #include "LCDMonitor.h"
+#include "net/SCSAPI.h"
 
 Seismometer *Seismometer::instance = NULL;
 
@@ -27,7 +26,7 @@ void Seismometer::init() {
 	}
 }
 
-void Seismometer::tick() {
+void Seismometer::tick(SCSAPI *scsapi) {
 	if (accelero == NULL) {
 		return;
 	}
@@ -37,11 +36,12 @@ void Seismometer::tick() {
 
 	RECORD db = {0, 0, false};
 
-	db.ts = NTP::getUNIXTime();
+	db.ts = getUNIXTime();
 	db.accel = accelero->getTotalVector();
 	db.overThreshold = db.accel > quakeThreshold;
 
-	TraceAccumulator::traceValue(db.ts, db.accel, quakeThreshold, getCurrentAVG(), getCurrentSTDDEV(), getSigmaIter());
+	TraceAccumulator::traceValue(db.ts, db.accel, quakeThreshold,  getCurrentAVG(),
+								 getCurrentSTDDEV(), getSigmaIter());
 	addValueToAvgVar(db.accel);
 
 #ifdef SDL_DEMO
@@ -75,7 +75,7 @@ void Seismometer::tick() {
 		inEvent = true;
 		lastEventWas = Utils::millis();
 
-		HTTPClient::httpSendAlert(&db);
+		scsapi->terremoto(&db);
 	}
 }
 

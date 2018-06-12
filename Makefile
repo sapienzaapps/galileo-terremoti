@@ -21,7 +21,7 @@ endif
 
 include vendor/${PLATFORM}/toolchain.mk
 
-MODULES := CommandInterface Config Log Seismometer Utils galileo-core
+MODULES := CommandInterface Config Log Seismometer Utils galileo-core base64
 
 ifneq (, ${SDLDEMO})
 MODULES += LCDMonitor
