@@ -4,7 +4,7 @@
 
 # NodeMCU?
 
-To use NodeMCU boards you must use sketch at https://github.com/sapienzaapps/seismoclouddevice-nodemcu . The code here is for Intel Galileo / Raspberry only.
+To use NodeMCU boards you must use sketch at https://github.com/sapienzaapps/seismoclouddevice-nodemcu . The code here is for Raspberry PI only.
 
 # License
 
@@ -14,7 +14,6 @@ See LICENSE file
 
 * GNU/Linux or OSX (others \*BSD are not supported but it should works)
 * GNU make
-* Galileo toolchain (if you plan to compile for Arduino Galileo), you can find it here: http://www.intel.com/support/galileo/sb/CS-035101.htm
 * GCC compiler (if you plan to compile for `linux-x86`)
 * Raspberry PI cross-compilation toolchain (if you plan to compile for `raspi`)
 
@@ -29,14 +28,12 @@ If you have any firewall in your network, please allow these ports to Internet (
 ## Hardware needed
 
 * 3 LEDs (Red, Green, Blue) with 3 resistor
-* 1 Accelerometer (MMA7361 if you have analog inputs, ADXL345 for i2c)
-* Arduino Galileo / Raspberry PI
+* 1 Accelerometer (ADXL345)
+* Raspberry PI
 * Donuts cables
 * Ethernet wired connection
 
-If you plan to use Arduino Uno or Arduino Galileo you should use MMA7361 accelerometer and analog pins on-board. If you use Raspberry, you should choose ADXL345 accelerometer instead (because Raspberry PI uses I2C bus to communicate with ADXL345).
-
-**Raspberry PI users**: if `i2c` bus is not enabled, please refer to `Platform specific` chapter of this README to enable i2c on Raspberry PI.
+**Important**: if `i2c` bus is not enabled, please refer to `Platform specific` chapter of this README to enable i2c on Raspberry PI.
 
 ## LEDs
 
@@ -51,32 +48,11 @@ LEDs can be in these different states:
 * **Green + Yellow + Red - ALL rotating**: software is loading
 * **Green + Yellow + Red - ALL blinking fast**: software is loaded, starting accelerometer
 
-### LED pins on Arduino Galileo
-
-* Pin 8 : Yellow
-* Pin 10 : Green
-* Pin 12 : Red
-
 ### LED pins on Raspberry PI
 
 * GPIO-17 (wiringpi addr #0) : Green
 * GPIO-18 (wiringpi addr #1) : Yellow
 * GPIO-21 (wiringpi addr #2) : Red
-
-## Link MMA7361 Accelerometer to Galileo
-
-Link these pins from Accelerometer MMA7361 to Arduino Galileo board:
-
-* Vin: 5v
-* GND: GND
-* SEL: GND
-* X: A0
-* Y: A1
-* Z: A2
-
-Loop back **3v3** pin to **SLP** on Accelerometer.
-
-**Note**: the accelerometer should be aligned with Z perpendicular to the ground.
 
 ## Link ADXL345 Accelerometer to Raspberry PI
 
@@ -88,21 +64,6 @@ Loop back **3v3** pin to **SLP** on Accelerometer.
 Refer to Raspberry PI pinout, as https://jeffskinnerbox.files.wordpress.com/2012/11/raspberry-pi-rev-1-gpio-pin-out1.jpg
 
 # Setup your build environment
-## Cross compile for Galileo
-
-### on OS X
-
-You should have Arduino Galileo IDE installed into `/Applications`. If not you can use the `GNU/Linux` guide to create a toolchain in a custom path.
-
-#### on GNU/Linux
-
-To create a toolchain for Galileo:
-
-1. Download Galileo Arduino IDE from Intel website
-2. Extract archive to `/opt/` (so you'll have `/opt/arduino-1.6.0+Intel/arduino` executable)
-
-If you don't have root access, you can place these files to any path you like (remember to use **SDK_ROOT** make option to specify different path)
-
 ## Compile on Raspberry Pi (Raspbian Jessie)
 
 Make sure that you have these (debian) packages: `build-essential git wiringpi` and you're good to go.
@@ -124,17 +85,6 @@ You may use these options to compile a particular version:
 * **DEBUG_SERVER** : if nonempty, device will use testing APIs
 * **NOWATCHDOG** : if nonempty, watchdog will be disabled
 * **REMOTEHOST** : if nonempty, enables `upload` target (Galileo only)
-
-## First time compilation with Arduino Galileo toolchain
-
-On first time you need to use Arduino Galileo IDE to "relocate" (eg. setting up some paths).
-To do so, please open Arduino IDE, select "Arduino Galileo" board from menu and click on "verify/compile" (tick icon).
-
-# How to build Arduino Galileo SD Image (Linux-only)
-
-Just use `./genimage.sh build/path-to-sketch-depending-on-vendor/sketch.elf`
-
-Files will be placed on `build/image-full-galileo/` (copy contents to an empty FAT32-formatted SD Card).
 
 # How to add a new platform
 
@@ -163,27 +113,3 @@ In order to test latency you need to run `sketch.elf` as root OR grant `CAP_NET_
 Please refer to this post: https://www.raspberrypi.org/forums/viewtopic.php?f=28&t=97314
 
 In short, you should run `raspi-config` and enable `i2c` under `Advanced Options` menu (and then reboot).
-
-## GDB Debug (cross)
-
-To debug core dumps from Galileo you need "gdb-multiarch" (usually shipped in your distro's repos). Example:
-
-    $ gdb-multiarch
-    ...
-    This GDB was configured as "x86_64-linux-gnu".
-    Type "show configuration" for configuration details.
-    For bug reporting instructions, please see:
-    <http://www.gnu.org/software/gdb/bugs/>.
-    ...
-    (gdb) set gnutarget elf32-littlearm
-    (gdb) file sketch.elf
-    (gdb) target core coredump.dat
-    (gdb) set sysroot /opt/arduino-1.6.0+Intel/hardware/tools/i586/sysroots/i586-poky-linux-uclibc/
-    (gdb) bt
-
-## Galileo: disable connmand (static IP)
-
-To disable `connmand` and revert plain old `networking` script, use these commands:
-
-    # rm /etc/rc5.d/S05connman
-    # ln -s ../init.d/networking /etc/rc5.d/S05networking
